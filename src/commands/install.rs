@@ -42,6 +42,12 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
     let mut lock_deps = BTreeMap::new();
 
     let mut schema_count = 0;
+
+    info!("Pruning active cache array...");
+    linker
+        .purge_all()
+        .context("Failed to safely prune .rusl/schemas/ directory manually")?;
+
     info!("Locking and synchronizing schemas...");
 
     for (pkg, version) in resolved_graph {

@@ -16,6 +16,20 @@ impl Linker {
         Self { project_root: cwd }
     }
 
+    /// Brutally purges the entire local `.rusl/schemas` directory to eliminate orphan symlinks natively.
+    pub fn purge_all(&self) -> Result<()> {
+        let local_dir = self.project_root.join(".rusl").join("schemas");
+        if local_dir.exists() {
+            std::fs::remove_dir_all(&local_dir).with_context(|| {
+                format!(
+                    "Failed to securely prune legacy schema cache at {:?}",
+                    local_dir
+                )
+            })?;
+        }
+        Ok(())
+    }
+
     /// Maps a global schema directly into the local working directory namespace.
     /// This uses OS-native symbolic linking to guarantee zero-copy, instantly mirrored files.
     ///
