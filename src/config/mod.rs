@@ -2,59 +2,73 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
+pub mod credentials;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(default)]
 pub struct Config {
-    pub registry_url: String,
+    #[serde(alias = "registry_url")]
+    pub api_base_url: String,
+    pub website_url: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        // 4. Compile-time fallback URL (Overrideable via `RUSL_DEFAULT_REGISTRY` during `cargo build`)
-        let compile_time_url =
-            option_env!("RUSL_DEFAULT_REGISTRY").unwrap_or("https://registry.rusl.dev");
+        // Compile-time fallback URLs dynamically routing traffic securely.
+        let default_api = option_env!("RUSL_DEFAULT_API_URL").unwrap_or("https://api.rusl.app");
+        let default_web = option_env!("RUSL_DEFAULT_WEBSITE_URL").unwrap_or("https://rusl.app");
+
         Self {
-            registry_url: compile_time_url.to_string(),
+            api_base_url: default_api.to_string(),
+            website_url: default_web.to_string(),
         }
     }
 }
 
-/// Loads the config strictly via a hierarchical precedence sequence
+/// Loads the config strictly via a hierarchical precedence sequence natively
 pub fn load() -> anyhow::Result<Config> {
-    // 1. Runtime Environment Variable Override (Highest Priority)
-    if let Ok(url) = std::env::var("RUSL_REGISTRY_URL") {
-        debug!("Found runtime environment override: RUSL_REGISTRY_URL");
-        return Ok(Config { registry_url: url });
-    }
+    let mut config = Config::default();
 
-    // 2. Search locally upwards
+    // 1. Search locally upwards
     let mut current_dir = std::env::current_dir().ok();
+    let mut found_toml = false;
 
     while let Some(dir) = current_dir.as_ref() {
         let local_config = dir.join("rusl.config.toml");
         if local_config.exists() {
             debug!("Found local config at: {:?}", local_config);
             let contents = std::fs::read_to_string(&local_config)?;
-            let config: Config = toml::from_str(&contents)
-                .with_context(|| format!("Failed to parse config at {:?}", local_config))?;
-            return Ok(config);
+            let parsed: Config = toml::from_str(&contents)
+                .with_context(|| format!("Configuration Parse Error: File {:?} exists but contains invalid TOML syntax. Please ensure it follows the format documented in the README.", local_config))?;
+            config = parsed;
+            found_toml = true;
+            break;
         }
         // Move up one directory
         current_dir = dir.parent().map(|p| p.to_path_buf());
     }
 
     // 2. Global Fallback
-    if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "rusl") {
-        let global_config = proj_dirs.config_dir().join("config.toml");
-        if global_config.exists() {
-            debug!("Found global config at: {:?}", global_config);
-            let contents = std::fs::read_to_string(&global_config)?;
-            let config: Config = toml::from_str(&contents)
-                .with_context(|| format!("Failed to parse config at {:?}", global_config))?;
-            return Ok(config);
+    if !found_toml {
+        if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "rusl") {
+            let global_config = proj_dirs.config_dir().join("config.toml");
+            if global_config.exists() {
+                debug!("Found global config at: {:?}", global_config);
+                let contents = std::fs::read_to_string(&global_config)?;
+                let parsed: Config = toml::from_str(&contents)
+                    .with_context(|| format!("Configuration Parse Error: Global config at {:?} contains strictly invalid TOML syntax.", global_config))?;
+                config = parsed;
+            }
         }
     }
 
-    // 3. Absolute Default
-    debug!("No configuration file found. Using default.");
-    Ok(Config::default())
+    // 3. Runtime Environment Variable Override natively (Highest Priority mathematically)
+    if let Ok(url) = std::env::var("RUSL_API_URL") {
+        config.api_base_url = url;
+    }
+    if let Ok(url) = std::env::var("RUSL_WEBSITE_URL") {
+        config.website_url = url;
+    }
+
+    Ok(config)
 }

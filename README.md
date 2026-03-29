@@ -16,17 +16,19 @@ Rusl is a state-of-the-art, lightning-fast Rust CLI meant to seamlessly resolve,
 Rusl defines a **4-Tier precedence chain** for configuration mapping, prioritizing local flexibility while maintaining robust production scaling.
 
 ### Configuration Properties
-Currently, the `Config` struct exposes exactly one core network property:
+Currently, the `Config` struct exposes two core network domains natively:
 ```toml
-registry_url = "https://registry.rusl.dev"
+api_base_url = "https://api.registry.rusl.dev"
+website_url = "https://registry.rusl.dev"
 ```
+*(Note: For backward compatibility, `registry_url` is silently aliased to `api_base_url` if found in legacy configs).*
 
 ### The 4-Tier Precedence Chain
 
 #### 1. Runtime Environment Variables (Highest Priority)
-If you need ephemeral CI/CD injection or instant override mapping, execution properties natively absorb runtime environments before ever touching the disk:
+If you need ephemeral CI/CD injection or instant override mapping natively:
 ```bash
-RUSL_REGISTRY_URL="http://localhost:4000" rusl install
+RUSL_API_URL="http://localhost:4000" RUSL_WEBSITE_URL="http://localhost:3000" rusl login
 ```
 
 #### 2. Project-Level Targeting (`rusl.config.toml`)
@@ -36,11 +38,11 @@ Project-level configuration takes complete mathematical precedence over global d
 If no project dotfile exists, user-level persistent boundaries override the binary fallbacks natively via: `<OS_CONFIG_DIR>/rusl/config.toml`
 
 #### 4. Compile-Time Default Fallbacks (Lowest Priority)
-If a user installs the binary with absolutely zero configuration files and no environment variables deployed, the baseline defaults to the public ecosystem: `https://registry.rusl.dev`.
+If a user installs the binary with absolutely zero configuration files and no environment variables deployed, the baseline defaults to the public ecosystem: `https://api.rusl.app` natively.
 
 *Note: You can permanently override this fallback explicitly during binary compilation using rust's compile-time hooks!*
 ```bash
-RUSL_DEFAULT_REGISTRY="https://private-corp-registry.internal" cargo build --release
+RUSL_DEFAULT_API_URL="https://private-corp-registry.internal" cargo build --release
 ```
 
 ---

@@ -33,7 +33,7 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
 
     info!(
         "Resolving 'bundle:{}' v{} via {}",
-        manifest.bundle.name, manifest.bundle.version, config.registry_url
+        manifest.bundle.name, manifest.bundle.version, config.api_base_url
     );
     let resolved_graph = resolve_graph(&manifest, &client)
         .await
@@ -75,7 +75,7 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
             LockDependency {
                 version: version.to_string(),
                 integrity,
-                source: config.registry_url.clone(),
+                source: config.api_base_url.clone(),
             },
         );
 

@@ -21,6 +21,7 @@ async fn main() -> anyhow::Result<()> {
         cli::Commands::Install(args) => commands::install::run(args).await?,
         cli::Commands::Add(args) => commands::add::run(args).await?,
         cli::Commands::Remove(args) => commands::remove::run(args).await?,
+        cli::Commands::Login(args) => commands::login::run(args).await?,
     }
 
     Ok(())
