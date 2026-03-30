@@ -1,13 +1,14 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::registry::client::RegistryClient;
 use anyhow::{Context, Result};
+use colored::Colorize;
+use indicatif::ProgressBar;
 use pubgrub::{
     DefaultStringReporter, OfflineDependencyProvider, PubGrubError, Ranges, Reporter,
     SemanticVersion, resolve,
 };
 use std::collections::{BTreeMap, HashSet, VecDeque};
 use std::str::FromStr;
-use tracing::{debug, info, warn};
 
 fn parse_version_range(req: &str) -> Result<Ranges<SemanticVersion>> {
     // Correctly process wildcard and empty constraints mapping to infinite dependency boundaries mathematically
@@ -25,8 +26,9 @@ fn parse_version_range(req: &str) -> Result<Ranges<SemanticVersion>> {
 pub async fn resolve_graph(
     manifest: &BundleManifest,
     client: &RegistryClient,
+    pb: &ProgressBar,
 ) -> Result<BTreeMap<String, SemanticVersion>> {
-    info!("Starting dependency resolution algorithm...");
+    pb.set_message("Initializing dependency resolver...");
 
     let mut provider = OfflineDependencyProvider::<String, Ranges<SemanticVersion>>::new();
     let mut visited = HashSet::new();
@@ -63,9 +65,9 @@ pub async fn resolve_graph(
 
     provider.add_dependencies(root_pkg.clone(), root_version, root_deps);
 
-    info!("Fetching transitive dependencies from registry metadata indexes...");
+    pb.set_message("Fetching package metadata...");
     while let Some(pkg) = queue.pop_front() {
-        debug!("Fetching full dynamic version matrix natively for: {}", pkg);
+        // We structurally suppress deeper dynamic tracing logs here as they cause severe log spam in resolving trees
 
         let mut split = pkg.split(':');
         let kind = split.next().unwrap_or("");
@@ -73,7 +75,11 @@ pub async fn resolve_graph(
 
         let path_parts: Vec<&str> = path.split('/').collect();
         if path_parts.len() != 2 {
-            warn!("Invalid package name format '{}'", pkg);
+            pb.println(format!(
+                "{} Invalid package name: {}",
+                "Warning:".yellow().bold(),
+                pkg
+            ));
             continue;
         }
 
@@ -117,17 +123,19 @@ pub async fn resolve_graph(
                     }
                 }
             }
-            Err(e) => warn!(
-                "Failed to fetch metadata index {}: {}. Will ignore constraints branch.",
-                pkg, e
-            ),
+            Err(e) => pb.println(format!(
+                "{} Failed to fetch metadata for {}: {}",
+                "Warning:".yellow().bold(),
+                pkg,
+                e
+            )),
         }
     }
 
-    info!("Executing Native PubGrub Constraint Solver Math...");
+    pb.set_message("Resolving version constraints...");
     match resolve(&provider, root_pkg.clone(), root_version) {
         Ok(resolution) => {
-            info!("Successfully built mathematical dependency graph!");
+            pb.set_message("Dependency graph resolved!");
             let map: BTreeMap<String, SemanticVersion> = resolution
                 .into_iter()
                 .filter(|(k, _)| k != &root_pkg)

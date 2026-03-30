@@ -1,10 +1,11 @@
 use crate::config::Config;
 use crate::config::credentials::Credentials;
 use anyhow::{Context, Result};
+use colored::Colorize;
 use reqwest::{Client, RequestBuilder, StatusCode};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{debug, info, warn};
+use tracing::debug;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryVersion {
@@ -48,13 +49,42 @@ impl RegistryClient {
         }
     }
 
-    /// Executes the HTTP request. If it mathematically encounters a `401 Unauthorized`, it instantly
-    /// attempts to swap the `refresh_token` for a fresh `access_token` and retries the target exactly once.
+    /// Executes the HTTP request.
     async fn execute_with_auth_retry(
         &self,
         req_builder: RequestBuilder,
     ) -> Result<reqwest::Response> {
         let mut creds = Credentials::load();
+
+        // 1. Eagerly check if we ONLY have a refresh token but a blank access token.
+        // If so, proactively exchange it before the first request.
+        if let Some(ref mut current_creds) = creds {
+            if current_creds.access_token.trim().is_empty()
+                && !current_creds.refresh_token.trim().is_empty()
+            {
+                let refresh_url = format!("{}/api/tokens/exchange", self.config.api_base_url);
+                let refresh_res = self
+                    .client
+                    .post(&refresh_url)
+                    .bearer_auth(&current_creds.refresh_token)
+                    .send()
+                    .await?;
+
+                if refresh_res.status().is_success() {
+                    let token_data: TokenExchangeResponse = refresh_res
+                        .json()
+                        .await
+                        .context("Failed to deserialize token exchange json")?;
+                    current_creds.access_token = token_data.access_token;
+                    let _ = current_creds.save();
+                } else {
+                    println!(
+                        "{} Your session has expired. You may need to run `rusl login` again.",
+                        "Warning:".yellow().bold()
+                    );
+                }
+            }
+        }
 
         // Clone the request intrinsically so we can safely retry it if it explodes natively
         let initial_req = req_builder
@@ -83,7 +113,6 @@ impl RegistryClient {
                         .json()
                         .await
                         .context("Failed to deserialize refreshed API token json natively")?;
-                    info!("Successfully refreshed OAuth2 PKCE session implicitly!");
 
                     current_creds.access_token = token_data.access_token.clone();
                     current_creds.save().context(
@@ -97,8 +126,9 @@ impl RegistryClient {
                         .context("Failed to clone HTTP request payload natively")?;
                     res = self.inject_auth(retry_req, &creds).send().await?;
                 } else {
-                    warn!(
-                        "Refresh explicitly failed with mathematical status {}. Local session is formally dead.",
+                    println!(
+                        "{} Session refresh failed (HTTP {}). Please run `rusl login` to re-authenticate.",
+                        "Error:".red().bold(),
                         refresh_res.status()
                     );
                 }
@@ -161,5 +191,15 @@ impl RegistryClient {
             .await
             .context(format!("Failed to download raw blob from {}", url))?;
         Ok(bytes.to_vec())
+    }
+
+    /// Fetches the currently authenticated session user profile
+    pub async fn fetch_me(&self) -> Result<serde_json::Value> {
+        let url = format!("{}/api/auth/sessions/me", self.config.api_base_url);
+        let req = self.client.get(&url);
+        let res = self.execute_with_auth_retry(req).await?;
+        res.json()
+            .await
+            .context("Failed to securely deserialize session profile json")
     }
 }

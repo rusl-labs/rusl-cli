@@ -3,15 +3,18 @@ use crate::commands::install;
 use crate::config;
 use crate::registry::client::RegistryClient;
 use anyhow::{Context, Result};
+use colored::Colorize;
 use std::fs;
 use toml_edit::{DocumentMut, table, value};
-use tracing::info;
 
 pub async fn run(args: AddArgs) -> Result<()> {
+    let pb = crate::ui::spinner("Reading rusl.bundle.toml...");
+
     let cwd = std::env::current_dir()?;
     let manifest_path = cwd.join("rusl.bundle.toml");
 
     if !manifest_path.exists() {
+        pb.finish_and_clear();
         anyhow::bail!("No rusl.bundle.toml found in current directory! Please create one.");
     }
 
@@ -27,9 +30,7 @@ pub async fn run(args: AddArgs) -> Result<()> {
     let target_version = match args.version {
         Some(v) => v,
         None => {
-            info!(
-                "No explicit boundaries provided. Querying metadata index dynamically for the most optimal limit."
-            );
+            pb.set_message("Finding the latest version...");
             let parts: Vec<&str> = args.slug.split('/').collect();
             if parts.len() != 2 {
                 anyhow::bail!("Slug must be in format account/schema-name");
@@ -62,10 +63,10 @@ pub async fn run(args: AddArgs) -> Result<()> {
 
     if let Some(table_ref) = doc.get_mut(table_key) {
         if let Some(table) = table_ref.as_table_mut() {
-            info!(
-                "Injecting `{}` = `{}` intrinsically into `[{}]`",
+            pb.set_message(format!(
+                "Adding {}@{} to [{}]...",
                 args.slug, target_version, table_key
-            );
+            ));
             table.insert(&args.slug, value(target_version));
         } else {
             anyhow::bail!(
@@ -77,9 +78,12 @@ pub async fn run(args: AddArgs) -> Result<()> {
 
     fs::write(&manifest_path, doc.to_string())
         .context("Failed to persist mathematically modified TOML natively")?;
-    info!(
-        "Successfully mapped dependency physically! Handing off execution seamlessly to the Installation routine..."
-    );
+
+    pb.finish_with_message(format!(
+        "{} Added {} to rusl.bundle.toml",
+        "Success:".green().bold(),
+        args.slug
+    ));
 
     install::run(InstallArgs {}).await?;
 

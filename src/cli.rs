@@ -18,6 +18,8 @@ pub enum Commands {
     Remove(RemoveArgs),
     /// Authenticate securely against the backend registry using OAuth2/PKCE callbacks natively
     Login(LoginArgs),
+    /// Check the active authenticated session
+    Whoami(WhoamiArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -25,6 +27,9 @@ pub struct InstallArgs {}
 
 #[derive(Parser, Debug)]
 pub struct LoginArgs {}
+
+#[derive(Parser, Debug)]
+pub struct WhoamiArgs {}
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 pub enum DepType {

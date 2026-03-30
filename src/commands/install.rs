@@ -7,11 +7,11 @@ use crate::manifest::lock::{LockDependency, LockManifest};
 use crate::registry::client::RegistryClient;
 use crate::resolver::graph::resolve_graph;
 use anyhow::{Context, Result};
+use colored::Colorize;
 use std::collections::BTreeMap;
-use tracing::{info, warn};
 
 pub async fn run(_args: InstallArgs) -> Result<()> {
-    info!("Starting rusl installation process...");
+    let pb = crate::ui::spinner("Starting installation...");
 
     let config = config::load().context("Failed to load hierarchical configuration")?;
     let client = RegistryClient::new(config.clone());
@@ -31,11 +31,11 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
     let manifest: BundleManifest =
         toml::from_str(&manifest_contents).context("Syntax error in rusl.bundle.toml")?;
 
-    info!(
-        "Resolving 'bundle:{}' v{} via {}",
-        manifest.bundle.name, manifest.bundle.version, config.api_base_url
-    );
-    let resolved_graph = resolve_graph(&manifest, &client)
+    pb.set_message(format!(
+        "Resolving dependencies for {}@{}...",
+        manifest.bundle.name, manifest.bundle.version
+    ));
+    let resolved_graph = resolve_graph(&manifest, &client, &pb)
         .await
         .context("Dependency resolution failed")?;
 
@@ -43,12 +43,12 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
 
     let mut schema_count = 0;
 
-    info!("Pruning active cache array...");
+    pb.set_message("Cleaning old schema cache...");
     linker
         .purge_all()
         .context("Failed to safely prune .rusl/schemas/ directory manually")?;
 
-    info!("Locking and synchronizing schemas...");
+    pb.set_message("Downloading schemas...");
 
     for (pkg, version) in resolved_graph {
         // We only download AND map `schema:` items! Bundles are just logical abstractions.
@@ -59,11 +59,15 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
         let clean_pkg = pkg.trim_start_matches("schema:");
         let parts: Vec<&str> = clean_pkg.split('/').collect();
         if parts.len() != 2 {
-            warn!("Skipping malformed schema key: {}", clean_pkg);
+            pb.println(format!(
+                "{} Skipping invalid schema key: {}",
+                "Warning:".yellow().bold(),
+                clean_pkg
+            ));
             continue;
         }
 
-        info!("Fetching {} v{} ...", clean_pkg, version);
+        pb.set_message(format!("Downloading {}@{} ...", clean_pkg, version));
         let blob = client
             .download_schema_blob(parts[0], parts[1], &version.to_string())
             .await?;
@@ -92,9 +96,10 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
     let lock_toml = toml::to_string_pretty(&new_lock)?;
     std::fs::write(&lock_path, lock_toml).context("Failed to write rusl.lock")?;
 
-    info!(
-        "Installation completed successfully! Linked {} schemas into .rusl/schemas/",
+    pb.finish_with_message(format!(
+        "{} Installed {} schemas.",
+        "Success:".green().bold(),
         schema_count
-    );
+    ));
     Ok(())
 }

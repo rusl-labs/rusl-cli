@@ -1,15 +1,18 @@
 use crate::cli::{DepType, InstallArgs, RemoveArgs};
 use crate::commands::install;
 use anyhow::{Context, Result};
+use colored::Colorize;
 use std::fs;
 use toml_edit::DocumentMut;
-use tracing::info;
 
 pub async fn run(args: RemoveArgs) -> Result<()> {
+    let pb = crate::ui::spinner("Reading rusl.bundle.toml...");
+
     let cwd = std::env::current_dir()?;
     let manifest_path = cwd.join("rusl.bundle.toml");
 
     if !manifest_path.exists() {
+        pb.finish_and_clear();
         anyhow::bail!("No rusl.bundle.toml found in current directory! Please create one.");
     }
 
@@ -34,21 +37,23 @@ pub async fn run(args: RemoveArgs) -> Result<()> {
     };
 
     if removed.is_some() {
-        info!(
-            "Effectively orphaned `{}` physically from the `[{}]` architecture limit map.",
-            args.slug, table_key
-        );
+        pb.set_message(format!("Removing {} from [{}]...", args.slug, table_key));
         fs::write(&manifest_path, doc.to_string())
             .context("Failed to persist mathematically modified TOML natively")?;
-        info!(
-            "Successfully detached topological dependency locally! Executing topological validation pruning run..."
-        );
+
+        pb.finish_with_message(format!(
+            "{} Removed {} from rusl.bundle.toml",
+            "Success:".green().bold(),
+            args.slug
+        ));
         install::run(InstallArgs {}).await?;
     } else {
-        info!(
-            "The target architecture boundary `{}` mathematically wasn't natively linked inside `[{}]`. Skipping deletion map...",
-            args.slug, table_key
-        );
+        pb.finish_with_message(format!(
+            "{} {} is not in [{}]. Nothing to remove.",
+            "Status:".cyan().bold(),
+            args.slug,
+            table_key
+        ));
     }
 
     Ok(())
