@@ -1,0 +1,20 @@
+version = "1"
+
+[dependencies."bundle:rusl/cli"]
+version = "0.1.0"
+integrity = ""
+source = "http://localhost:4000"
+dependencies = [
+    "schema:rusl/cli-gen-request",
+    "schema:rusl/cli-gen-response",
+]
+
+[dependencies."schema:rusl/cli-gen-request"]
+version = "0.1.0"
+integrity = "a9241ffda1f3e11f2c7be0128e90c7f43984d924aae17872322be3aad12faa3b"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/cli-gen-response"]
+version = "0.1.0"
+integrity = "089e4115ec5ecbb30b4ec84ddf1c4e7624d703245124158e3c01e0af00b80b52"
+source = "http://localhost:4000"

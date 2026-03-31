@@ -8,22 +8,29 @@ use std::os::windows::fs::symlink_file as create_symlink;
 
 /// The project linker engine responsible for mapping CAS assets into the local project structure.
 pub struct Linker {
-    project_root: PathBuf,
+    schema_dir: PathBuf,
+    /// When true, copy files instead of symlinking (for committable output).
+    copy_mode: bool,
 }
 
+const DEFAULT_SCHEMA_DIR: &str = ".rusl/schemas";
+
 impl Linker {
-    pub fn new(cwd: PathBuf) -> Self {
-        Self { project_root: cwd }
+    pub fn new(cwd: PathBuf, schema_dir: &str) -> Self {
+        let copy_mode = schema_dir != DEFAULT_SCHEMA_DIR;
+        Self {
+            schema_dir: cwd.join(schema_dir),
+            copy_mode,
+        }
     }
 
-    /// Brutally purges the entire local `.rusl/schemas` directory to eliminate orphan symlinks natively.
+    /// Purges the entire schema directory to eliminate orphan symlinks.
     pub fn purge_all(&self) -> Result<()> {
-        let local_dir = self.project_root.join(".rusl").join("schemas");
-        if local_dir.exists() {
-            std::fs::remove_dir_all(&local_dir).with_context(|| {
+        if self.schema_dir.exists() {
+            std::fs::remove_dir_all(&self.schema_dir).with_context(|| {
                 format!(
-                    "Failed to securely prune legacy schema cache at {:?}",
-                    local_dir
+                    "Failed to prune schema cache at {:?}",
+                    self.schema_dir
                 )
             })?;
         }
@@ -33,13 +40,9 @@ impl Linker {
     /// Maps a global schema directly into the local working directory namespace.
     /// This uses OS-native symbolic linking to guarantee zero-copy, instantly mirrored files.
     ///
-    /// The target structure is `<cwd>/.rusl/schemas/<account>/<slug>.json`
+    /// The target structure is `<schema_dir>/<account>/<slug>.json`
     pub fn link_schema(&self, account: &str, slug: &str, cas_path: &Path) -> Result<PathBuf> {
-        let local_dir = self
-            .project_root
-            .join(".rusl")
-            .join("schemas")
-            .join(account);
+        let local_dir = self.schema_dir.join(account);
 
         if !local_dir.exists() {
             std::fs::create_dir_all(&local_dir).with_context(|| {
@@ -49,25 +52,32 @@ impl Linker {
 
         let local_file = local_dir.join(format!("{}.json", slug));
 
-        // Always purge existing symlinks forcefully to prevent stale graph retention
+        // Purge existing file/symlink to prevent stale retention
         if local_file.exists() || std::fs::symlink_metadata(&local_file).is_ok() {
             std::fs::remove_file(&local_file)
-                .with_context(|| format!("Failed to purge existing symlink at {:?}", local_file))?;
+                .with_context(|| format!("Failed to purge existing file at {:?}", local_file))?;
         }
 
-        #[cfg(windows)]
-        let link_res = create_symlink(cas_path, &local_file)
-            .or_else(|_| std::fs::copy(cas_path, &local_file).map(|_| ()));
+        if self.copy_mode {
+            std::fs::copy(cas_path, &local_file)
+                .with_context(|| {
+                    format!("Failed to copy {:?} -> {:?}", cas_path, local_file)
+                })?;
+        } else {
+            #[cfg(windows)]
+            let link_res = create_symlink(cas_path, &local_file)
+                .or_else(|_| std::fs::copy(cas_path, &local_file).map(|_| ()));
 
-        #[cfg(not(windows))]
-        let link_res = create_symlink(cas_path, &local_file);
+            #[cfg(not(windows))]
+            let link_res = create_symlink(cas_path, &local_file);
 
-        link_res.with_context(|| {
-            format!(
-                "Symlink operation failed for {:?} -> {:?}",
-                cas_path, local_file
-            )
-        })?;
+            link_res.with_context(|| {
+                format!(
+                    "Symlink operation failed for {:?} -> {:?}",
+                    cas_path, local_file
+                )
+            })?;
+        }
 
         Ok(local_file)
     }

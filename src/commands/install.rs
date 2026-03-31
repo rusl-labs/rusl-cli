@@ -18,7 +18,7 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
     let store = GlobalStore::new()
         .await
         .context("Failed to initialize CAS store")?;
-    let linker = Linker::new(std::env::current_dir()?);
+    let linker = Linker::new(std::env::current_dir()?, config.schema_dir());
 
     let cwd = std::env::current_dir()?;
     let manifest_path = cwd.join("rusl.bundle.toml");

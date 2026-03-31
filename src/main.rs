@@ -2,6 +2,7 @@ mod cache;
 mod cli;
 mod commands;
 mod config;
+mod generate;
 mod manifest;
 mod registry;
 mod resolver;
@@ -27,6 +28,7 @@ async fn main() -> anyhow::Result<()> {
         cli::Commands::List(args) => commands::list::run(args).await?,
         cli::Commands::Outdated(args) => commands::outdated::run(args).await?,
         cli::Commands::Why(args) => commands::why::run(args).await?,
+        cli::Commands::Generate(args) => commands::generate::run(args).await?,
     }
 
     Ok(())
