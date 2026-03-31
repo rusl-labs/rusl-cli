@@ -24,6 +24,9 @@ async fn main() -> anyhow::Result<()> {
         cli::Commands::Remove(args) => commands::remove::run(args).await?,
         cli::Commands::Login(args) => commands::login::run(args).await?,
         cli::Commands::Whoami(args) => commands::whoami::run(args).await?,
+        cli::Commands::List(args) => commands::list::run(args).await?,
+        cli::Commands::Outdated(args) => commands::outdated::run(args).await?,
+        cli::Commands::Why(args) => commands::why::run(args).await?,
     }
 
     Ok(())

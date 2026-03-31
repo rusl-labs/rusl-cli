@@ -7,8 +7,16 @@ use pubgrub::{
     DefaultStringReporter, OfflineDependencyProvider, PubGrubError, Ranges, Reporter,
     SemanticVersion, resolve,
 };
-use std::collections::{BTreeMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::str::FromStr;
+
+/// The result of dependency resolution: resolved versions plus the dependency graph edges.
+pub struct ResolvedGraph {
+    /// Each resolved package and its exact version (excludes the root package).
+    pub versions: BTreeMap<String, SemanticVersion>,
+    /// Dependency edges: package key → list of its direct dependency keys.
+    pub edges: HashMap<String, Vec<String>>,
+}
 
 fn parse_version_range(req: &str) -> Result<Ranges<SemanticVersion>> {
     // Correctly process wildcard and empty constraints mapping to infinite dependency boundaries mathematically
@@ -27,7 +35,7 @@ pub async fn resolve_graph(
     manifest: &BundleManifest,
     client: &RegistryClient,
     pb: &ProgressBar,
-) -> Result<BTreeMap<String, SemanticVersion>> {
+) -> Result<ResolvedGraph> {
     pb.set_message("Initializing dependency resolver...");
 
     let mut provider = OfflineDependencyProvider::<String, Ranges<SemanticVersion>>::new();
@@ -40,6 +48,9 @@ pub async fn resolve_graph(
         .version
         .parse()
         .context("Root bundle version is not valid semantic version")?;
+
+    // Track dependency edges: (package, version_string) → list of dep keys
+    let mut version_deps: HashMap<(String, String), Vec<String>> = HashMap::new();
 
     let mut root_deps = Vec::new();
 
@@ -63,6 +74,8 @@ pub async fn resolve_graph(
         }
     }
 
+    let root_dep_keys: Vec<String> = root_deps.iter().map(|(k, _)| k.clone()).collect();
+    version_deps.insert((root_pkg.clone(), root_version.to_string()), root_dep_keys);
     provider.add_dependencies(root_pkg.clone(), root_version, root_deps);
 
     pb.set_message("Fetching package metadata...");
@@ -119,6 +132,8 @@ pub async fn resolve_graph(
                             }
                         }
 
+                        let edge_keys: Vec<String> = deps.iter().map(|(k, _)| k.clone()).collect();
+                        version_deps.insert((pkg.clone(), v.to_string()), edge_keys);
                         provider.add_dependencies(pkg.clone(), v, deps);
                     }
                 }
@@ -140,7 +155,19 @@ pub async fn resolve_graph(
                 .into_iter()
                 .filter(|(k, _)| k != &root_pkg)
                 .collect();
-            Ok(map)
+
+            // Build edges for resolved packages by looking up their deps at the resolved version
+            let mut edges = HashMap::new();
+            for (pkg, version) in &map {
+                if let Some(dep_keys) = version_deps.get(&(pkg.clone(), version.to_string())) {
+                    edges.insert(pkg.clone(), dep_keys.clone());
+                }
+            }
+
+            Ok(ResolvedGraph {
+                versions: map,
+                edges,
+            })
         }
         Err(PubGrubError::NoSolution(derivation_tree)) => {
             anyhow::bail!(

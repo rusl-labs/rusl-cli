@@ -20,6 +20,12 @@ pub enum Commands {
     Login(LoginArgs),
     /// Check the active authenticated session
     Whoami(WhoamiArgs),
+    /// List all locally installed dependencies based on the lockfile
+    List(ListArgs),
+    /// Check for updates to dependencies in the registry
+    Outdated(OutdatedArgs),
+    /// Explain why a package is installed by showing all dependency paths to it
+    Why(WhyArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -55,3 +61,20 @@ pub struct RemoveArgs {
     /// The unique package identifier (e.g., rusl/common)
     pub slug: String,
 }
+
+#[derive(Parser, Debug)]
+pub struct ListArgs {
+    /// Display dependencies as a tree showing the full dependency graph
+    #[arg(long)]
+    pub tree: bool,
+}
+
+#[derive(Parser, Debug)]
+pub struct OutdatedArgs {}
+
+#[derive(Parser, Debug)]
+pub struct WhyArgs {
+    /// The package to search for (e.g., rusl/common or bundles/hassox/test-bundle)
+    pub package: String,
+}
+

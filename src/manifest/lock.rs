@@ -21,6 +21,10 @@ pub struct LockDependency {
 
     /// The registry URL from which this dependency was originally downloaded
     pub source: String,
+
+    /// The direct dependencies of this package (e.g., ["schema:acme/types", "bundle:acme/common"])
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dependencies: Vec<String>,
 }
 
 impl Default for LockManifest {

@@ -8,7 +8,7 @@ use crate::registry::client::RegistryClient;
 use crate::resolver::graph::resolve_graph;
 use anyhow::{Context, Result};
 use colored::Colorize;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 pub async fn run(_args: InstallArgs) -> Result<()> {
     let pb = crate::ui::spinner("Starting installation...");
@@ -35,13 +35,12 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
         "Resolving dependencies for {}@{}...",
         manifest.bundle.name, manifest.bundle.version
     ));
-    let resolved_graph = resolve_graph(&manifest, &client, &pb)
+    let resolved = resolve_graph(&manifest, &client, &pb)
         .await
         .context("Dependency resolution failed")?;
 
-    let mut lock_deps = BTreeMap::new();
-
     let mut schema_count = 0;
+    let mut integrity_map: HashMap<String, String> = HashMap::new();
 
     pb.set_message("Cleaning old schema cache...");
     linker
@@ -50,8 +49,8 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
 
     pb.set_message("Downloading schemas...");
 
-    for (pkg, version) in resolved_graph {
-        // We only download AND map `schema:` items! Bundles are just logical abstractions.
+    for (pkg, version) in &resolved.versions {
+        // Only download schema blobs — bundles are logical groupings with no artifact
         if !pkg.starts_with("schema:") {
             continue;
         }
@@ -73,18 +72,26 @@ pub async fn run(_args: InstallArgs) -> Result<()> {
             .await?;
 
         let (integrity, cas_path) = store.put(&blob).await?;
+        integrity_map.insert(pkg.clone(), integrity);
+        linker.link_schema(parts[0], parts[1], &cas_path)?;
+        schema_count += 1;
+    }
+
+    // Build lock deps for ALL resolved packages (schemas + bundles) with dependency edges
+    let mut lock_deps = BTreeMap::new();
+    for (pkg, version) in &resolved.versions {
+        let deps = resolved.edges.get(pkg).cloned().unwrap_or_default();
+        let integrity = integrity_map.get(pkg).cloned().unwrap_or_default();
 
         lock_deps.insert(
-            clean_pkg.to_string(),
+            pkg.clone(),
             LockDependency {
                 version: version.to_string(),
                 integrity,
                 source: config.api_base_url.clone(),
+                dependencies: deps,
             },
         );
-
-        linker.link_schema(parts[0], parts[1], &cas_path)?;
-        schema_count += 1;
     }
 
     let new_lock = LockManifest {
