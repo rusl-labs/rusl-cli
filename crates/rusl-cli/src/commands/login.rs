@@ -64,14 +64,16 @@ pub async fn run(_args: LoginArgs) -> Result<()> {
         )),
     }
 
-    let response = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n<html><body><h1 style='font-family: sans-serif; text-align: center; margin-top: 20%; color: #333'>Rusl PKCE Handshake Complete!</h1><p style='text-align: center; color: #666; font-family: sans-serif'>You can safely close this browser window and return to your terminal.</p><script>setTimeout(()=>window.close(), 3000)</script></body></html>";
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n{}",
+        session.callback_page_html(!code.is_empty())
+    );
     let _ = stream.try_write(response.as_bytes());
 
     drop(stream);
     drop(listener);
 
     pb.set_message("Verifying credentials...");
-    pb.set_message("Saving token...");
     login_service::complete_login(code, session.code_verifier).await?;
 
     pb.finish_with_message(format!(

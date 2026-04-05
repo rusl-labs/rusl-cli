@@ -1,55 +1,69 @@
 # Rusl Schema Manager
 
-Rusl is a state-of-the-art, lightning-fast Rust CLI meant to seamlessly resolve, cache, and symlink dependency networks of JSON Schemas. Modeled aggressively after Cargo and `pnpm`, it is powered natively by the **PubGrub** CDCL algorithm to guarantee mathematically perfect topological configurations instantly.
+`rusl` is a Rust workspace for resolving, caching, linking, and generating code from schema dependencies.
 
-## Architecture
+## Workspace Layout
 
-1. **Resolution via PubGrub Engine:** The CLI fetches comprehensive historical metadata matrices from a registry, feeding thousands of versions into the offline mathematical solver to identify the optimal, conflict-free dependency resolution map natively.
-2. **Content-Addressable Storage (CAS):** Once the correct versions are proven, `rusl` downloads their schemas and caches them permanently via a SHA-256 integrity hash layer residing in the `~/.local/share/rusl/store/` global OS data tier, guaranteeing you never download the same schema payload twice.
-3. **Ghost Symlinking:** To expose the schemas inside your project natively without duplicating disk footprint, `rusl` dynamically hard-links the identical payloads from the OS CAS directly into your working directory `.rusl/schemas/` structure.
-4. **Repeatable Builds (Lockfile):** Resolutions are formally baked into a `rusl.lock` configuration manifest to enforce exact checksum repeatability across server grids securely.
+- `crates/rusl-cli` - the `rusl` binary; argument parsing and terminal rendering only
+- `crates/rusl-app` - shared application/core logic, use cases, and transport-agnostic orchestration
+- `crates/rusl-api-client` - generated OpenAPI client plus the thin handwritten auth/retry wrapper
+- `openapi/` - committed backend OpenAPI snapshot
+- `scripts/` - spec refresh and client regeneration scripts
 
----
+The user-facing command is still `rusl`. The workspace split is internal architecture, not a product rename.
 
-## Configuration Setup
+## Common Commands
 
-Rusl defines a **4-Tier precedence chain** for configuration mapping, prioritizing local flexibility while maintaining robust production scaling.
+Use the repo `Makefile` for the common flows:
 
-### Configuration Properties
-Currently, the `Config` struct exposes two core network domains natively:
+```bash
+make help
+make install
+make build
+make release
+make test
+make check
+make clippy
+make fmt
+make fmt-check
+make verify
+make openapi-refresh
+make openapi-generate
+```
+
+Notes:
+
+- `make install` installs the CLI from `crates/rusl-cli`
+- `make verify` runs the full required verification suite for the workspace
+- `cargo install --path .` does not work because the repo root is a virtual workspace manifest
+
+## Configuration
+
+Project configuration lives in `rusl.config.toml`:
+
 ```toml
-api_base_url = "https://api.registry.rusl.dev"
-website_url = "https://registry.rusl.dev"
-```
-*(Note: For backward compatibility, `registry_url` is silently aliased to `api_base_url` if found in legacy configs).*
+api_base_url = "http://localhost:4000"
+website_url = "http://localhost:3000"
 
-### The 4-Tier Precedence Chain
-
-#### 1. Runtime Environment Variables (Highest Priority)
-If you need ephemeral CI/CD injection or instant override mapping natively:
-```bash
-RUSL_API_URL="http://localhost:4000" RUSL_WEBSITE_URL="http://localhost:3000" rusl login
+[generators.typescript]
+command = "bunx rusl-gen-typescript"
+output_dir = "./generated/types"
+default = true
 ```
 
-#### 2. Project-Level Targeting (`rusl.config.toml`)
-Project-level configuration takes complete mathematical precedence over global defaults. The CLI exhaustively scans upward from your current working directory through every parent path natively searching for a `rusl.config.toml`. This allows you to permanently isolate registry URLs to an arbitrary monorepo!
+Resolution order:
 
-#### 3. User-Level Scope (`~/.config/rusl/config.toml`)
-If no project dotfile exists, user-level persistent boundaries override the binary fallbacks natively via: `<OS_CONFIG_DIR>/rusl/config.toml`
+1. `RUSL_API_URL` / `RUSL_WEBSITE_URL`
+2. project `rusl.config.toml`
+3. user config from the OS config directory for `rusl`
+4. compile-time defaults
 
-#### 4. Compile-Time Default Fallbacks (Lowest Priority)
-If a user installs the binary with absolutely zero configuration files and no environment variables deployed, the baseline defaults to the public ecosystem: `https://api.rusl.app` natively.
+`api_base_url` and `website_url` are separate. Do not derive one from the other.
 
-*Note: You can permanently override this fallback explicitly during binary compilation using rust's compile-time hooks!*
-```bash
-RUSL_DEFAULT_API_URL="https://private-corp-registry.internal" cargo build --release
-```
+## Usage
 
----
+Example `rusl.bundle.toml`:
 
-## Usage Example
-
-Initialize your schema definition inside `rusl.bundle.toml`:
 ```toml
 [bundle]
 name = "my-company/test-bundle"
@@ -60,7 +74,37 @@ version = "0.1.0"
 "external/address" = ">= 1.2.0"
 ```
 
-Simply trigger the resolver:
+Install dependencies:
+
 ```bash
 rusl install
 ```
+
+Generate code with the default configured generator:
+
+```bash
+rusl generate
+```
+
+Authenticate with the local or configured backend:
+
+```bash
+rusl login
+rusl whoami
+```
+
+## OpenAPI Client Workflow
+
+The backend client is generated and checked in.
+
+- refresh the committed spec snapshot with `make openapi-refresh`
+- regenerate the Rust client with `make openapi-generate`
+
+Generated code lives under `crates/rusl-api-client/generated`. Handwritten transport behavior stays in `crates/rusl-api-client/src`.
+
+## Architecture Rules
+
+- `rusl-cli` is a thin gateway
+- `rusl-app` owns use cases and orchestration
+- `rusl-api-client` owns HTTP transport details, auth token handling, refresh behavior, and generated API bindings
+- future gateways, including a local MCP/STDIO server, should depend on `rusl-app` rather than reimplementing logic

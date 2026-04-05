@@ -1,5 +1,6 @@
 use reqwest::StatusCode;
 use std::fmt;
+use std::future::Future;
 
 pub use rusl_openapi_client as generated;
 pub use rusl_openapi_client::models;
@@ -64,28 +65,34 @@ impl RuslApiClient {
         account: &str,
         slug: &str,
     ) -> Result<models::RuslWebRawSchemaMetadataControllerShow200Response, ApiError> {
-        let config = self.configuration(session.access_token.as_deref());
-        let response =
+        self.with_session(session, |access_token| async move {
+            let config = self.configuration(access_token.as_deref());
             generated::apis::raw_schemas_api::rusl_web_raw_schema_metadata_controller_show(
                 &config, account, slug,
             )
-            .await;
+            .await
+            .map_err(map_api_error)
+        })
+        .await
+    }
 
-        match response {
-            Ok(metadata) => Ok(metadata),
-            Err(error) if is_unauthorized(&error) => {
-                self.refresh_session(session).await?;
-                let retry_config = self.configuration(session.access_token.as_deref());
-                generated::apis::raw_schemas_api::rusl_web_raw_schema_metadata_controller_show(
-                    &retry_config,
-                    account,
-                    slug,
-                )
-                .await
-                .map_err(map_api_error)
-            }
-            Err(error) => Err(map_api_error(error)),
-        }
+    pub async fn fetch_schema_document(
+        &self,
+        session: &mut SessionTokens,
+        account: &str,
+        schema_slug_and_version: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        self.with_session(session, |access_token| async move {
+            let config = self.configuration(access_token.as_deref());
+            generated::apis::raw_schemas_api::rusl_web_raw_schema_controller_show(
+                &config,
+                account,
+                schema_slug_and_version,
+            )
+            .await
+            .map_err(map_api_error)
+        })
+        .await
     }
 
     pub async fn fetch_bundle_metadata(
@@ -94,54 +101,68 @@ impl RuslApiClient {
         account: &str,
         slug: &str,
     ) -> Result<models::RuslWebRawBundleMetadataControllerShow200Response, ApiError> {
-        let config = self.configuration(session.access_token.as_deref());
-        let response =
+        self.with_session(session, |access_token| async move {
+            let config = self.configuration(access_token.as_deref());
             generated::apis::raw_bundles_api::rusl_web_raw_bundle_metadata_controller_show(
                 &config, account, slug,
             )
-            .await;
-
-        match response {
-            Ok(metadata) => Ok(metadata),
-            Err(error) if is_unauthorized(&error) => {
-                self.refresh_session(session).await?;
-                let retry_config = self.configuration(session.access_token.as_deref());
-                generated::apis::raw_bundles_api::rusl_web_raw_bundle_metadata_controller_show(
-                    &retry_config,
-                    account,
-                    slug,
-                )
-                .await
-                .map_err(map_api_error)
-            }
-            Err(error) => Err(map_api_error(error)),
-        }
+            .await
+            .map_err(map_api_error)
+        })
+        .await
     }
 
     pub async fn fetch_session_me(
         &self,
         session: &mut SessionTokens,
     ) -> Result<models::MeResponse, ApiError> {
-        let config = self.configuration(session.access_token.as_deref());
-        let response =
-            generated::apis::authentication_api::rusl_web_api_session_controller_me(&config).await;
+        self.with_session(session, |access_token| async move {
+            self.request_session_me(access_token).await
+        })
+        .await
+    }
 
-        match response {
-            Ok(me) => Ok(me),
-            Err(error) if is_unauthorized(&error) => {
-                self.refresh_session(session).await?;
-                let retry_config = self.configuration(session.access_token.as_deref());
-                generated::apis::authentication_api::rusl_web_api_session_controller_me(
-                    &retry_config,
-                )
-                .await
-                .map_err(map_api_error)
-            }
-            Err(error) => Err(map_api_error(error)),
+    async fn with_session<T, F, Fut>(
+        &self,
+        session: &mut SessionTokens,
+        mut request: F,
+    ) -> Result<T, ApiError>
+    where
+        F: FnMut(Option<String>) -> Fut,
+        Fut: Future<Output = Result<T, ApiError>>,
+    {
+        self.ensure_access_token(session).await;
+
+        let response = request(session.access_token.clone()).await;
+        if !matches!(response, Err(ApiError::Unauthorized)) {
+            return response;
+        }
+
+        if !has_refresh_token(session) {
+            return response;
+        }
+
+        if self.try_exchange_refresh_token(session).await.is_err() {
+            return response;
+        }
+
+        request(session.access_token.clone()).await
+    }
+
+    async fn ensure_access_token(&self, session: &mut SessionTokens) {
+        if has_access_token(session) || !has_refresh_token(session) {
+            return;
+        }
+
+        if self.try_exchange_refresh_token(session).await.is_err() {
+            clear_tokens(session);
         }
     }
 
-    async fn refresh_session(&self, session: &mut SessionTokens) -> Result<(), ApiError> {
+    async fn try_exchange_refresh_token(
+        &self,
+        session: &mut SessionTokens,
+    ) -> Result<(), ApiError> {
         let refresh_token = session
             .refresh_token
             .as_deref()
@@ -151,6 +172,40 @@ impl RuslApiClient {
         let access_token = self.exchange_refresh_token(refresh_token).await?;
         session.access_token = Some(access_token);
         Ok(())
+    }
+
+    async fn request_session_me(
+        &self,
+        access_token: Option<String>,
+    ) -> Result<models::MeResponse, ApiError> {
+        let uri = format!("{}/api/auth/sessions/me", self.base_url);
+        let mut request = self.client.get(&uri);
+
+        if let Some(user_agent) = &self.user_agent {
+            request = request.header(reqwest::header::USER_AGENT, user_agent.clone());
+        }
+        if let Some(token) = access_token.filter(|token| !token.trim().is_empty()) {
+            request = request.bearer_auth(token);
+        }
+
+        let response = request
+            .send()
+            .await
+            .map_err(|error| ApiError::Transport(error.to_string()))?;
+        let status = response.status();
+        let body = response
+            .text()
+            .await
+            .map_err(|error| ApiError::Io(error.to_string()))?;
+
+        if status == StatusCode::UNAUTHORIZED {
+            return Err(ApiError::Unauthorized);
+        }
+        if status.is_client_error() || status.is_server_error() {
+            return Err(ApiError::Http { status, body });
+        }
+
+        serde_json::from_str(&body).map_err(|error| ApiError::Decode(error.to_string()))
     }
 
     fn configuration(
@@ -187,11 +242,23 @@ fn normalize_base_url(base_url: String) -> String {
     base_url.trim_end_matches('/').to_string()
 }
 
-fn is_unauthorized<E>(error: &generated::apis::Error<E>) -> bool {
-    matches!(
-        error,
-        generated::apis::Error::ResponseError(content) if content.status == StatusCode::UNAUTHORIZED
-    )
+fn has_access_token(session: &SessionTokens) -> bool {
+    session
+        .access_token
+        .as_deref()
+        .is_some_and(|token| !token.trim().is_empty())
+}
+
+fn has_refresh_token(session: &SessionTokens) -> bool {
+    session
+        .refresh_token
+        .as_deref()
+        .is_some_and(|token| !token.trim().is_empty())
+}
+
+fn clear_tokens(session: &mut SessionTokens) {
+    session.access_token = None;
+    session.refresh_token = None;
 }
 
 fn map_api_error<E>(error: generated::apis::Error<E>) -> ApiError

@@ -1,8 +1,7 @@
 use crate::config::Config;
 use crate::config::credentials::Credentials;
 use anyhow::{Context, Result, anyhow};
-use colored::Colorize;
-use rusl_api_client::{ApiError, RuslApiClient, SessionTokens, generated, models};
+use rusl_api_client::{ApiError, RuslApiClient, SessionTokens, models};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -23,14 +22,13 @@ pub struct RegistryMetadataResponse {
 
 pub struct RegistryClient {
     api: RuslApiClient,
-    api_base_url: String,
 }
 
 impl RegistryClient {
     pub fn new(config: Config) -> Self {
-        let api_base_url = config.api_base_url;
-        let api = RuslApiClient::new(api_base_url.clone());
-        Self { api, api_base_url }
+        Self {
+            api: RuslApiClient::new(config.api_base_url),
+        }
     }
 
     pub async fn fetch_schema_meta(
@@ -38,7 +36,7 @@ impl RegistryClient {
         account: &str,
         slug: &str,
     ) -> Result<RegistryMetadataResponse> {
-        let (mut credentials, mut session) = self.load_session().await?;
+        let (mut credentials, mut session) = self.load_session()?;
         let metadata = self
             .api
             .fetch_schema_metadata(&mut session, account, slug)
@@ -55,7 +53,7 @@ impl RegistryClient {
         account: &str,
         slug: &str,
     ) -> Result<RegistryMetadataResponse> {
-        let (mut credentials, mut session) = self.load_session().await?;
+        let (mut credentials, mut session) = self.load_session()?;
         let metadata = self
             .api
             .fetch_bundle_metadata(&mut session, account, slug)
@@ -73,19 +71,21 @@ impl RegistryClient {
         slug: &str,
         version: &str,
     ) -> Result<Vec<u8>> {
-        let (mut credentials, mut session) = self.load_session().await?;
+        let (mut credentials, mut session) = self.load_session()?;
         let schema_slug_and_version = format!("{slug}@v{version}");
         let document = self
+            .api
             .fetch_schema_document(&mut session, account, &schema_slug_and_version)
             .await
+            .map_err(map_api_error)
             .with_context(|| format!("Failed to download schema {account}/{slug}@v{version}"))?;
 
         self.persist_session(&mut credentials, &session)?;
         serde_json::to_vec(&document).context("Failed to serialize raw schema document")
     }
 
-    pub async fn fetch_me(&self) -> Result<serde_json::Value> {
-        let (mut credentials, mut session) = self.load_session().await?;
+    pub async fn fetch_me(&self) -> Result<models::MeResponse> {
+        let (mut credentials, mut session) = self.load_session()?;
         let me = self
             .api
             .fetch_session_me(&mut session)
@@ -94,87 +94,13 @@ impl RegistryClient {
             .context("Failed to fetch current session")?;
 
         self.persist_session(&mut credentials, &session)?;
-        serde_json::to_value(me).context("Failed to serialize session profile")
+        Ok(me)
     }
 
-    async fn load_session(&self) -> Result<(Option<Credentials>, SessionTokens)> {
-        let mut credentials = Credentials::load();
-        let mut session = session_tokens(&credentials);
-
-        let needs_access_token = session
-            .access_token
-            .as_deref()
-            .is_none_or(|token| token.trim().is_empty());
-
-        if needs_access_token
-            && let Some(refresh_token) = session
-                .refresh_token
-                .as_deref()
-                .filter(|token| !token.trim().is_empty())
-        {
-            match self.api.exchange_refresh_token(refresh_token).await {
-                Ok(access_token) => {
-                    session.access_token = Some(access_token);
-                    self.persist_session(&mut credentials, &session)?;
-                }
-                Err(ApiError::Unauthorized) => {
-                    println!(
-                        "{} Your session has expired. You may need to run `rusl login` again.",
-                        "Warning:".yellow().bold()
-                    );
-                }
-                Err(err) => return Err(map_api_error(err)),
-            }
-        }
-
+    fn load_session(&self) -> Result<(Option<Credentials>, SessionTokens)> {
+        let credentials = Credentials::load();
+        let session = session_tokens(&credentials);
         Ok((credentials, session))
-    }
-
-    async fn fetch_schema_document(
-        &self,
-        session: &mut SessionTokens,
-        account: &str,
-        schema_slug_and_version: &str,
-    ) -> Result<serde_json::Value> {
-        let config = self.generated_configuration(session.access_token.as_deref());
-        let response = generated::apis::raw_schemas_api::rusl_web_raw_schema_controller_show(
-            &config,
-            account,
-            schema_slug_and_version,
-        )
-        .await;
-
-        match response {
-            Ok(document) => Ok(document),
-            Err(error) if is_unauthorized(&error) => {
-                self.refresh_session(session).await?;
-                let retry_config = self.generated_configuration(session.access_token.as_deref());
-                generated::apis::raw_schemas_api::rusl_web_raw_schema_controller_show(
-                    &retry_config,
-                    account,
-                    schema_slug_and_version,
-                )
-                .await
-                .map_err(map_generated_error)
-            }
-            Err(error) => Err(map_generated_error(error)),
-        }
-    }
-
-    async fn refresh_session(&self, session: &mut SessionTokens) -> Result<()> {
-        let refresh_token = session
-            .refresh_token
-            .as_deref()
-            .filter(|token| !token.trim().is_empty())
-            .ok_or_else(|| anyhow!("Missing refresh token. Please run `rusl login` again."))?;
-
-        let access_token = self
-            .api
-            .exchange_refresh_token(refresh_token)
-            .await
-            .map_err(map_api_error)?;
-        session.access_token = Some(access_token);
-        Ok(())
     }
 
     fn persist_session(
@@ -187,27 +113,14 @@ impl RegistryClient {
         };
 
         let next_access_token = session.access_token.as_deref().unwrap_or_default();
-        if stored.access_token == next_access_token {
+        let next_refresh_token = session.refresh_token.as_deref().unwrap_or_default();
+        if stored.access_token == next_access_token && stored.refresh_token == next_refresh_token {
             return Ok(());
         }
 
         stored.access_token = next_access_token.to_string();
+        stored.refresh_token = next_refresh_token.to_string();
         stored.save().context("Failed to persist refreshed session")
-    }
-
-    fn generated_configuration(
-        &self,
-        bearer_access_token: Option<&str>,
-    ) -> generated::apis::configuration::Configuration {
-        generated::apis::configuration::Configuration {
-            base_path: self.api_base_url.clone(),
-            user_agent: Some(format!("rusl/{}", env!("CARGO_PKG_VERSION"))),
-            client: reqwest::Client::new(),
-            basic_auth: None,
-            oauth_access_token: None,
-            bearer_access_token: bearer_access_token.map(ToOwned::to_owned),
-            api_key: None,
-        }
     }
 }
 
@@ -245,30 +158,6 @@ fn map_version(
     }
 }
 
-fn is_unauthorized<E>(error: &generated::apis::Error<E>) -> bool {
-    matches!(
-        error,
-        generated::apis::Error::ResponseError(content)
-            if content.status == reqwest::StatusCode::UNAUTHORIZED
-    )
-}
-
 fn map_api_error(error: ApiError) -> anyhow::Error {
     anyhow!(error)
-}
-
-fn map_generated_error<E>(error: generated::apis::Error<E>) -> anyhow::Error
-where
-    E: std::fmt::Debug,
-{
-    match error {
-        generated::apis::Error::Reqwest(err) => anyhow!("Rusl API request failed: {err}"),
-        generated::apis::Error::Serde(err) => anyhow!("Rusl API decode failed: {err}"),
-        generated::apis::Error::Io(err) => anyhow!("Rusl API I/O failed: {err}"),
-        generated::apis::Error::ResponseError(content) => anyhow!(
-            "Rusl API returned HTTP {}: {}",
-            content.status,
-            content.content
-        ),
-    }
 }

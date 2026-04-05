@@ -1,7 +1,7 @@
 use crate::config;
 use crate::registry::client::RegistryClient;
-use anyhow::{Context, Result};
-use serde_json::Value;
+use anyhow::{Context, Result, bail};
+use rusl_api_client::models;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WhoamiProfile {
@@ -27,43 +27,49 @@ impl WhoamiAccount {
 pub async fn load_current_user() -> Result<WhoamiProfile> {
     let config = config::load().context("Failed to load network configurations")?;
     let client = RegistryClient::new(config);
-    let session_data = client
+    let session = client
         .fetch_me()
         .await
         .context("Failed to authenticate with registry! Are you sure you are logged in?")?;
 
-    Ok(parse_profile(&session_data))
+    parse_profile(session)
 }
 
-fn parse_profile(session_data: &Value) -> WhoamiProfile {
-    WhoamiProfile {
-        email: session_data["user"]["email"]
-            .as_str()
-            .unwrap_or("Unknown Email")
-            .to_string(),
-        slug: session_data["user"]["slug"]
-            .as_str()
-            .unwrap_or("Unknown Slug")
-            .to_string(),
-        user_id: session_data["user"]["id"]
-            .as_str()
-            .unwrap_or("Unknown")
-            .to_string(),
-        accounts: parse_accounts(session_data),
+fn parse_profile(session: models::MeResponse) -> Result<WhoamiProfile> {
+    match session {
+        models::MeResponse::MeResponseAuthenticated1(authenticated) => Ok(WhoamiProfile {
+            email: authenticated.user.email.clone().unwrap_or_default(),
+            slug: authenticated.user.slug.clone(),
+            user_id: authenticated.user.id.clone(),
+            accounts: parse_accounts(&authenticated.accounts),
+        }),
+        models::MeResponse::MeResponseUnauthenticated1(_) => {
+            bail!("You are not authenticated. Run `rusl login` first.")
+        }
     }
 }
 
-fn parse_accounts(session_data: &Value) -> Vec<WhoamiAccount> {
-    let Some(accounts) = session_data["accounts"].as_object() else {
-        return Vec::new();
-    };
-
+fn parse_accounts(
+    accounts: &std::collections::HashMap<String, models::SessionAccount1>,
+) -> Vec<WhoamiAccount> {
     let mut mapped = accounts
-        .iter()
-        .map(|(slug, details)| WhoamiAccount {
-            slug: slug.clone(),
-            role: details["roles"][0].as_str().unwrap_or("MEMBER").to_string(),
-            account_type: details["type"].as_str().unwrap_or("unknown").to_string(),
+        .values()
+        .map(|details| WhoamiAccount {
+            slug: details.slug.clone(),
+            role: details
+                .roles
+                .first()
+                .map(|role| match role {
+                    models::session_account_1::Roles::Owner => "OWNER",
+                    models::session_account_1::Roles::Contributor => "CONTRIBUTOR",
+                })
+                .unwrap_or("MEMBER")
+                .to_string(),
+            account_type: match details.r#type {
+                models::session_account_1::Type::User => "user",
+                models::session_account_1::Type::Organization => "organization",
+            }
+            .to_string(),
         })
         .collect::<Vec<_>>();
 
@@ -74,29 +80,47 @@ fn parse_accounts(session_data: &Value) -> Vec<WhoamiAccount> {
 #[cfg(test)]
 mod tests {
     use super::{WhoamiAccount, parse_profile};
+    use rusl_api_client::models;
     use serde_json::json;
 
     #[test]
     fn parses_profile_and_sorts_accounts() {
-        let session = json!({
+        let session: models::MeResponse = serde_json::from_value(json!({
+            "authenticated": true,
+            "invitations": [],
             "user": {
+                "__typename": "users",
                 "email": "dev@rusl.app",
+                "guid": "guid_123",
+                "id": "user_123",
+                "inserted_at": "2026-04-05T00:00:00Z",
                 "slug": "hassox",
-                "id": "user_123"
+                "updated_at": "2026-04-05T00:00:00Z"
             },
             "accounts": {
                 "zeta": {
-                    "type": "organization",
-                    "roles": ["ADMIN"]
+                    "__typename": "accounts",
+                    "guid": "account_zeta",
+                    "owner_user_id": "00000000-0000-0000-0000-000000000000",
+                    "permissions": {},
+                    "roles": ["CONTRIBUTOR"],
+                    "slug": "zeta",
+                    "type": "organization"
                 },
                 "alpha": {
-                    "type": "user",
-                    "roles": ["OWNER"]
+                    "__typename": "accounts",
+                    "guid": "account_alpha",
+                    "owner_user_id": "00000000-0000-0000-0000-000000000000",
+                    "permissions": {},
+                    "roles": ["OWNER"],
+                    "slug": "alpha",
+                    "type": "user"
                 }
             }
-        });
+        }))
+        .expect("deserialize authenticated session");
 
-        let profile = parse_profile(&session);
+        let profile = parse_profile(session).expect("parse authenticated session");
 
         assert_eq!(profile.email, "dev@rusl.app");
         assert_eq!(profile.slug, "hassox");
@@ -111,7 +135,7 @@ mod tests {
                 },
                 WhoamiAccount {
                     slug: "zeta".to_string(),
-                    role: "ADMIN".to_string(),
+                    role: "CONTRIBUTOR".to_string(),
                     account_type: "organization".to_string(),
                 },
             ]
