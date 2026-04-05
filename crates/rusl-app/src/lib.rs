@@ -6,6 +6,7 @@ pub mod cli;
 pub mod commands;
 #[path = "../../../src/config/mod.rs"]
 pub mod config;
+pub mod dependency_service;
 #[path = "../../../src/generate/mod.rs"]
 pub mod generate;
 pub mod install_service;
