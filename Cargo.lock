@@ -1972,6 +1972,7 @@ dependencies = [
  "pubgrub",
  "rand 0.10.0",
  "reqwest",
+ "rusl-api-client",
  "serde",
  "serde_json",
  "sha2",
