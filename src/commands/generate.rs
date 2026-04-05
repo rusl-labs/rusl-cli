@@ -4,7 +4,7 @@ use crate::generate::protocol::{
     GeneratedFile, GenerationRequest, GenerationResponse, SchemaEntry,
 };
 use crate::manifest::lock::LockManifest;
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use colored::Colorize;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::Path;
@@ -13,7 +13,6 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::process::Command;
 
 pub async fn run(args: GenerateArgs) -> Result<()> {
-    // --list: show all generators and exit
     if args.list {
         return list_generators();
     }
@@ -21,13 +20,10 @@ pub async fn run(args: GenerateArgs) -> Result<()> {
     let config = config::load().context("Failed to load configuration")?;
     let cwd = env::current_dir().context("Failed to get current working directory")?;
 
-    // Step 1: Resolve generator
     let (gen_name, gen_config) = resolve_generator(&args, &config)?;
 
-    // Validate config
     validate_config(&config)?;
 
-    // Step 2: Verify command exists
     let argv = gen_config
         .command
         .as_ref()
@@ -43,7 +39,6 @@ pub async fn run(args: GenerateArgs) -> Result<()> {
 
     verify_command_exists(&argv[0])?;
 
-    // Step 3: Verify installation
     let schemas_dir = cwd.join(config.schema_dir());
     let lock_path = cwd.join("rusl.lock");
 
@@ -51,23 +46,18 @@ pub async fn run(args: GenerateArgs) -> Result<()> {
         bail!("No schemas installed. Run `rusl install` first.");
     }
 
-    // Step 4: Load dependency graph from lockfile
     let lock_str = fs::read_to_string(&lock_path).context("Failed to read rusl.lock")?;
     let lock: LockManifest = toml::from_str(&lock_str).context("Failed to parse rusl.lock")?;
 
     let (adjacency, dep_meta) = build_graph_from_lock(&lock);
 
-    // Step 5: Apply filter & compute closure
     let all_names: Vec<String> = adjacency.keys().cloned().collect();
     let (target_set, closure) = compute_closure(&all_names, &gen_config.filter, &adjacency)?;
 
-    // Step 6: Topological sort (leaves first)
     let sorted = topological_sort(&closure, &adjacency)?;
 
-    // Step 7: Build request
-    let request = build_request(&sorted, &target_set, &dep_meta, &schemas_dir, &gen_config)?;
+    let request = build_request(&sorted, &target_set, &dep_meta, &schemas_dir, gen_config)?;
 
-    // --print-request: dump JSON and exit
     if args.print_request {
         let json = serde_json::to_string_pretty(&request)
             .context("Failed to serialize GenerationRequest")?;
@@ -75,21 +65,17 @@ pub async fn run(args: GenerateArgs) -> Result<()> {
         return Ok(());
     }
 
-    // Step 8-9: Spawn plugin and validate response
     let pb = crate::ui::spinner(&format!("Generating with {}...", gen_name));
 
     let response_bytes = spawn_plugin(&argv, &request).await?;
 
-    // Validate response against the protocol schema if installed
     let response_schema_path = schemas_dir.join("rusl").join("cli-gen-response.json");
     let response = validate_and_parse_response(&response_bytes, &response_schema_path)?;
 
-    // Validate file paths
     for file in &response.files {
         validate_file_path(&file.path)?;
     }
 
-    // Step 10: Atomic writes
     let output_dir = cwd.join(
         gen_config
             .output_dir
@@ -99,7 +85,6 @@ pub async fn run(args: GenerateArgs) -> Result<()> {
 
     atomic_write(&output_dir, &response.files, gen_config.clean)?;
 
-    // Step 11: Report
     pb.finish_with_message(format!(
         "{} Generated {} files → {}",
         "Success:".green().bold(),
@@ -109,10 +94,6 @@ pub async fn run(args: GenerateArgs) -> Result<()> {
 
     Ok(())
 }
-
-// ---------------------------------------------------------------------------
-// Step 1: Resolve generator
-// ---------------------------------------------------------------------------
 
 fn resolve_generator<'a>(
     args: &GenerateArgs,
@@ -152,11 +133,7 @@ fn resolve_generator<'a>(
             Ok((name.clone(), gcfg))
         }
         None => {
-            // Find the default generator
-            let defaults: Vec<_> = enabled
-                .iter()
-                .filter(|(_, g)| g.default)
-                .collect();
+            let defaults: Vec<_> = enabled.iter().filter(|(_, g)| g.default).collect();
 
             match defaults.len() {
                 0 => {
@@ -186,18 +163,15 @@ fn resolve_generator<'a>(
                     let (name, gcfg) = defaults[0];
                     Ok(((*name).clone(), *gcfg))
                 }
-                _ => bail!("Multiple generators are marked as default. At most one may have `default = true`."),
+                _ => bail!(
+                    "Multiple generators are marked as default. At most one may have `default = true`."
+                ),
             }
         }
     }
 }
 
-// ---------------------------------------------------------------------------
-// Step 2: Verify command exists
-// ---------------------------------------------------------------------------
-
 fn verify_command_exists(executable: &str) -> Result<()> {
-    // Check PATH via which crate, or fall back to checking if it's a relative/absolute path
     if executable.contains('/') || executable.contains('\\') {
         let path = Path::new(executable);
         if !path.exists() {
@@ -214,10 +188,6 @@ fn verify_command_exists(executable: &str) -> Result<()> {
     }
     Ok(())
 }
-
-// ---------------------------------------------------------------------------
-// Step 4: Build graph from lockfile
-// ---------------------------------------------------------------------------
 
 /// Metadata extracted from a lock dependency for building the request.
 struct DepMeta {
@@ -242,10 +212,7 @@ fn parse_lock_key(key: &str) -> (String, String) {
 
 fn build_graph_from_lock(
     lock: &LockManifest,
-) -> (
-    HashMap<String, Vec<String>>,
-    HashMap<String, DepMeta>,
-) {
+) -> (HashMap<String, Vec<String>>, HashMap<String, DepMeta>) {
     let mut adjacency: HashMap<String, Vec<String>> = HashMap::new();
     let mut dep_meta: HashMap<String, DepMeta> = HashMap::new();
 
@@ -272,24 +239,18 @@ fn build_graph_from_lock(
     (adjacency, dep_meta)
 }
 
-// ---------------------------------------------------------------------------
-// Step 5: Filter & dependency closure
-// ---------------------------------------------------------------------------
-
 fn compute_closure(
     all_names: &[String],
     filter: &[String],
     adjacency: &HashMap<String, Vec<String>>,
 ) -> Result<(HashSet<String>, HashSet<String>)> {
     let target_set: HashSet<String> = if filter.is_empty() {
-        // No filter: all schemas are targets
         all_names.iter().cloned().collect()
     } else {
         let patterns: Vec<glob::Pattern> = filter
             .iter()
             .map(|p| {
-                glob::Pattern::new(p)
-                    .with_context(|| format!("Invalid filter glob pattern: {}", p))
+                glob::Pattern::new(p).with_context(|| format!("Invalid filter glob pattern: {}", p))
             })
             .collect::<Result<Vec<_>>>()?;
 
@@ -300,7 +261,6 @@ fn compute_closure(
             .collect()
     };
 
-    // Walk dependencies from targets to compute transitive closure
     let mut closure = target_set.clone();
     let mut queue: VecDeque<String> = target_set.iter().cloned().collect();
 
@@ -317,21 +277,15 @@ fn compute_closure(
     Ok((target_set, closure))
 }
 
-// ---------------------------------------------------------------------------
-// Step 6: Topological sort (Kahn's algorithm, leaves first)
-// ---------------------------------------------------------------------------
-
 fn topological_sort(
     closure: &HashSet<String>,
     adjacency: &HashMap<String, Vec<String>>,
 ) -> Result<Vec<String>> {
-    // Build in-degree map scoped to the closure
     let mut in_degree: HashMap<&String, usize> = HashMap::new();
     for name in closure {
         in_degree.entry(name).or_insert(0);
     }
 
-    // Count incoming edges: for each A -> B (A depends on B), B gets +1 in-degree
     for name in closure {
         if let Some(deps) = adjacency.get(name) {
             for dep in deps {
@@ -342,7 +296,6 @@ fn topological_sort(
         }
     }
 
-    // Kahn's: start with zero in-degree nodes (roots — things nothing depends on)
     let mut queue: VecDeque<&String> = in_degree
         .iter()
         .filter(|(_, deg)| **deg == 0)
@@ -369,15 +322,9 @@ fn topological_sort(
         bail!("Cycle detected in dependency graph. This should not happen with a valid lockfile.");
     }
 
-    // Kahn's gives us roots-first (things with no dependents first).
-    // We need leaves-first (things with no dependencies first).
     sorted.reverse();
     Ok(sorted)
 }
-
-// ---------------------------------------------------------------------------
-// Step 7: Build request
-// ---------------------------------------------------------------------------
 
 fn build_request(
     sorted: &[String],
@@ -393,10 +340,11 @@ fn build_request(
             .get(name)
             .with_context(|| format!("Missing metadata for schema: {}", name))?;
 
-        // Build path: .rusl/schemas/<account>/<slug>.json
         let parts: Vec<&str> = name.split('/').collect();
         let schema_path = if parts.len() == 2 {
-            schemas_dir.join(parts[0]).join(format!("{}.json", parts[1]))
+            schemas_dir
+                .join(parts[0])
+                .join(format!("{}.json", parts[1]))
         } else {
             schemas_dir.join(format!("{}.json", name))
         };
@@ -413,7 +361,6 @@ fn build_request(
         };
 
         let content_ref = if schema_path.exists() {
-            // Relative path from project root
             Some(format!(".rusl/schemas/{}.json", name))
         } else {
             None
@@ -437,10 +384,6 @@ fn build_request(
     })
 }
 
-// ---------------------------------------------------------------------------
-// Step 8-9: Spawn plugin & validate response
-// ---------------------------------------------------------------------------
-
 async fn spawn_plugin(argv: &[String], request: &GenerationRequest) -> Result<Vec<u8>> {
     let request_json =
         serde_json::to_vec(request).context("Failed to serialize GenerationRequest")?;
@@ -456,7 +399,6 @@ async fn spawn_plugin(argv: &[String], request: &GenerationRequest) -> Result<Ve
     let mut stdin = child.stdin.take().unwrap();
     let mut stdout = child.stdout.take().unwrap();
 
-    // Concurrent read/write to prevent pipe deadlock
     let (write_result, read_result) = tokio::join!(
         async move {
             stdin.write_all(&request_json).await?;
@@ -478,9 +420,7 @@ async fn spawn_plugin(argv: &[String], request: &GenerationRequest) -> Result<Ve
     match status.code() {
         Some(0) => {}
         Some(2) => {
-            bail!(
-                "Plugin does not support protocol version 1. Check for updates."
-            );
+            bail!("Plugin does not support protocol version 1. Check for updates.");
         }
         Some(code) => {
             bail!("Generator exited with code {}.", code);
@@ -493,15 +433,10 @@ async fn spawn_plugin(argv: &[String], request: &GenerationRequest) -> Result<Ve
     Ok(response_bytes)
 }
 
-// ---------------------------------------------------------------------------
-// Step 9: Validate response against protocol schema and deserialize
-// ---------------------------------------------------------------------------
-
 fn validate_and_parse_response(
     response_bytes: &[u8],
     schema_path: &Path,
 ) -> Result<GenerationResponse> {
-    // Parse raw bytes into a JSON value first
     let response_value: serde_json::Value =
         serde_json::from_slice(response_bytes).map_err(|e| {
             let preview =
@@ -516,7 +451,6 @@ fn validate_and_parse_response(
             )
         })?;
 
-    // Validate against the protocol schema if installed
     if schema_path.exists() {
         let schema_str = fs::read_to_string(schema_path)
             .with_context(|| format!("Failed to read response schema: {:?}", schema_path))?;
@@ -558,13 +492,8 @@ fn validate_and_parse_response(
         }
     }
 
-    // Deserialize into the typed struct
     serde_json::from_value(response_value).context("Failed to deserialize generator response")
 }
-
-// ---------------------------------------------------------------------------
-// Step 9 (cont): Path safety
-// ---------------------------------------------------------------------------
 
 fn validate_file_path(path: &str) -> Result<()> {
     if Path::new(path).is_absolute() {
@@ -586,20 +515,12 @@ fn validate_file_path(path: &str) -> Result<()> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Step 10: Atomic writes
-// ---------------------------------------------------------------------------
-
 fn atomic_write(output_dir: &Path, files: &[GeneratedFile], clean: bool) -> Result<()> {
-    let parent = output_dir
-        .parent()
-        .unwrap_or_else(|| Path::new("."));
+    let parent = output_dir.parent().unwrap_or_else(|| Path::new("."));
 
-    // Ensure parent exists
     fs::create_dir_all(parent)
         .with_context(|| format!("Failed to create parent directory: {:?}", parent))?;
 
-    // Create temp dir as sibling for same-filesystem atomic rename
     let temp_dir = tempfile::tempdir_in(parent)
         .context("Failed to create temporary directory for atomic write")?;
 
@@ -613,24 +534,16 @@ fn atomic_write(output_dir: &Path, files: &[GeneratedFile], clean: bool) -> Resu
     }
 
     if clean && output_dir.exists() {
-        // Move old output aside first so a crash never leaves us with nothing.
-        // The backup is a sibling dir — same filesystem for atomic rename.
-        let backup = parent.join(format!(
-            ".rusl-backup-{}",
-            std::process::id()
-        ));
+        let backup = parent.join(format!(".rusl-backup-{}", std::process::id()));
         fs::rename(output_dir, &backup)
             .with_context(|| format!("Failed to back up output directory: {:?}", output_dir))?;
 
-        // Swap new output into place
         match fs::rename(temp_dir.path(), output_dir) {
             Ok(()) => {
                 let _ = temp_dir.keep();
-                // Clean up backup only after successful swap
                 let _ = fs::remove_dir_all(&backup);
             }
             Err(_) => {
-                // Cross-device fallback: copy then cleanup
                 copy_dir_recursive(temp_dir.path(), output_dir)?;
                 let _ = fs::remove_dir_all(&backup);
             }
@@ -668,10 +581,6 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// --list
-// ---------------------------------------------------------------------------
-
 fn list_generators() -> Result<()> {
     let generators = config::load_generators_with_tiers()?;
 
@@ -696,11 +605,7 @@ fn list_generators() -> Result<()> {
             .as_ref()
             .map(|c| c.display())
             .unwrap_or_default();
-        let output = eff
-            .config
-            .output_dir
-            .as_deref()
-            .unwrap_or("");
+        let output = eff.config.output_dir.as_deref().unwrap_or("");
 
         println!(
             "  {}{:<4} {:<10} {:<36} → {}",
@@ -718,10 +623,6 @@ fn list_generators() -> Result<()> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
-// Config validation
-// ---------------------------------------------------------------------------
-
 fn validate_config(config: &config::Config) -> Result<()> {
     let enabled: Vec<(&String, &GeneratorConfig)> = config
         .generators
@@ -729,13 +630,11 @@ fn validate_config(config: &config::Config) -> Result<()> {
         .filter(|(_, g)| g.enabled)
         .collect();
 
-    // At most one default
     let default_count = enabled.iter().filter(|(_, g)| g.default).count();
     if default_count > 1 {
         bail!("Multiple generators are marked as default. At most one may have `default = true`.");
     }
 
-    // output_dir must be unique across enabled generators
     let mut seen_dirs: HashMap<&str, &str> = HashMap::new();
     for (name, gcfg) in &enabled {
         if let Some(ref dir) = gcfg.output_dir {
@@ -752,20 +651,18 @@ fn validate_config(config: &config::Config) -> Result<()> {
         }
     }
 
-    // output_dir must be relative
     for (name, gcfg) in &enabled {
-        if let Some(ref dir) = gcfg.output_dir {
-            if Path::new(dir).is_absolute() {
-                bail!(
-                    "Generator '{}' has an absolute output_dir '{}'. Only relative paths are allowed.",
-                    name,
-                    dir
-                );
-            }
+        if let Some(ref dir) = gcfg.output_dir
+            && Path::new(dir).is_absolute()
+        {
+            bail!(
+                "Generator '{}' has an absolute output_dir '{}'. Only relative paths are allowed.",
+                name,
+                dir
+            );
         }
     }
 
-    // command is required for stdio generators
     for (name, gcfg) in &enabled {
         if gcfg.plugin_type == "stdio" && gcfg.command.is_none() {
             bail!(

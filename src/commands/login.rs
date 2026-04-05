@@ -83,15 +83,15 @@ pub async fn run(_args: LoginArgs) -> Result<()> {
         Ok(n) => {
             let request_string = String::from_utf8_lossy(&buffer[..n]);
 
-            if let Some(first_line) = request_string.lines().next() {
-                if let Some(query_start) = first_line.find("?code=") {
-                    let block = &first_line[query_start + 6..];
-                    let end_idx = block
-                        .find('&')
-                        .or_else(|| block.find(' '))
-                        .unwrap_or(block.len());
-                    code = block[..end_idx].to_string();
-                }
+            if let Some(first_line) = request_string.lines().next()
+                && let Some(query_start) = first_line.find("?code=")
+            {
+                let block = &first_line[query_start + 6..];
+                let end_idx = block
+                    .find('&')
+                    .or_else(|| block.find(' '))
+                    .unwrap_or(block.len());
+                code = block[..end_idx].to_string();
             }
         }
         Err(e) => pb.println(format!(

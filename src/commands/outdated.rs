@@ -12,12 +12,16 @@ pub async fn run(_args: OutdatedArgs) -> Result<()> {
     let lock_path = cwd.join("rusl.lock");
 
     if !lock_path.exists() {
-        println!("{}", "No schemas installed. `rusl.lock` not found.".yellow());
+        println!(
+            "{}",
+            "No schemas installed. `rusl.lock` not found.".yellow()
+        );
         return Ok(());
     }
 
     let lock_str = fs::read_to_string(&lock_path).context("Failed to read rusl.lock")?;
-    let lock_manifest: LockManifest = toml::from_str(&lock_str).context("Failed to parse rusl.lock")?;
+    let lock_manifest: LockManifest =
+        toml::from_str(&lock_str).context("Failed to parse rusl.lock")?;
 
     if lock_manifest.dependencies.is_empty() {
         println!("{}", "No dependencies found in rusl.lock.".yellow());
@@ -77,10 +81,10 @@ pub async fn run(_args: OutdatedArgs) -> Result<()> {
                 }
             }
 
-            if let Some(latest) = latest_version {
-                if latest > current_version {
-                    outdated_deps.push((pkg.clone(), dep.version.clone(), latest.to_string()));
-                }
+            if let Some(latest) = latest_version
+                && latest > current_version
+            {
+                outdated_deps.push((pkg.clone(), dep.version.clone(), latest.to_string()));
             }
         }
     }
@@ -107,7 +111,13 @@ pub async fn run(_args: OutdatedArgs) -> Result<()> {
             let current_str = format!("@v{}", current).yellow();
             let latest_str = format!("@v{}", latest).green().bold();
 
-            println!("{}{}{} -> {}", prefix.dimmed(), display_name.bold(), current_str, latest_str);
+            println!(
+                "{}{}{} -> {}",
+                prefix.dimmed(),
+                display_name.bold(),
+                current_str,
+                latest_str
+            );
         }
     }
 

@@ -106,7 +106,6 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        // Compile-time fallback URLs dynamically routing traffic securely.
         let default_api = option_env!("RUSL_DEFAULT_API_URL").unwrap_or("https://api.rusl.app");
         let default_web = option_env!("RUSL_DEFAULT_WEBSITE_URL").unwrap_or("https://rusl.app");
 
@@ -119,8 +118,7 @@ impl Default for Config {
     }
 }
 
-/// Partial config for overlay merging — all fields optional so we only
-/// overwrite what the user explicitly set in a given config file.
+/// Partial config for overlay merging.
 #[derive(Debug, Deserialize, Default)]
 #[serde(default)]
 struct PartialConfig {
@@ -132,38 +130,43 @@ struct PartialConfig {
     pub generators: HashMap<String, GeneratorConfig>,
 }
 
-/// Loads the config strictly via a hierarchical precedence sequence natively
+/// Load config using the standard precedence order.
 pub fn load() -> anyhow::Result<Config> {
     let mut config = Config::default();
 
-    // 1. Start with global config as the base layer
     if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "rusl") {
         let global_config = proj_dirs.config_dir().join("config.toml");
         if global_config.exists() {
             debug!("Found global config at: {:?}", global_config);
             let contents = std::fs::read_to_string(&global_config)?;
-            let parsed: PartialConfig = toml::from_str(&contents)
-                .with_context(|| format!("Configuration Parse Error: Global config at {:?} contains invalid TOML syntax.", global_config))?;
+            let parsed: PartialConfig = toml::from_str(&contents).with_context(|| {
+                format!(
+                    "Global config at {:?} contains invalid TOML.",
+                    global_config
+                )
+            })?;
             apply_partial(&mut config, parsed);
         }
     }
 
-    // 2. Overlay project config (search upward from cwd)
     let mut current_dir = std::env::current_dir().ok();
     while let Some(dir) = current_dir.as_ref() {
         let local_config = dir.join("rusl.config.toml");
         if local_config.exists() {
             debug!("Found local config at: {:?}", local_config);
             let contents = std::fs::read_to_string(&local_config)?;
-            let parsed: PartialConfig = toml::from_str(&contents)
-                .with_context(|| format!("Configuration Parse Error: File {:?} exists but contains invalid TOML syntax. Please ensure it follows the format documented in the README.", local_config))?;
+            let parsed: PartialConfig = toml::from_str(&contents).with_context(|| {
+                format!(
+                    "Project config at {:?} contains invalid TOML.",
+                    local_config
+                )
+            })?;
             apply_partial(&mut config, parsed);
             break;
         }
         current_dir = dir.parent().map(|p| p.to_path_buf());
     }
 
-    // 3. Runtime Environment Variable Override (highest priority)
     if let Ok(url) = std::env::var("RUSL_API_URL") {
         config.api_base_url = url;
     }
@@ -174,7 +177,7 @@ pub fn load() -> anyhow::Result<Config> {
     Ok(config)
 }
 
-/// Apply a partial config overlay — only overwrite fields that were explicitly set.
+/// Apply a partial config overlay.
 fn apply_partial(config: &mut Config, partial: PartialConfig) {
     if let Some(url) = partial.api_base_url {
         config.api_base_url = url;
@@ -194,29 +197,39 @@ fn apply_partial(config: &mut Config, partial: PartialConfig) {
 pub fn load_generators_with_tiers() -> anyhow::Result<Vec<(String, EffectiveGenerator)>> {
     let mut result: HashMap<String, EffectiveGenerator> = HashMap::new();
 
-    // 1. Global layer
     if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "rusl") {
         let global_config = proj_dirs.config_dir().join("config.toml");
         if global_config.exists() {
             let contents = std::fs::read_to_string(&global_config)?;
-            let parsed: PartialConfig = toml::from_str(&contents)
-                .with_context(|| "Failed to parse global config")?;
+            let parsed: PartialConfig =
+                toml::from_str(&contents).with_context(|| "Failed to parse global config")?;
             for (name, gcfg) in parsed.generators {
-                result.insert(name, EffectiveGenerator { config: gcfg, tier: ConfigTier::Global });
+                result.insert(
+                    name,
+                    EffectiveGenerator {
+                        config: gcfg,
+                        tier: ConfigTier::Global,
+                    },
+                );
             }
         }
     }
 
-    // 2. Project layer overwrites
     let mut current_dir = std::env::current_dir().ok();
     while let Some(dir) = current_dir.as_ref() {
         let local_config = dir.join("rusl.config.toml");
         if local_config.exists() {
             let contents = std::fs::read_to_string(&local_config)?;
-            let parsed: PartialConfig = toml::from_str(&contents)
-                .with_context(|| "Failed to parse project config")?;
+            let parsed: PartialConfig =
+                toml::from_str(&contents).with_context(|| "Failed to parse project config")?;
             for (name, gcfg) in parsed.generators {
-                result.insert(name, EffectiveGenerator { config: gcfg, tier: ConfigTier::Project });
+                result.insert(
+                    name,
+                    EffectiveGenerator {
+                        config: gcfg,
+                        tier: ConfigTier::Project,
+                    },
+                );
             }
             break;
         }

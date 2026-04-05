@@ -40,7 +40,7 @@ impl RegistryClient {
         }
     }
 
-    /// Appends the `Authorization: Bearer <token>` header if credentials natively exist locally.
+    /// Append the `Authorization: Bearer <token>` header when credentials exist.
     fn inject_auth(&self, req: RequestBuilder, creds: &Option<Credentials>) -> RequestBuilder {
         if let Some(c) = creds {
             req.bearer_auth(&c.access_token)
@@ -49,97 +49,89 @@ impl RegistryClient {
         }
     }
 
-    /// Executes the HTTP request.
+    /// Execute the request and retry once after refreshing on `401`.
     async fn execute_with_auth_retry(
         &self,
         req_builder: RequestBuilder,
     ) -> Result<reqwest::Response> {
         let mut creds = Credentials::load();
 
-        // 1. Eagerly check if we ONLY have a refresh token but a blank access token.
-        // If so, proactively exchange it before the first request.
-        if let Some(ref mut current_creds) = creds {
-            if current_creds.access_token.trim().is_empty()
-                && !current_creds.refresh_token.trim().is_empty()
-            {
-                let refresh_url = format!("{}/api/tokens/exchange", self.config.api_base_url);
-                let refresh_res = self
-                    .client
-                    .post(&refresh_url)
-                    .bearer_auth(&current_creds.refresh_token)
-                    .send()
-                    .await?;
+        if let Some(ref mut current_creds) = creds
+            && current_creds.access_token.trim().is_empty()
+            && !current_creds.refresh_token.trim().is_empty()
+        {
+            let refresh_url = format!("{}/api/tokens/exchange", self.config.api_base_url);
+            let refresh_res = self
+                .client
+                .post(&refresh_url)
+                .bearer_auth(&current_creds.refresh_token)
+                .send()
+                .await?;
 
-                if refresh_res.status().is_success() {
-                    let token_data: TokenExchangeResponse = refresh_res
-                        .json()
-                        .await
-                        .context("Failed to deserialize token exchange json")?;
-                    current_creds.access_token = token_data.access_token;
-                    let _ = current_creds.save();
-                } else {
-                    println!(
-                        "{} Your session has expired. You may need to run `rusl login` again.",
-                        "Warning:".yellow().bold()
-                    );
-                }
+            if refresh_res.status().is_success() {
+                let token_data: TokenExchangeResponse = refresh_res
+                    .json()
+                    .await
+                    .context("Failed to deserialize token exchange json")?;
+                current_creds.access_token = token_data.access_token;
+                let _ = current_creds.save();
+            } else {
+                println!(
+                    "{} Your session has expired. You may need to run `rusl login` again.",
+                    "Warning:".yellow().bold()
+                );
             }
         }
 
-        // Clone the request intrinsically so we can safely retry it if it explodes natively
         let initial_req = req_builder
             .try_clone()
             .context("Failed to securely duplicate HTTP request payload")?;
 
         let mut res = self.inject_auth(initial_req, &creds).send().await?;
 
-        // Intercept 401 Unauthorized natively!
-        if res.status() == StatusCode::UNAUTHORIZED {
-            if let Some(mut current_creds) = creds.take() {
-                debug!(
-                    "Encountered 401 Unauthorized. Attempting to seamlessly swap refresh_token via API base..."
+        if res.status() == StatusCode::UNAUTHORIZED
+            && let Some(mut current_creds) = creds.take()
+        {
+            debug!("Received 401 Unauthorized. Attempting refresh-token exchange.");
+            let refresh_url = format!("{}/api/tokens/exchange", self.config.api_base_url);
+
+            let refresh_res = self
+                .client
+                .post(&refresh_url)
+                .bearer_auth(&current_creds.refresh_token)
+                .send()
+                .await?;
+
+            if refresh_res.status().is_success() {
+                let token_data: TokenExchangeResponse = refresh_res
+                    .json()
+                    .await
+                    .context("Failed to deserialize refreshed API token json natively")?;
+
+                current_creds.access_token = token_data.access_token.clone();
+                current_creds
+                    .save()
+                    .context("Failed to persist refreshed session")?;
+
+                creds = Some(current_creds);
+                let retry_req = req_builder
+                    .try_clone()
+                    .context("Failed to clone HTTP request payload")?;
+                res = self.inject_auth(retry_req, &creds).send().await?;
+            } else {
+                println!(
+                    "{} Session refresh failed (HTTP {}). Please run `rusl login` to re-authenticate.",
+                    "Error:".red().bold(),
+                    refresh_res.status()
                 );
-                let refresh_url = format!("{}/api/tokens/exchange", self.config.api_base_url);
-
-                let refresh_res = self
-                    .client
-                    .post(&refresh_url)
-                    .bearer_auth(&current_creds.refresh_token)
-                    .send()
-                    .await?;
-
-                if refresh_res.status().is_success() {
-                    let token_data: TokenExchangeResponse = refresh_res
-                        .json()
-                        .await
-                        .context("Failed to deserialize refreshed API token json natively")?;
-
-                    current_creds.access_token = token_data.access_token.clone();
-                    current_creds.save().context(
-                        "Failed to permanently persist mathematically refreshed OAuth2 session",
-                    )?;
-
-                    // Retry original network request mathematically using the freshly rotated access token
-                    creds = Some(current_creds);
-                    let retry_req = req_builder
-                        .try_clone()
-                        .context("Failed to clone HTTP request payload natively")?;
-                    res = self.inject_auth(retry_req, &creds).send().await?;
-                } else {
-                    println!(
-                        "{} Session refresh failed (HTTP {}). Please run `rusl login` to re-authenticate.",
-                        "Error:".red().bold(),
-                        refresh_res.status()
-                    );
-                }
             }
         }
 
         res.error_for_status()
-            .map_err(|e| anyhow::anyhow!("Registry HTTP sequence exploded: {}", e))
+            .map_err(|e| anyhow::anyhow!("Registry request failed: {}", e))
     }
 
-    /// Fetches the index of all available semantic versions for a Schema via the true Metadata API
+    /// Fetch the version history for a schema package.
     pub async fn fetch_schema_meta(
         &self,
         account: &str,
@@ -151,12 +143,10 @@ impl RegistryClient {
         );
         let req = self.client.get(&url);
         let res = self.execute_with_auth_retry(req).await?;
-        res.json()
-            .await
-            .context("Failed to parse Schema Metadata json")
+        res.json().await.context("Failed to parse schema metadata")
     }
 
-    /// Fetches the index of all available semantic versions for a Bundle natively
+    /// Fetch the version history for a bundle package.
     pub async fn fetch_bundle_meta(
         &self,
         account: &str,
@@ -168,12 +158,10 @@ impl RegistryClient {
         );
         let req = self.client.get(&url);
         let res = self.execute_with_auth_retry(req).await?;
-        res.json()
-            .await
-            .context("Failed to parse Bundle Metadata json")
+        res.json().await.context("Failed to parse bundle metadata")
     }
 
-    /// Downloads the exact JSON/YAML payload mapping isolated to a specific semantic version natively via `@v{version}`
+    /// Download a schema artifact at an exact version.
     pub async fn download_schema_blob(
         &self,
         account: &str,
@@ -193,13 +181,13 @@ impl RegistryClient {
         Ok(bytes.to_vec())
     }
 
-    /// Fetches the currently authenticated session user profile
+    /// Fetch the current authenticated session.
     pub async fn fetch_me(&self) -> Result<serde_json::Value> {
         let url = format!("{}/api/auth/sessions/me", self.config.api_base_url);
         let req = self.client.get(&url);
         let res = self.execute_with_auth_retry(req).await?;
         res.json()
             .await
-            .context("Failed to securely deserialize session profile json")
+            .context("Failed to deserialize session profile")
     }
 }
