@@ -16,6 +16,7 @@ pub mod registry;
 pub mod resolver;
 #[path = "../../../src/ui.rs"]
 pub mod ui;
+pub mod whoami_service;
 
 pub use cli::Cli;
 
