@@ -25,6 +25,24 @@ npx --yes "@openapitools/openapi-generator-cli@${generator_cli_version}" generat
   -o "$tmp_dir" \
   --additional-properties=library=reqwest,packageName=rusl-openapi-client,packageVersion=0.1.0,hideGenerationTimestamp=true
 
+python - <<'PY_FIX' "$tmp_dir"
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+for path in root.rglob("*.rs"):
+    text = path.read_text()
+    updated = text.replace("models::serde_json::Value", "serde_json::Value")
+    if path.name == "lib.rs" and path.parent.name == "src":
+        updated = updated.replace(
+            "#![allow(unused_imports)]\n#![allow(clippy::too_many_arguments)]\n",
+            "#![allow(clippy::all)]\n#![allow(unused_imports)]\n#![allow(clippy::too_many_arguments)]\n",
+            1,
+        )
+    if updated != text:
+        path.write_text(updated)
+PY_FIX
+
 rm -rf "$output_dir"
 mkdir -p "$(dirname "$output_dir")"
 mv "$tmp_dir" "$output_dir"
