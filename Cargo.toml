@@ -1,15 +1,4 @@
 [workspace]
-members = [".", "crates/rusl-app", "crates/rusl-api-client"]
+members = ["crates/rusl-app", "crates/rusl-api-client", "crates/rusl-cli"]
+default-members = ["crates/rusl-cli"]
 resolver = "3"
-
-[package]
-name = "rusl"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-anyhow = "1.0.102"
-clap = { version = "4.6.0", features = ["derive"] }
-rusl-app = { path = "crates/rusl-app" }
-tokio = { version = "1.50.0", features = ["full"] }
-tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }

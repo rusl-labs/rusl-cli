@@ -1,8 +1,8 @@
 use crate::cli::{AddArgs, DepType};
-use crate::dependency_service::{self, AddDependencyRequest, DependencyKind};
-use crate::resolver::graph::ProgressReporter;
 use anyhow::Result;
 use colored::Colorize;
+use rusl_app::dependency_service::{self, AddDependencyRequest, DependencyKind};
+use rusl_app::resolver::graph::ProgressReporter;
 
 pub async fn run(args: AddArgs) -> Result<()> {
     let progress = CliDependencyProgress::new();

@@ -1,8 +1,8 @@
 use crate::cli::InstallArgs;
-use crate::install_service;
-use crate::resolver::graph::ProgressReporter;
 use anyhow::Result;
 use colored::Colorize;
+use rusl_app::install_service;
+use rusl_app::resolver::graph::ProgressReporter;
 
 pub async fn run(_args: InstallArgs) -> Result<()> {
     let progress = CliInstallProgress::new();

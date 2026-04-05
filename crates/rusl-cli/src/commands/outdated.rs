@@ -1,7 +1,7 @@
 use crate::cli::OutdatedArgs;
-use crate::outdated_service::{self, OutdatedOutput};
 use anyhow::Result;
 use colored::Colorize;
+use rusl_app::outdated_service::{self, OutdatedOutput};
 
 pub async fn run(_args: OutdatedArgs) -> Result<()> {
     let pb = crate::ui::spinner("Checking registry for updates...");

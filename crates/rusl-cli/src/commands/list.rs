@@ -1,7 +1,7 @@
 use crate::cli::ListArgs;
-use crate::list_service::{self, ListFlatView, ListOutput, ListTreeNode, ListTreeView};
 use anyhow::Result;
 use colored::Colorize;
+use rusl_app::list_service::{self, ListFlatView, ListOutput, ListTreeNode, ListTreeView};
 
 pub async fn run(args: ListArgs) -> Result<()> {
     match list_service::load_dependencies(args.tree)? {

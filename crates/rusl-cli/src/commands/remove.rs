@@ -1,10 +1,10 @@
 use crate::cli::{DepType, RemoveArgs};
-use crate::dependency_service::{
-    self, DependencyKind, RemoveDependencyRequest, RemoveDependencyResult,
-};
-use crate::resolver::graph::ProgressReporter;
 use anyhow::Result;
 use colored::Colorize;
+use rusl_app::dependency_service::{
+    self, DependencyKind, RemoveDependencyRequest, RemoveDependencyResult,
+};
+use rusl_app::resolver::graph::ProgressReporter;
 
 pub async fn run(args: RemoveArgs) -> Result<()> {
     let progress = CliDependencyProgress::new();

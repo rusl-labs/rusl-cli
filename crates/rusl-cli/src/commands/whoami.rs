@@ -1,7 +1,7 @@
 use crate::cli::WhoamiArgs;
-use crate::whoami_service;
 use anyhow::Result;
 use colored::Colorize;
+use rusl_app::whoami_service;
 
 pub async fn run(_args: WhoamiArgs) -> Result<()> {
     let profile = whoami_service::load_current_user().await?;

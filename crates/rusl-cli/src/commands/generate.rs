@@ -1,7 +1,7 @@
 use crate::cli::GenerateArgs;
-use crate::generate_service::{GenerateOutput, GenerateRequestArgs, run_generate};
 use anyhow::Result;
 use colored::Colorize;
+use rusl_app::generate_service::{GenerateOutput, GenerateRequestArgs, run_generate};
 
 pub async fn run(args: GenerateArgs) -> Result<()> {
     let request = GenerateRequestArgs {

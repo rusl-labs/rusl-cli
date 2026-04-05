@@ -1941,10 +1941,19 @@ name = "rusl"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64",
  "clap",
+ "colored",
+ "indicatif",
+ "rand 0.10.0",
+ "reqwest",
  "rusl-app",
+ "serde",
+ "sha2",
  "tokio",
+ "toml",
  "tracing-subscriber",
+ "webbrowser",
 ]
 
 [[package]]
