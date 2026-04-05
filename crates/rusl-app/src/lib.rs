@@ -8,6 +8,7 @@ pub mod commands;
 pub mod config;
 #[path = "../../../src/generate/mod.rs"]
 pub mod generate;
+pub mod install_service;
 pub mod list_service;
 #[path = "../../../src/manifest/mod.rs"]
 pub mod manifest;
