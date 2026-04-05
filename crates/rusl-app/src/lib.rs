@@ -9,6 +9,7 @@ pub mod config;
 pub mod dependency_service;
 #[path = "../../../src/generate/mod.rs"]
 pub mod generate;
+pub mod generate_service;
 pub mod install_service;
 pub mod list_service;
 #[path = "../../../src/manifest/mod.rs"]
