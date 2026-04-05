@@ -1,14 +1,5 @@
-mod cache;
-mod cli;
-mod commands;
-mod config;
-mod generate;
-mod manifest;
-mod registry;
-mod resolver;
-pub mod ui;
-
 use clap::Parser;
+use rusl_app::Cli;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -17,19 +8,6 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(EnvFilter::from_default_env().add_directive("rusl=info".parse()?))
         .init();
 
-    let cli = cli::Cli::parse();
-
-    match cli.command {
-        cli::Commands::Install(args) => commands::install::run(args).await?,
-        cli::Commands::Add(args) => commands::add::run(args).await?,
-        cli::Commands::Remove(args) => commands::remove::run(args).await?,
-        cli::Commands::Login(args) => commands::login::run(args).await?,
-        cli::Commands::Whoami(args) => commands::whoami::run(args).await?,
-        cli::Commands::List(args) => commands::list::run(args).await?,
-        cli::Commands::Outdated(args) => commands::outdated::run(args).await?,
-        cli::Commands::Why(args) => commands::why::run(args).await?,
-        cli::Commands::Generate(args) => commands::generate::run(args).await?,
-    }
-
-    Ok(())
+    let cli = Cli::parse();
+    rusl_app::run(cli.command).await
 }

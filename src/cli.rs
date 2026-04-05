@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(name = "rusl")]
+#[command(version)]
 #[command(about = "The schema package manager", long_about = None)]
 pub struct Cli {
     #[command(subcommand)]
@@ -118,4 +119,3 @@ pub struct GenerateArgs {
     #[arg(long)]
     pub print_request: bool,
 }
-

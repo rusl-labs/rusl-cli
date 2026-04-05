@@ -28,10 +28,7 @@ impl Linker {
     pub fn purge_all(&self) -> Result<()> {
         if self.schema_dir.exists() {
             std::fs::remove_dir_all(&self.schema_dir).with_context(|| {
-                format!(
-                    "Failed to prune schema cache at {:?}",
-                    self.schema_dir
-                )
+                format!("Failed to prune schema cache at {:?}", self.schema_dir)
             })?;
         }
         Ok(())
@@ -60,9 +57,7 @@ impl Linker {
 
         if self.copy_mode {
             std::fs::copy(cas_path, &local_file)
-                .with_context(|| {
-                    format!("Failed to copy {:?} -> {:?}", cas_path, local_file)
-                })?;
+                .with_context(|| format!("Failed to copy {:?} -> {:?}", cas_path, local_file))?;
         } else {
             #[cfg(windows)]
             let link_res = create_symlink(cas_path, &local_file)

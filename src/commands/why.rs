@@ -44,7 +44,10 @@ fn find_ancestors(target: &str, lock: &LockManifest) -> HashSet<String> {
     let mut reverse: HashMap<&str, Vec<&str>> = HashMap::new();
     for (key, dep) in &lock.dependencies {
         for child in &dep.dependencies {
-            reverse.entry(child.as_str()).or_default().push(key.as_str());
+            reverse
+                .entry(child.as_str())
+                .or_default()
+                .push(key.as_str());
         }
     }
 
@@ -69,7 +72,10 @@ pub async fn run(args: WhyArgs) -> Result<()> {
     let lock_path = cwd.join("rusl.lock");
 
     if !lock_path.exists() {
-        println!("{}", "No schemas installed. `rusl.lock` not found.".yellow());
+        println!(
+            "{}",
+            "No schemas installed. `rusl.lock` not found.".yellow()
+        );
         return Ok(());
     }
 

@@ -1704,6 +1704,17 @@ name = "rusl"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "clap",
+ "rusl-app",
+ "tokio",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "rusl-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
  "base64",
  "clap",
  "colored",
@@ -1724,7 +1735,6 @@ dependencies = [
  "toml",
  "toml_edit",
  "tracing",
- "tracing-subscriber",
  "webbrowser",
  "which",
 ]

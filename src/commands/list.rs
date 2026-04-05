@@ -24,7 +24,10 @@ pub async fn run(args: ListArgs) -> Result<()> {
     let lock_path = cwd.join("rusl.lock");
 
     if !lock_path.exists() {
-        println!("{}", "No schemas installed. `rusl.lock` not found.".yellow());
+        println!(
+            "{}",
+            "No schemas installed. `rusl.lock` not found.".yellow()
+        );
         return Ok(());
     }
 
