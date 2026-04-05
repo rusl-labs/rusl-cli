@@ -85,11 +85,12 @@ pub async fn run(args: GenerateArgs) -> Result<()> {
 
     atomic_write(&output_dir, &response.files, gen_config.clean)?;
 
+    let output_dir_label = gen_config.output_dir.as_deref().unwrap_or(".");
     pb.finish_with_message(format!(
         "{} Generated {} files → {}",
         "Success:".green().bold(),
         response.files.len(),
-        gen_config.output_dir.as_deref().unwrap_or(".")
+        output_dir_label
     ));
 
     Ok(())
@@ -349,7 +350,8 @@ fn build_request(
             schemas_dir.join(format!("{}.json", name))
         };
 
-        let content = if schema_path.exists() {
+        let has_schema_file = schema_path.exists();
+        let content = if has_schema_file {
             let raw = fs::read_to_string(&schema_path)
                 .with_context(|| format!("Failed to read schema file: {:?}", schema_path))?;
             Some(
@@ -360,7 +362,7 @@ fn build_request(
             None
         };
 
-        let content_ref = if schema_path.exists() {
+        let content_ref = if has_schema_file {
             Some(format!(".rusl/schemas/{}.json", name))
         } else {
             None
