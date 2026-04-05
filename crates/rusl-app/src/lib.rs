@@ -11,6 +11,7 @@ pub mod generate;
 pub mod list_service;
 #[path = "../../../src/manifest/mod.rs"]
 pub mod manifest;
+pub mod outdated_service;
 #[path = "../../../src/registry/mod.rs"]
 pub mod registry;
 #[path = "../../../src/resolver/mod.rs"]
