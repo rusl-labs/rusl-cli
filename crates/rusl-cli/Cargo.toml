@@ -18,3 +18,9 @@ tokio = { version = "1.50.0", features = ["full"] }
 toml = "1.1.0"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 webbrowser = "1.2.0"
+
+[dev-dependencies]
+axum = "0.8.4"
+serde_json = "1.0.149"
+serial_test = "3"
+tempfile = "3"

@@ -240,3 +240,190 @@ pub fn load_generators_with_tiers() -> anyhow::Result<Vec<(String, EffectiveGene
     sorted.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(sorted)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{ConfigTier, load, load_generators_with_tiers};
+    use serial_test::serial;
+    use std::{ffi::OsString, path::PathBuf};
+    use tempfile::TempDir;
+
+    struct EnvGuard {
+        previous_home: Option<OsString>,
+        previous_api_url: Option<OsString>,
+        previous_website_url: Option<OsString>,
+        previous_dir: PathBuf,
+    }
+
+    impl EnvGuard {
+        fn new(home_dir: &std::path::Path, workspace_dir: &std::path::Path) -> Self {
+            let previous_home = std::env::var_os(home_var_name());
+            let previous_api_url = std::env::var_os("RUSL_API_URL");
+            let previous_website_url = std::env::var_os("RUSL_WEBSITE_URL");
+            let previous_dir = std::env::current_dir().expect("current dir");
+
+            set_env_var(home_var_name(), home_dir.as_os_str());
+            std::env::set_current_dir(workspace_dir).expect("set workspace dir");
+
+            Self {
+                previous_home,
+                previous_api_url,
+                previous_website_url,
+                previous_dir,
+            }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            restore_env_var(home_var_name(), self.previous_home.as_ref());
+            restore_env_var("RUSL_API_URL", self.previous_api_url.as_ref());
+            restore_env_var("RUSL_WEBSITE_URL", self.previous_website_url.as_ref());
+            std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn load_applies_global_then_project_then_environment_overrides() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir);
+
+        let global_config_path = project_config_dir().join("config.toml");
+        std::fs::create_dir_all(global_config_path.parent().expect("config dir"))
+            .expect("create global config dir");
+        std::fs::write(
+            &global_config_path,
+            r#"
+api_base_url = "https://global-api.example"
+website_url = "https://global-web.example"
+schema_dir = "global-schemas"
+
+[generators.global]
+type = "stdio"
+command = "global-gen"
+output_dir = "global-out"
+"#,
+        )
+        .expect("write global config");
+
+        std::fs::write(
+            workspace_dir.join("rusl.config.toml"),
+            r#"
+website_url = "https://project-web.example"
+schema_dir = "project-schemas"
+
+[generators.project]
+type = "stdio"
+command = "project-gen"
+output_dir = "project-out"
+"#,
+        )
+        .expect("write project config");
+
+        set_env_var("RUSL_API_URL", "https://env-api.example");
+
+        let config = load().expect("load config");
+
+        assert_eq!(config.api_base_url, "https://env-api.example");
+        assert_eq!(config.website_url, "https://project-web.example");
+        assert_eq!(config.schema_dir(), "project-schemas");
+        assert!(config.generators.contains_key("global"));
+        assert!(config.generators.contains_key("project"));
+    }
+
+    #[test]
+    #[serial]
+    fn load_generators_with_tiers_prefers_project_over_global() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir);
+
+        let global_config_path = project_config_dir().join("config.toml");
+        std::fs::create_dir_all(global_config_path.parent().expect("config dir"))
+            .expect("create global config dir");
+        std::fs::write(
+            &global_config_path,
+            r#"
+[generators.shared]
+type = "stdio"
+command = "global-gen"
+output_dir = "global-out"
+
+[generators.only_global]
+type = "stdio"
+command = "global-only"
+output_dir = "global-only-out"
+"#,
+        )
+        .expect("write global config");
+
+        std::fs::write(
+            workspace_dir.join("rusl.config.toml"),
+            r#"
+[generators.shared]
+type = "stdio"
+command = "project-gen"
+output_dir = "project-out"
+
+[generators.only_project]
+type = "stdio"
+command = "project-only"
+output_dir = "project-only-out"
+"#,
+        )
+        .expect("write project config");
+
+        let generators = load_generators_with_tiers().expect("load generators");
+
+        assert_eq!(generators.len(), 3);
+        let shared = generators
+            .iter()
+            .find(|(name, _)| name == "shared")
+            .expect("shared generator");
+        assert_eq!(shared.1.tier, ConfigTier::Project);
+        assert_eq!(
+            shared.1.config.command.as_ref().expect("command").display(),
+            "project-gen"
+        );
+    }
+
+    fn project_config_dir() -> PathBuf {
+        directories::ProjectDirs::from("", "", "rusl")
+            .expect("project dirs")
+            .config_dir()
+            .to_path_buf()
+    }
+
+    #[cfg(windows)]
+    fn home_var_name() -> &'static str {
+        "USERPROFILE"
+    }
+
+    #[cfg(not(windows))]
+    fn home_var_name() -> &'static str {
+        "HOME"
+    }
+
+    fn set_env_var<K, V>(key: K, value: V)
+    where
+        K: AsRef<std::ffi::OsStr>,
+        V: AsRef<std::ffi::OsStr>,
+    {
+        unsafe { std::env::set_var(key, value) }
+    }
+
+    fn restore_env_var(key: &str, value: Option<&OsString>) {
+        match value {
+            Some(value) => unsafe { std::env::set_var(key, value) },
+            None => unsafe { std::env::remove_var(key) },
+        }
+    }
+}

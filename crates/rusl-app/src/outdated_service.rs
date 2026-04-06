@@ -138,9 +138,23 @@ fn display_name(package_key: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{OutdatedItem, display_name, latest_version, parse_registry_target};
+    use super::{
+        OutdatedItem, OutdatedOutput, display_name, latest_version, load_outdated_dependencies,
+        parse_registry_target,
+    };
+    use crate::config::credentials::Credentials;
     use crate::registry::client::RegistryVersion;
-    use std::collections::HashMap;
+    use axum::{
+        Json, Router,
+        extract::{Path as AxumPath, State},
+        http::StatusCode,
+        routing::get,
+    };
+    use serde_json::{Value, json};
+    use serial_test::serial;
+    use std::{collections::HashMap, ffi::OsString, path::PathBuf};
+    use tempfile::TempDir;
+    use tokio::{net::TcpListener, sync::oneshot, task::JoinHandle};
 
     #[test]
     fn formats_registry_display_names() {
@@ -191,5 +205,175 @@ mod tests {
             schemas: HashMap::new(),
             bundles: HashMap::new(),
         }
+    }
+
+    #[derive(Clone)]
+    struct TestState;
+
+    struct TestServer {
+        base_url: String,
+        shutdown: Option<oneshot::Sender<()>>,
+        task: JoinHandle<()>,
+    }
+
+    impl TestServer {
+        async fn start() -> Self {
+            let app = Router::new()
+                .route("/schemas/{account}/{slug}/metadata", get(metadata_handler))
+                .with_state(TestState);
+            let listener = TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("bind test server");
+            let address = listener.local_addr().expect("read test server address");
+            let (shutdown_tx, shutdown_rx) = oneshot::channel();
+            let task = tokio::spawn(async move {
+                axum::serve(listener, app)
+                    .with_graceful_shutdown(async {
+                        let _ = shutdown_rx.await;
+                    })
+                    .await
+                    .expect("run test server");
+            });
+
+            Self {
+                base_url: format!("http://{address}"),
+                shutdown: Some(shutdown_tx),
+                task,
+            }
+        }
+    }
+
+    impl Drop for TestServer {
+        fn drop(&mut self) {
+            if let Some(shutdown) = self.shutdown.take() {
+                let _ = shutdown.send(());
+            }
+            self.task.abort();
+        }
+    }
+
+    struct EnvGuard {
+        previous_home: Option<OsString>,
+        previous_api_url: Option<OsString>,
+        previous_dir: PathBuf,
+    }
+
+    impl EnvGuard {
+        fn new(
+            home_dir: &std::path::Path,
+            workspace_dir: &std::path::Path,
+            api_base_url: &str,
+        ) -> Self {
+            let previous_home = std::env::var_os(home_var_name());
+            let previous_api_url = std::env::var_os("RUSL_API_URL");
+            let previous_dir = std::env::current_dir().expect("current dir");
+            unsafe { std::env::set_var(home_var_name(), home_dir.as_os_str()) };
+            unsafe { std::env::set_var("RUSL_API_URL", api_base_url) };
+            std::env::set_current_dir(workspace_dir).expect("set current dir");
+            Self {
+                previous_home,
+                previous_api_url,
+                previous_dir,
+            }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            match self.previous_home.as_ref() {
+                Some(value) => unsafe { std::env::set_var(home_var_name(), value) },
+                None => unsafe { std::env::remove_var(home_var_name()) },
+            }
+            match self.previous_api_url.as_ref() {
+                Some(value) => unsafe { std::env::set_var("RUSL_API_URL", value) },
+                None => unsafe { std::env::remove_var("RUSL_API_URL") },
+            }
+            std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
+        }
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn returns_missing_lockfile_when_no_lock_exists() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, "https://api.example.test");
+
+        let output = load_outdated_dependencies().await.expect("load outdated");
+
+        assert!(matches!(output, OutdatedOutput::MissingLockfile));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn loads_outdated_items_from_registry_metadata() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+        Credentials::clear().expect("clear creds");
+
+        std::fs::write(
+            workspace_dir.join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:hassox/root"]
+version = "1.0.0"
+integrity = "root"
+source = "https://api.rusl.app"
+"#,
+        )
+        .expect("write lockfile");
+
+        let output = load_outdated_dependencies().await.expect("load outdated");
+
+        assert_eq!(
+            output,
+            OutdatedOutput::Items(vec![OutdatedItem {
+                package_key: "schema:hassox/root".to_string(),
+                display_name: "hassox/root".to_string(),
+                current_version: "1.0.0".to_string(),
+                latest_version: "1.2.0".to_string(),
+            }])
+        );
+    }
+
+    async fn metadata_handler(
+        State(_state): State<TestState>,
+        AxumPath((account, slug)): AxumPath<(String, String)>,
+    ) -> (StatusCode, Json<Value>) {
+        let body = match (account.as_str(), slug.as_str()) {
+            ("hassox", "root") => json!({
+                "name": "root",
+                "versions": [
+                    { "version": "1.0.0", "schemas": {}, "bundles": {} },
+                    { "version": "1.2.0", "schemas": {}, "bundles": {} }
+                ]
+            }),
+            _ => json!({ "error": "not found" }),
+        };
+        let status = if body.get("error").is_some() {
+            StatusCode::NOT_FOUND
+        } else {
+            StatusCode::OK
+        };
+        (status, Json(body))
+    }
+
+    #[cfg(windows)]
+    fn home_var_name() -> &'static str {
+        "USERPROFILE"
+    }
+
+    #[cfg(not(windows))]
+    fn home_var_name() -> &'static str {
+        "HOME"
     }
 }

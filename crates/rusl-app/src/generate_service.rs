@@ -688,3 +688,275 @@ fn validate_config(config: &config::Config) -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{GenerateOutput, GenerateRequestArgs, run_generate, validate_file_path};
+    use crate::generate::protocol::GenerationRequest;
+    use serial_test::serial;
+    use std::{ffi::OsString, path::PathBuf};
+    use tempfile::TempDir;
+
+    struct EnvGuard {
+        previous_home: Option<OsString>,
+        previous_dir: PathBuf,
+    }
+
+    impl EnvGuard {
+        fn new(home_dir: &std::path::Path, workspace_dir: &std::path::Path) -> Self {
+            let previous_home = std::env::var_os(home_var_name());
+            let previous_dir = std::env::current_dir().expect("current dir");
+            unsafe { std::env::set_var(home_var_name(), home_dir.as_os_str()) };
+            std::env::set_current_dir(workspace_dir).expect("set current dir");
+            Self {
+                previous_home,
+                previous_dir,
+            }
+        }
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            match self.previous_home.as_ref() {
+                Some(value) => unsafe { std::env::set_var(home_var_name(), value) },
+                None => unsafe { std::env::remove_var(home_var_name()) },
+            }
+            std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
+        }
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn print_request_marks_only_filtered_schemas_as_targets() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir);
+
+        let plugin_path = write_plugin_script(
+            temp_dir.path(),
+            r#"cat >/dev/null
+printf '%s' '{"version":"1","files":[]}'
+"#,
+        );
+        write_generate_fixture(
+            &workspace_dir,
+            &plugin_path,
+            Some(r#"filter = ["hassox/root"]"#),
+        );
+
+        let output = run_generate(GenerateRequestArgs {
+            name: None,
+            list: false,
+            print_request: true,
+        })
+        .await
+        .expect("print request");
+
+        let GenerateOutput::PrintedRequest(json) = output else {
+            panic!("expected printed request");
+        };
+        let request: GenerationRequest =
+            serde_json::from_str(&json).expect("parse printed request");
+
+        assert_eq!(
+            request
+                .schemas
+                .iter()
+                .map(|schema| schema.name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["hassox/dep", "hassox/root"]
+        );
+        assert!(!request.schemas[0].target);
+        assert!(request.schemas[1].target);
+        assert_eq!(request.schemas[1].dependencies, vec!["hassox/dep"]);
+    }
+
+    #[tokio::test]
+    #[serial]
+    #[cfg(unix)]
+    async fn run_generate_executes_plugin_and_replaces_existing_output() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir);
+
+        let plugin_path = write_plugin_script(
+            temp_dir.path(),
+            r#"cat >/dev/null
+printf '%s' '{"version":"1","files":[{"path":"types.ts","content":"export const value = 1;\n"}]}'
+"#,
+        );
+        write_generate_fixture(&workspace_dir, &plugin_path, None);
+        let output_dir = workspace_dir.join("generated").join("types");
+        std::fs::create_dir_all(&output_dir).expect("create output dir");
+        std::fs::write(output_dir.join("stale.ts"), "stale").expect("write stale file");
+
+        let output = run_generate(GenerateRequestArgs {
+            name: None,
+            list: false,
+            print_request: false,
+        })
+        .await
+        .expect("run generator");
+
+        let GenerateOutput::Generated(result) = output else {
+            panic!("expected generated output");
+        };
+        assert_eq!(result.generator_name, "typescript");
+        assert_eq!(result.file_count, 1);
+        assert_eq!(result.output_dir, "generated/types");
+        assert_eq!(
+            std::fs::read_to_string(output_dir.join("types.ts")).expect("generated file"),
+            "export const value = 1;\n"
+        );
+        assert!(!output_dir.join("stale.ts").exists());
+    }
+
+    #[test]
+    fn rejects_unsafe_generated_file_paths() {
+        let traversal_error =
+            validate_file_path("../escape.ts").expect_err("expected traversal error");
+        assert!(traversal_error.to_string().contains("Path traversal"));
+
+        let absolute_path = absolute_test_path("escape.ts");
+        let absolute_error =
+            validate_file_path(&absolute_path).expect_err("expected absolute path error");
+        assert!(
+            absolute_error
+                .to_string()
+                .contains("Absolute paths are not allowed")
+        );
+    }
+
+    fn write_generate_fixture(
+        workspace_dir: &std::path::Path,
+        plugin_path: &std::path::Path,
+        extra_generator_fields: Option<&str>,
+    ) {
+        std::fs::write(
+            workspace_dir.join("rusl.config.toml"),
+            format!(
+                r#"
+[generators.typescript]
+type = "stdio"
+command = ["{}"]
+output_dir = "generated/types"
+default = true
+{}
+"#,
+                plugin_path.display(),
+                extra_generator_fields.unwrap_or("")
+            ),
+        )
+        .expect("write generator config");
+
+        std::fs::write(
+            workspace_dir.join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:hassox/root"]
+version = "1.0.0"
+integrity = "root"
+source = "https://api.rusl.app"
+dependencies = ["schema:hassox/dep"]
+
+[dependencies."schema:hassox/dep"]
+version = "1.0.0"
+integrity = "dep"
+source = "https://api.rusl.app"
+"#,
+        )
+        .expect("write lockfile");
+
+        let schemas_dir = workspace_dir.join(".rusl").join("schemas").join("hassox");
+        std::fs::create_dir_all(&schemas_dir).expect("create schemas dir");
+        std::fs::write(
+            schemas_dir.join("root.json"),
+            r#"{"title":"root","type":"object"}"#,
+        )
+        .expect("write root schema");
+        std::fs::write(
+            schemas_dir.join("dep.json"),
+            r#"{"title":"dep","type":"object"}"#,
+        )
+        .expect("write dep schema");
+
+        let response_schema_dir = workspace_dir.join(".rusl").join("schemas").join("rusl");
+        std::fs::create_dir_all(&response_schema_dir).expect("create response schema dir");
+        std::fs::write(
+            response_schema_dir.join("cli-gen-response.json"),
+            r#"
+{
+  "type": "object",
+  "required": ["version", "files"],
+  "properties": {
+    "version": { "type": "string" },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "content"],
+        "properties": {
+          "path": { "type": "string" },
+          "content": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+"#,
+        )
+        .expect("write response schema");
+    }
+
+    #[cfg(unix)]
+    fn write_plugin_script(dir: &std::path::Path, body: &str) -> PathBuf {
+        use std::os::unix::fs::PermissionsExt;
+
+        let path = dir.join("plugin.sh");
+        std::fs::write(&path, format!("#!/bin/sh\n{body}")).expect("write plugin script");
+        let mut perms = std::fs::metadata(&path)
+            .expect("plugin metadata")
+            .permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&path, perms).expect("chmod plugin script");
+        path
+    }
+
+    #[cfg(not(unix))]
+    fn write_plugin_script(dir: &std::path::Path, _body: &str) -> PathBuf {
+        let path = dir.join("plugin.cmd");
+        std::fs::write(
+            &path,
+            "@echo off\r\npython -c \"import sys; sys.stdin.read(); print('{\\\"version\\\":\\\"1\\\",\\\"files\\\":[]}')\"",
+        )
+        .expect("write plugin script");
+        path
+    }
+
+    #[cfg(windows)]
+    fn absolute_test_path(name: &str) -> String {
+        format!(r"C:\tmp\{name}")
+    }
+
+    #[cfg(not(windows))]
+    fn absolute_test_path(name: &str) -> String {
+        format!("/tmp/{name}")
+    }
+
+    #[cfg(windows)]
+    fn home_var_name() -> &'static str {
+        "USERPROFILE"
+    }
+
+    #[cfg(not(windows))]
+    fn home_var_name() -> &'static str {
+        "HOME"
+    }
+}

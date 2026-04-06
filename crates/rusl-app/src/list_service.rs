@@ -161,9 +161,18 @@ fn is_external_source(source: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{ListOutput, build_flat_view, build_tree_node, display_name, is_external_source};
+    use super::{
+        ListOutput, build_flat_view, build_tree_node, display_name, is_external_source,
+        load_dependencies,
+    };
     use crate::manifest::lock::{LockDependency, LockManifest};
-    use std::collections::{BTreeMap, HashSet};
+    use serial_test::serial;
+    use std::{
+        collections::{BTreeMap, HashSet},
+        ffi::OsString,
+        path::PathBuf,
+    };
+    use tempfile::TempDir;
 
     #[test]
     fn formats_dependency_display_names() {
@@ -248,5 +257,101 @@ mod tests {
             version: "1".to_string(),
             dependencies,
         }
+    }
+
+    struct DirGuard {
+        previous_dir: PathBuf,
+        previous_home: Option<OsString>,
+    }
+
+    impl DirGuard {
+        fn new(dir: &std::path::Path) -> Self {
+            let previous_dir = std::env::current_dir().expect("current dir");
+            let previous_home = std::env::var_os(home_var_name());
+            std::env::set_current_dir(dir).expect("set current dir");
+            unsafe { std::env::set_var(home_var_name(), dir.as_os_str()) };
+            Self {
+                previous_dir,
+                previous_home,
+            }
+        }
+    }
+
+    impl Drop for DirGuard {
+        fn drop(&mut self) {
+            std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
+            match self.previous_home.as_ref() {
+                Some(value) => unsafe { std::env::set_var(home_var_name(), value) },
+                None => unsafe { std::env::remove_var(home_var_name()) },
+            }
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn load_dependencies_reports_missing_lockfile() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+
+        let output = load_dependencies(false).expect("load dependencies");
+
+        assert!(matches!(output, ListOutput::MissingLockfile));
+    }
+
+    #[test]
+    #[serial]
+    fn load_dependencies_builds_tree_view_from_manifest_and_lockfile() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[schemas]
+"acme/root" = ">=1.0.0"
+"#,
+        )
+        .expect("write manifest");
+        std::fs::write(
+            temp_dir.path().join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:acme/root"]
+version = "1.0.0"
+integrity = "root"
+source = "https://api.rusl.app"
+dependencies = ["schema:acme/shared"]
+
+[dependencies."schema:acme/shared"]
+version = "1.2.0"
+integrity = "shared"
+source = "https://example.com/schema.json"
+"#,
+        )
+        .expect("write lockfile");
+
+        let output = load_dependencies(true).expect("load dependencies");
+
+        let ListOutput::Tree(tree) = output else {
+            panic!("expected tree output");
+        };
+        assert_eq!(tree.root_name, "hassox/demo");
+        assert_eq!(tree.dependencies.len(), 1);
+        assert_eq!(tree.dependencies[0].display_name, "acme/root");
+        assert_eq!(tree.dependencies[0].children[0].display_name, "acme/shared");
+    }
+
+    #[cfg(windows)]
+    fn home_var_name() -> &'static str {
+        "USERPROFILE"
+    }
+
+    #[cfg(not(windows))]
+    fn home_var_name() -> &'static str {
+        "HOME"
     }
 }

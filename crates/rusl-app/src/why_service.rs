@@ -181,9 +181,11 @@ fn find_ancestors(target: &str, lock: &LockManifest) -> HashSet<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{display_name, resolve_search_key};
+    use super::{WhyOutput, display_name, load_dependency_paths, resolve_search_key};
     use crate::manifest::lock::{LockDependency, LockManifest};
-    use std::collections::BTreeMap;
+    use serial_test::serial;
+    use std::{collections::BTreeMap, ffi::OsString, path::PathBuf};
+    use tempfile::TempDir;
 
     #[test]
     fn display_name_formats_bundle_and_schema_keys() {
@@ -210,5 +212,129 @@ mod tests {
             resolve_search_key("bundles/hassox/demo", &lock),
             Some("bundle:hassox/demo".to_string())
         );
+    }
+
+    struct DirGuard {
+        previous_dir: PathBuf,
+        previous_home: Option<OsString>,
+    }
+
+    impl DirGuard {
+        fn new(dir: &std::path::Path) -> Self {
+            let previous_dir = std::env::current_dir().expect("current dir");
+            let previous_home = std::env::var_os(home_var_name());
+            std::env::set_current_dir(dir).expect("set current dir");
+            unsafe { std::env::set_var(home_var_name(), dir.as_os_str()) };
+            Self {
+                previous_dir,
+                previous_home,
+            }
+        }
+    }
+
+    impl Drop for DirGuard {
+        fn drop(&mut self) {
+            std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
+            match self.previous_home.as_ref() {
+                Some(value) => unsafe { std::env::set_var(home_var_name(), value) },
+                None => unsafe { std::env::remove_var(home_var_name()) },
+            }
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn load_dependency_paths_returns_tree_for_reachable_target() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[schemas]
+"acme/root" = ">=1.0.0"
+"#,
+        )
+        .expect("write manifest");
+        std::fs::write(
+            temp_dir.path().join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:acme/root"]
+version = "1.0.0"
+integrity = "root"
+source = "https://api.rusl.app"
+dependencies = ["schema:acme/shared"]
+
+[dependencies."schema:acme/shared"]
+version = "1.2.0"
+integrity = "shared"
+source = "https://api.rusl.app"
+"#,
+        )
+        .expect("write lockfile");
+
+        let output = load_dependency_paths("acme/shared").expect("load dependency paths");
+
+        let WhyOutput::Tree(tree) = output else {
+            panic!("expected tree output");
+        };
+        assert_eq!(tree.target_display_name, "acme/shared");
+        assert_eq!(tree.paths[0].display_name, "acme/root");
+        assert!(tree.paths[0].children[0].is_target);
+    }
+
+    #[test]
+    #[serial]
+    fn load_dependency_paths_reports_unreachable_target() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[schemas]
+"acme/root" = ">=1.0.0"
+"#,
+        )
+        .expect("write manifest");
+        std::fs::write(
+            temp_dir.path().join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:acme/other"]
+version = "1.0.0"
+integrity = "other"
+source = "https://api.rusl.app"
+"#,
+        )
+        .expect("write lockfile");
+
+        let output = load_dependency_paths("acme/other").expect("load dependency paths");
+
+        assert_eq!(
+            output,
+            WhyOutput::Unreachable {
+                display_name: "acme/other".to_string(),
+            }
+        );
+    }
+
+    #[cfg(windows)]
+    fn home_var_name() -> &'static str {
+        "USERPROFILE"
+    }
+
+    #[cfg(not(windows))]
+    fn home_var_name() -> &'static str {
+        "HOME"
     }
 }

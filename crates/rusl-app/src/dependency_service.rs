@@ -3,7 +3,10 @@ use crate::registry::client::{RegistryClient, RegistryVersion};
 use crate::resolver::graph::ProgressReporter;
 use anyhow::{Context, Result, bail};
 use pubgrub::SemanticVersion;
+use std::{future::Future, pin::Pin};
 use toml_edit::{DocumentMut, table, value};
+
+type InstallFuture<'a> = Pin<Box<dyn Future<Output = Result<InstallResult>> + 'a>>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DependencyKind {
@@ -52,6 +55,21 @@ pub async fn add_dependency<P>(
 where
     P: ProgressReporter,
 {
+    add_dependency_with_installer(request, progress, |progress| {
+        Box::pin(install_service::install_project(progress))
+    })
+    .await
+}
+
+async fn add_dependency_with_installer<P, I>(
+    request: AddDependencyRequest,
+    progress: &P,
+    install: I,
+) -> Result<AddDependencyResult>
+where
+    P: ProgressReporter,
+    I: for<'a> Fn(&'a P) -> InstallFuture<'a>,
+{
     progress.set_message("Reading rusl.bundle.toml...".to_string());
 
     let manifest_path = current_manifest_path()?;
@@ -82,7 +100,7 @@ where
     std::fs::write(&manifest_path, document.to_string())
         .context("Failed to persist rusl.bundle.toml")?;
 
-    let install = install_service::install_project(progress).await?;
+    let install = install(progress).await?;
     Ok(AddDependencyResult {
         slug: request.slug,
         table_key,
@@ -97,6 +115,21 @@ pub async fn remove_dependency<P>(
 ) -> Result<RemoveDependencyResult>
 where
     P: ProgressReporter,
+{
+    remove_dependency_with_installer(request, progress, |progress| {
+        Box::pin(install_service::install_project(progress))
+    })
+    .await
+}
+
+async fn remove_dependency_with_installer<P, I>(
+    request: RemoveDependencyRequest,
+    progress: &P,
+    install: I,
+) -> Result<RemoveDependencyResult>
+where
+    P: ProgressReporter,
+    I: for<'a> Fn(&'a P) -> InstallFuture<'a>,
 {
     progress.set_message("Reading rusl.bundle.toml...".to_string());
 
@@ -120,7 +153,7 @@ where
     std::fs::write(&manifest_path, document.to_string())
         .context("Failed to persist rusl.bundle.toml")?;
 
-    let install = install_service::install_project(progress).await?;
+    let install = install(progress).await?;
     Ok(RemoveDependencyResult::Removed {
         slug: request.slug,
         table_key,
@@ -185,9 +218,59 @@ fn table_key(kind: DependencyKind) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::{DependencyKind, latest_version, table_key};
+    use super::{
+        AddDependencyRequest, DependencyKind, RemoveDependencyRequest, RemoveDependencyResult,
+        add_dependency_with_installer, latest_version, remove_dependency_with_installer, table_key,
+    };
+    use crate::install_service::InstallResult;
     use crate::registry::client::RegistryVersion;
-    use std::collections::HashMap;
+    use crate::resolver::graph::ProgressReporter;
+    use serial_test::serial;
+    use std::{collections::HashMap, ffi::OsString, future, path::PathBuf, sync::Mutex};
+    use tempfile::TempDir;
+
+    #[derive(Default)]
+    struct TestProgress {
+        messages: Mutex<Vec<String>>,
+    }
+
+    impl ProgressReporter for TestProgress {
+        fn set_message(&self, message: String) {
+            self.messages.lock().expect("lock messages").push(message);
+        }
+
+        fn println(&self, message: String) {
+            self.messages.lock().expect("lock messages").push(message);
+        }
+    }
+
+    struct DirGuard {
+        previous_dir: PathBuf,
+        previous_home: Option<OsString>,
+    }
+
+    impl DirGuard {
+        fn new(dir: &std::path::Path) -> Self {
+            let previous_dir = std::env::current_dir().expect("current dir");
+            let previous_home = std::env::var_os(home_var_name());
+            std::env::set_current_dir(dir).expect("set current dir");
+            unsafe { std::env::set_var(home_var_name(), dir.as_os_str()) };
+            Self {
+                previous_dir,
+                previous_home,
+            }
+        }
+    }
+
+    impl Drop for DirGuard {
+        fn drop(&mut self) {
+            std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
+            match self.previous_home.as_ref() {
+                Some(value) => unsafe { std::env::set_var(home_var_name(), value) },
+                None => unsafe { std::env::remove_var(home_var_name()) },
+            }
+        }
+    }
 
     #[test]
     fn maps_dependency_kinds_to_manifest_tables() {
@@ -214,5 +297,176 @@ mod tests {
             schemas: HashMap::new(),
             bundles: HashMap::new(),
         }
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dependency_creates_missing_table_and_persists_manifest() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        let result = add_dependency_with_installer(
+            AddDependencyRequest {
+                kind: DependencyKind::Schema,
+                slug: "hassox/test-schema".to_string(),
+                version_requirement: Some(">=1.2.3".to_string()),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("add dependency");
+
+        assert_eq!(result.table_key, "schemas");
+        assert_eq!(result.version_requirement, ">=1.2.3");
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(manifest.contains("[schemas]"));
+        assert!(manifest.contains("\"hassox/test-schema\" = \">=1.2.3\""));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn remove_dependency_deletes_existing_entry_and_runs_install() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[schemas]
+"hassox/test-schema" = ">=1.2.3"
+"hassox/keep-schema" = ">=2.0.0"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        let result = remove_dependency_with_installer(
+            RemoveDependencyRequest {
+                kind: DependencyKind::Schema,
+                slug: "hassox/test-schema".to_string(),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("remove dependency");
+
+        assert!(matches!(
+            result,
+            RemoveDependencyResult::Removed {
+                slug,
+                table_key: "schemas",
+                ..
+            } if slug == "hassox/test-schema"
+        ));
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(!manifest.contains("hassox/test-schema"));
+        assert!(manifest.contains("hassox/keep-schema"));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn remove_dependency_returns_not_present_without_rewriting_manifest() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let manifest_path = temp_dir.path().join("rusl.bundle.toml");
+        std::fs::write(
+            &manifest_path,
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[schemas]
+"hassox/keep-schema" = ">=2.0.0"
+"#,
+        )
+        .expect("write manifest");
+        let before = std::fs::read_to_string(&manifest_path).expect("read manifest");
+        let progress = TestProgress::default();
+
+        let result = remove_dependency_with_installer(
+            RemoveDependencyRequest {
+                kind: DependencyKind::Schema,
+                slug: "hassox/missing-schema".to_string(),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("remove dependency");
+
+        assert!(matches!(
+            result,
+            RemoveDependencyResult::NotPresent {
+                slug,
+                table_key: "schemas",
+            } if slug == "hassox/missing-schema"
+        ));
+        let after = std::fs::read_to_string(&manifest_path).expect("read manifest");
+        assert_eq!(before, after);
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dependency_rejects_non_table_dependency_section() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+schemas = "not-a-table"
+
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        let error = add_dependency_with_installer(
+            AddDependencyRequest {
+                kind: DependencyKind::Schema,
+                slug: "hassox/test-schema".to_string(),
+                version_requirement: Some(">=1.2.3".to_string()),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect_err("expected non-table error");
+
+        assert!(
+            error
+                .to_string()
+                .contains("The [schemas] key exists but is not a TOML table")
+        );
+    }
+
+    #[cfg(windows)]
+    fn home_var_name() -> &'static str {
+        "USERPROFILE"
+    }
+
+    #[cfg(not(windows))]
+    fn home_var_name() -> &'static str {
+        "HOME"
     }
 }

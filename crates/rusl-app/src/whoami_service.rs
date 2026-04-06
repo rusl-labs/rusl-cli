@@ -142,4 +142,16 @@ mod tests {
         );
         assert!(profile.accounts[1].is_organization());
     }
+
+    #[test]
+    fn rejects_unauthenticated_sessions() {
+        let session: models::MeResponse = serde_json::from_value(json!({
+            "authenticated": false
+        }))
+        .expect("deserialize unauthenticated session");
+
+        let error = parse_profile(session).expect_err("expected auth error");
+
+        assert!(error.to_string().contains("Run `rusl login` first"));
+    }
 }

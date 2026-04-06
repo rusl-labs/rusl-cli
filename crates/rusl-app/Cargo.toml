@@ -28,3 +28,7 @@ toml_edit = "0.25.8"
 tracing = "0.1.44"
 webbrowser = "1.2.0"
 which = "7"
+
+[dev-dependencies]
+axum = "0.8.4"
+serial_test = "3"

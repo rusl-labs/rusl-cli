@@ -161,3 +161,211 @@ where
         Err(error) => anyhow::bail!("Resolver failed natively: {error}"),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{ProgressReporter, resolve_graph};
+    use crate::{
+        config::Config, manifest::bundle::BundleManifest, registry::client::RegistryClient,
+    };
+    use axum::{
+        Json, Router,
+        extract::{Path as AxumPath, State},
+        http::StatusCode,
+        routing::get,
+    };
+    use serde_json::{Value, json};
+    use serial_test::serial;
+    use std::collections::HashMap;
+    use tokio::{net::TcpListener, sync::oneshot, task::JoinHandle};
+
+    #[derive(Default)]
+    struct TestProgress {
+        messages: std::sync::Mutex<Vec<String>>,
+    }
+
+    impl ProgressReporter for TestProgress {
+        fn set_message(&self, message: String) {
+            self.messages.lock().expect("lock messages").push(message);
+        }
+
+        fn println(&self, message: String) {
+            self.messages.lock().expect("lock messages").push(message);
+        }
+    }
+
+    #[derive(Clone)]
+    struct TestState;
+
+    struct TestServer {
+        base_url: String,
+        shutdown: Option<oneshot::Sender<()>>,
+        task: JoinHandle<()>,
+    }
+
+    impl TestServer {
+        async fn start() -> Self {
+            let app = Router::new()
+                .route(
+                    "/schemas/{account}/{slug}/metadata",
+                    get(schema_metadata_handler),
+                )
+                .route(
+                    "/bundles/{account}/{slug}/metadata",
+                    get(bundle_metadata_handler),
+                )
+                .with_state(TestState);
+
+            let listener = TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("bind test server");
+            let address = listener.local_addr().expect("read test server address");
+            let (shutdown_tx, shutdown_rx) = oneshot::channel();
+            let task = tokio::spawn(async move {
+                axum::serve(listener, app)
+                    .with_graceful_shutdown(async {
+                        let _ = shutdown_rx.await;
+                    })
+                    .await
+                    .expect("run test server");
+            });
+
+            Self {
+                base_url: format!("http://{address}"),
+                shutdown: Some(shutdown_tx),
+                task,
+            }
+        }
+    }
+
+    impl Drop for TestServer {
+        fn drop(&mut self) {
+            if let Some(shutdown) = self.shutdown.take() {
+                let _ = shutdown.send(());
+            }
+            self.task.abort();
+        }
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn resolves_schema_dependencies_from_registry_metadata() {
+        let server = TestServer::start().await;
+        let client = RegistryClient::new(Config {
+            api_base_url: server.base_url.clone(),
+            website_url: "https://example.test".to_string(),
+            schema_dir: None,
+            generators: HashMap::new(),
+        });
+        let manifest: BundleManifest = toml::from_str(
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[schemas]
+"hassox/root" = ">=1.0.0"
+"#,
+        )
+        .expect("parse manifest");
+        let progress = TestProgress::default();
+
+        let resolved = resolve_graph(&manifest, &client, &progress)
+            .await
+            .expect("resolve graph");
+
+        assert_eq!(resolved.versions["schema:hassox/root"].to_string(), "1.0.0");
+        assert_eq!(resolved.versions["schema:hassox/dep"].to_string(), "1.0.0");
+        assert_eq!(
+            resolved.edges["schema:hassox/root"],
+            vec!["schema:hassox/dep".to_string()]
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn reports_conflicts_when_no_single_version_satisfies_all_dependencies() {
+        let server = TestServer::start().await;
+        let client = RegistryClient::new(Config {
+            api_base_url: server.base_url.clone(),
+            website_url: "https://example.test".to_string(),
+            schema_dir: None,
+            generators: HashMap::new(),
+        });
+        let manifest: BundleManifest = toml::from_str(
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[schemas]
+"hassox/root" = ">=1.0.0"
+
+[bundles]
+"hassox/consumer" = ">=1.0.0"
+"#,
+        )
+        .expect("parse manifest");
+        let progress = TestProgress::default();
+
+        let error = resolve_graph(&manifest, &client, &progress)
+            .await
+            .err()
+            .expect("expected dependency conflict");
+
+        assert!(error.to_string().contains("Dependency conflict detected"));
+    }
+
+    async fn schema_metadata_handler(
+        State(_state): State<TestState>,
+        AxumPath((account, slug)): AxumPath<(String, String)>,
+    ) -> (StatusCode, Json<Value>) {
+        let body = match (account.as_str(), slug.as_str()) {
+            ("hassox", "root") => json!({
+                "name": "root",
+                "versions": [{
+                    "version": "1.0.0",
+                    "schemas": { "hassox/dep": ">=1.0.0" },
+                    "bundles": {}
+                }]
+            }),
+            ("hassox", "dep") => json!({
+                "name": "dep",
+                "versions": [
+                    { "version": "1.0.0", "schemas": {}, "bundles": {} },
+                    { "version": "2.0.0", "schemas": {}, "bundles": {} }
+                ]
+            }),
+            _ => json!({ "error": "not found" }),
+        };
+        let status = if body.get("error").is_some() {
+            StatusCode::NOT_FOUND
+        } else {
+            StatusCode::OK
+        };
+        (status, Json(body))
+    }
+
+    async fn bundle_metadata_handler(
+        State(_state): State<TestState>,
+        AxumPath((account, slug)): AxumPath<(String, String)>,
+    ) -> (StatusCode, Json<Value>) {
+        let body = match (account.as_str(), slug.as_str()) {
+            ("hassox", "consumer") => json!({
+                "name": "consumer",
+                "versions": [{
+                    "version": "1.0.0",
+                    "schemas": { "hassox/dep": ">=2.0.0" },
+                    "bundles": {}
+                }]
+            }),
+            _ => json!({ "error": "not found" }),
+        };
+        let status = if body.get("error").is_some() {
+            StatusCode::NOT_FOUND
+        } else {
+            StatusCode::OK
+        };
+        (status, Json(body))
+    }
+}
