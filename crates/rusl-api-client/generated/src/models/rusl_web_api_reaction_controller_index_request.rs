@@ -11,9 +11,10 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+/// RuslWebApiReactionControllerIndexRequest : Choose one pagination family per request: `first`/`after` for forward cursor pagination, `last`/`before` for backward cursor pagination, `page`/`page_size` for page-based pagination, or `limit`/`offset` for offset pagination. If you omit pagination params, this schema defaults to `offset` pagination with a default size of 20.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiReactionControllerIndexRequest {
-    /// After cursor
+    /// Cursor pagination: return items after this cursor.
     #[serde(
         rename = "after",
         default,
@@ -21,7 +22,7 @@ pub struct RuslWebApiReactionControllerIndexRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub after: Option<Option<String>>,
-    /// Before cursor
+    /// Cursor pagination: return items before this cursor.
     #[serde(
         rename = "before",
         default,
@@ -29,7 +30,7 @@ pub struct RuslWebApiReactionControllerIndexRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub before: Option<Option<String>>,
-    /// List of filters represents a filter operation on a specific field. The filters are applied in the order they are defined.
+    /// List of filters representing filter operations on specific fields. Filters are applied in the order they are defined.
     #[serde(
         rename = "filters",
         default,
@@ -37,7 +38,7 @@ pub struct RuslWebApiReactionControllerIndexRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub filters: Option<Option<Vec<models::RuslWebApiReactionControllerIndexRequestFiltersInner>>>,
-    /// First
+    /// Cursor pagination: number of items to return from the start.
     #[serde(
         rename = "first",
         default,
@@ -45,7 +46,7 @@ pub struct RuslWebApiReactionControllerIndexRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub first: Option<Option<i32>>,
-    /// Last
+    /// Cursor pagination: number of items to return from the end.
     #[serde(
         rename = "last",
         default,
@@ -53,10 +54,26 @@ pub struct RuslWebApiReactionControllerIndexRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub last: Option<Option<i32>>,
-    /// List of fields to order by
-    #[serde(rename = "order_by")]
-    pub order_by: Vec<OrderBy>,
-    /// List of order directions applied to the fields defined in order_by. If empty or the list is shorter than the order_by list, :asc will be used as a default for each missing order direction.
+    /// Offset pagination: maximum number of items to return. Defaults to the schema default limit.
+    #[serde(
+        rename = "limit",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub limit: Option<Option<i32>>,
+    /// Offset pagination: zero-based starting offset.
+    #[serde(
+        rename = "offset",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub offset: Option<Option<i32>>,
+    /// Fields to order by. Optional because these endpoints define a default order; include to override it.
+    #[serde(rename = "order_by", skip_serializing_if = "Option::is_none")]
+    pub order_by: Option<Vec<OrderBy>>,
+    /// Order directions applied to order_by. Missing entries default to ascending.
     #[serde(
         rename = "order_directions",
         default,
@@ -64,22 +81,43 @@ pub struct RuslWebApiReactionControllerIndexRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub order_directions: Option<Option<Vec<OrderDirections>>>,
+    /// Page pagination: 1-based page number.
+    #[serde(
+        rename = "page",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub page: Option<Option<i32>>,
+    /// Page pagination: number of items per page.
+    #[serde(
+        rename = "page_size",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub page_size: Option<Option<i32>>,
 }
 
 impl RuslWebApiReactionControllerIndexRequest {
-    pub fn new(order_by: Vec<OrderBy>) -> RuslWebApiReactionControllerIndexRequest {
+    /// Choose one pagination family per request: `first`/`after` for forward cursor pagination, `last`/`before` for backward cursor pagination, `page`/`page_size` for page-based pagination, or `limit`/`offset` for offset pagination. If you omit pagination params, this schema defaults to `offset` pagination with a default size of 20.
+    pub fn new() -> RuslWebApiReactionControllerIndexRequest {
         RuslWebApiReactionControllerIndexRequest {
             after: None,
             before: None,
             filters: None,
             first: None,
             last: None,
-            order_by,
+            limit: None,
+            offset: None,
+            order_by: None,
             order_directions: None,
+            page: None,
+            page_size: None,
         }
     }
 }
-/// List of fields to order by
+/// Fields to order by. Optional because these endpoints define a default order; include to override it.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum OrderBy {
     #[serde(rename = "inserted_at")]
@@ -91,7 +129,7 @@ impl Default for OrderBy {
         Self::InsertedAt
     }
 }
-/// List of order directions applied to the fields defined in order_by. If empty or the list is shorter than the order_by list, :asc will be used as a default for each missing order direction.
+/// Order directions applied to order_by. Missing entries default to ascending.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 pub enum OrderDirections {
     #[serde(rename = "asc")]

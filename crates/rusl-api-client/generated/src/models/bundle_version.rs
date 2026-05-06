@@ -64,9 +64,6 @@ pub struct BundleVersion {
         skip_serializing_if = "Option::is_none"
     )]
     pub published_at: Option<Option<String>>,
-    /// Release stability channel
-    #[serde(rename = "stability")]
-    pub stability: Stability,
     /// Version Status
     #[serde(rename = "status")]
     pub status: Status,
@@ -86,7 +83,6 @@ impl BundleVersion {
         id: String,
         manifest: String,
         manifest_format: ManifestFormat,
-        stability: Stability,
         status: Status,
         version: String,
     ) -> BundleVersion {
@@ -101,7 +97,6 @@ impl BundleVersion {
             manifest,
             manifest_format,
             published_at: None,
-            stability,
             status,
             updated_at: None,
             version,
@@ -132,24 +127,6 @@ pub enum ManifestFormat {
 impl Default for ManifestFormat {
     fn default() -> ManifestFormat {
         Self::Json
-    }
-}
-/// Release stability channel
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum Stability {
-    #[serde(rename = "experimental")]
-    Experimental,
-    #[serde(rename = "beta")]
-    Beta,
-    #[serde(rename = "stable")]
-    Stable,
-    #[serde(rename = "frozen")]
-    Frozen,
-}
-
-impl Default for Stability {
-    fn default() -> Stability {
-        Self::Experimental
     }
 }
 /// Version Status

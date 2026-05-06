@@ -301,6 +301,53 @@ async fn clears_tokens_and_continues_unauthenticated_when_preflight_refresh_fail
 }
 
 #[tokio::test]
+async fn clears_tokens_and_retries_unauthenticated_when_refresh_after_401_fails() {
+    let server = TestServer::start(
+        vec![ResponseSpec::unauthorized()],
+        vec![
+            ResponseSpec::unauthorized(),
+            ResponseSpec::ok(unauthenticated_me()),
+        ],
+    )
+    .await;
+    let client = RuslApiClient::new(server.base_url.clone()).with_user_agent("rusl-test");
+    let mut session = SessionTokens::new(
+        Some("stale-access".to_string()),
+        Some("expired-refresh".to_string()),
+    );
+
+    let response = client
+        .fetch_session_me(&mut session)
+        .await
+        .expect("fetch session me");
+
+    assert!(matches!(
+        response,
+        MeResponse::MeResponseUnauthenticated1(ref body) if !body.authenticated
+    ));
+    assert_eq!(session.access_token, None);
+    assert_eq!(session.refresh_token, None);
+    assert_eq!(
+        server.recorded_requests().await,
+        vec![
+            RecordedRequest::new(
+                "GET",
+                "/api/auth/sessions/me",
+                Some("Bearer stale-access"),
+                Some("rusl-test")
+            ),
+            RecordedRequest::new(
+                "POST",
+                "/api/tokens/exchange",
+                Some("Bearer expired-refresh"),
+                Some("rusl-test")
+            ),
+            RecordedRequest::new("GET", "/api/auth/sessions/me", None, Some("rusl-test")),
+        ]
+    );
+}
+
+#[tokio::test]
 async fn retries_only_once_after_refreshing_the_access_token() {
     let server = TestServer::start(
         vec![ResponseSpec::ok(json!({ "access_token": "fresh-access" }))],

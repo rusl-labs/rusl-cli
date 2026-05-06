@@ -48,7 +48,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_bundle_version_controller_index
 
-> models::RuslWebApiBundleVersionControllerIndex200Response rusl_web_api_bundle_version_controller_index(account_slug, bundle_slug, stability)
+> models::RuslWebApiBundleVersionControllerIndex200Response rusl_web_api_bundle_version_controller_index(account_slug, bundle_slug, first, after, last, before, limit, offset, page, page_size)
 List bundle versions
 
 ### Parameters
@@ -58,7 +58,14 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **bundle_slug** | **String** | Bundle slug | [required] |
-**stability** | Option<**String**> | Optional stability filter (comma-separated list) |  |
+**first** | Option<**i32**> | Cursor pagination: number of items to return from the start. |  |[default to 20]
+**after** | Option<**String**> | Cursor pagination: return items after this cursor. |  |
+**last** | Option<**i32**> | Cursor pagination: number of items to return from the end. |  |[default to 20]
+**before** | Option<**String**> | Cursor pagination: return items before this cursor. |  |
+**limit** | Option<**i32**> | Offset pagination: maximum number of items to return. This is the default pagination mode when no pagination params are provided. |  |[default to 20]
+**offset** | Option<**i32**> | Offset pagination: zero-based starting offset. |  |[default to 0]
+**page** | Option<**i32**> | Page pagination: 1-based page number. |  |[default to 1]
+**page_size** | Option<**i32**> | Page pagination: number of items per page. |  |[default to 20]
 
 ### Return type
 

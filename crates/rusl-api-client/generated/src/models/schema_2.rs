@@ -61,6 +61,13 @@ pub struct Schema2 {
     /// Schema Lifecycle Status
     #[serde(rename = "status")]
     pub status: Status,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
@@ -93,6 +100,7 @@ impl Schema2 {
             schema_format,
             slug,
             status,
+            subject_description: None,
             updated_at,
             visibility: None,
         }

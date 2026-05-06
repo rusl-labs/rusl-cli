@@ -22,17 +22,18 @@ pub struct RuslWebApiAnnotationControllerCreateRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub label: Option<Option<String>>,
-    #[serde(rename = "subject_guid")]
-    pub subject_guid: String,
-    #[serde(rename = "type")]
-    pub r#type: String,
     #[serde(
-        rename = "validation_schema_ref",
+        rename = "subject_description",
         default,
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub validation_schema_ref: Option<Option<String>>,
+    pub subject_description: Option<Option<Box<models::OpenApiSchema2SubjectDescription>>>,
+    #[serde(rename = "subject_guid")]
+    pub subject_guid: String,
+    /// Registered annotation type identifier
+    #[serde(rename = "type")]
+    pub r#type: String,
 }
 
 impl RuslWebApiAnnotationControllerCreateRequest {
@@ -44,9 +45,9 @@ impl RuslWebApiAnnotationControllerCreateRequest {
         RuslWebApiAnnotationControllerCreateRequest {
             content,
             label: None,
+            subject_description: None,
             subject_guid,
             r#type,
-            validation_schema_ref: None,
         }
     }
 }

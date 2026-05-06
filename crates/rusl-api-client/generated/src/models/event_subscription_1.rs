@@ -60,6 +60,9 @@ pub struct EventSubscription1 {
         skip_serializing_if = "Option::is_none"
     )]
     pub subject_guid: Option<Option<String>>,
+    /// Operational role of the subscription
+    #[serde(rename = "subscription_kind")]
+    pub subscription_kind: SubscriptionKind,
     #[serde(rename = "updated_at")]
     pub updated_at: String,
 }
@@ -71,6 +74,7 @@ impl EventSubscription1 {
         event_prefixes: Vec<String>,
         id: String,
         inserted_at: String,
+        subscription_kind: SubscriptionKind,
         updated_at: String,
     ) -> EventSubscription1 {
         EventSubscription1 {
@@ -84,6 +88,7 @@ impl EventSubscription1 {
             inserted_at,
             label: None,
             subject_guid: None,
+            subscription_kind,
             updated_at,
         }
     }
@@ -98,5 +103,19 @@ pub enum Typename {
 impl Default for Typename {
     fn default() -> Typename {
         Self::EventSubscriptions
+    }
+}
+/// Operational role of the subscription
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum SubscriptionKind {
+    #[serde(rename = "custom")]
+    Custom,
+    #[serde(rename = "resource_watch")]
+    ResourceWatch,
+}
+
+impl Default for SubscriptionKind {
+    fn default() -> SubscriptionKind {
+        Self::Custom
     }
 }

@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **schema_format** | **SchemaFormat** | Schema format (enum: JSON_SCHEMA) | [default to JsonSchema]
 **slug** | **String** | Schema Slug | 
 **status** | **Status** | Schema Lifecycle Status (enum: ACTIVE, ARCHIVED) | [default to Active]
+**subject_description** | Option<[**models::Annotation1SubjectDescription**](Annotation1SubjectDescription.md)> |  | [optional]
 **updated_at** | **String** | Updated At | 
 **visibility** | Option<**Visibility**> | Schema Visibility (enum: PUBLIC, PRIVATE) | [optional][default to Public]
 

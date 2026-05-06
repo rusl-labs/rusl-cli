@@ -48,18 +48,12 @@ pub struct SchemaVersion2 {
     /// Schema format
     #[serde(rename = "schema_format", skip_serializing_if = "Option::is_none")]
     pub schema_format: Option<SchemaFormat>,
-    /// Release stability channel
-    #[serde(rename = "stability")]
-    pub stability: Stability,
     /// Schema Status
     #[serde(rename = "status")]
     pub status: Status,
     /// Updated At
     #[serde(rename = "updated_at", skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<String>,
-    /// Valid Data
-    #[serde(rename = "valid_data")]
-    pub valid_data: Vec<models::ExampleData1>,
     /// SemVer Version
     #[serde(rename = "version")]
     pub version: String,
@@ -72,9 +66,7 @@ impl SchemaVersion2 {
         content: serde_json::Value,
         guid: String,
         id: String,
-        stability: Stability,
         status: Status,
-        valid_data: Vec<models::ExampleData1>,
         version: String,
     ) -> SchemaVersion2 {
         SchemaVersion2 {
@@ -86,10 +78,8 @@ impl SchemaVersion2 {
             inserted_at: None,
             published_at: None,
             schema_format: None,
-            stability,
             status,
             updated_at: None,
-            valid_data,
             version,
         }
     }
@@ -116,24 +106,6 @@ pub enum SchemaFormat {
 impl Default for SchemaFormat {
     fn default() -> SchemaFormat {
         Self::JsonSchema
-    }
-}
-/// Release stability channel
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum Stability {
-    #[serde(rename = "experimental")]
-    Experimental,
-    #[serde(rename = "beta")]
-    Beta,
-    #[serde(rename = "stable")]
-    Stable,
-    #[serde(rename = "frozen")]
-    Frozen,
-}
-
-impl Default for Stability {
-    fn default() -> Stability {
-        Self::Experimental
     }
 }
 /// Schema Status

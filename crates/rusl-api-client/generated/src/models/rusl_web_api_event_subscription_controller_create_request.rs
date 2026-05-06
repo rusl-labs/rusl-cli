@@ -63,6 +63,8 @@ pub enum SubjectType {
     Schemas,
     #[serde(rename = "schema_proposals")]
     SchemaProposals,
+    #[serde(rename = "bundles")]
+    Bundles,
 }
 
 impl Default for SubjectType {

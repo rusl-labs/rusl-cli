@@ -20,14 +20,9 @@ pub struct Annotation {
     /// Account that owns this annotation
     #[serde(rename = "account_slug")]
     pub account_slug: String,
-    /// Registered annotation type ID when the type comes from the registry
-    #[serde(
-        rename = "annotation_type_id",
-        default,
-        with = "::serde_with::rust::double_option",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub annotation_type_id: Option<Option<String>>,
+    /// Registered annotation type ID
+    #[serde(rename = "annotation_type_id")]
+    pub annotation_type_id: String,
     /// Annotation content (shape depends on type)
     #[serde(rename = "content")]
     pub content: serde_json::Value,
@@ -65,13 +60,20 @@ pub struct Annotation {
         skip_serializing_if = "Option::is_none"
     )]
     pub subject_account_slug: Option<String>,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
     /// GUID of the annotated subject
     #[serde(rename = "subject_guid")]
     pub subject_guid: String,
     /// Type of the annotated subject (e.g. schemas, bundles)
     #[serde(rename = "subject_type", skip_serializing_if = "Option::is_none")]
     pub subject_type: Option<String>,
-    /// Annotation type (e.g. ui-schema, storage-policy)
+    /// Registered annotation type identifier
     #[serde(rename = "type")]
     pub r#type: String,
     /// Updated at
@@ -100,6 +102,7 @@ impl Annotation {
     pub fn new(
         __typename: Typename,
         account_slug: String,
+        annotation_type_id: String,
         content: serde_json::Value,
         guid: String,
         id: String,
@@ -110,7 +113,7 @@ impl Annotation {
         Annotation {
             __typename,
             account_slug,
-            annotation_type_id: None,
+            annotation_type_id,
             content,
             guid,
             id,
@@ -119,6 +122,7 @@ impl Annotation {
             set_by_user_id: None,
             status,
             subject_account_slug: None,
+            subject_description: None,
             subject_guid,
             subject_type: None,
             r#type,

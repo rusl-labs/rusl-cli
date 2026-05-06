@@ -10,5 +10,6 @@ pub mod manifest;
 pub mod outdated_service;
 pub mod registry;
 pub mod resolver;
+pub mod search_service;
 pub mod whoami_service;
 pub mod why_service;

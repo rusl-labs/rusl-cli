@@ -20,10 +20,20 @@ pub struct RuslWebApiAnnotationTypeControllerUpdateRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub description: Option<Option<String>>,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::OpenApiSchema2SubjectDescription>>>,
 }
 
 impl RuslWebApiAnnotationTypeControllerUpdateRequest {
     pub fn new() -> RuslWebApiAnnotationTypeControllerUpdateRequest {
-        RuslWebApiAnnotationTypeControllerUpdateRequest { description: None }
+        RuslWebApiAnnotationTypeControllerUpdateRequest {
+            description: None,
+            subject_description: None,
+        }
     }
 }

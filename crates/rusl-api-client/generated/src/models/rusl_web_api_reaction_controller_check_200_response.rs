@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiReactionControllerCheck200Response {
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
-    pub data: Option<Vec<models::EntityReaction1>>,
+    pub data: Option<Vec<models::ResourceInteraction1>>,
     /// Errors, if any
     #[serde(rename = "errors", skip_serializing_if = "Option::is_none")]
     pub errors: Option<Vec<models::Error1>>,

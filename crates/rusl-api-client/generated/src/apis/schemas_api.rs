@@ -33,6 +33,7 @@ pub enum RuslWebApiSchemaControllerArchiveError {
 pub enum RuslWebApiSchemaControllerCreateError {
     Status400(models::Error2),
     Status401(models::Error2),
+    Status402(models::EntitlementDenied1),
     Status403(models::Error2),
     Status404(models::Error2),
     Status409(models::Error2),
@@ -116,6 +117,7 @@ pub enum RuslWebApiSchemaControllerUnarchiveError {
 pub enum RuslWebApiSchemaControllerUpdateError {
     Status400(models::Error2),
     Status401(models::Error2),
+    Status402(models::EntitlementDenied1),
     Status403(models::Error2),
     Status404(models::Error2),
     Status409(models::Error2),
@@ -243,14 +245,25 @@ pub async fn rusl_web_api_schema_controller_create(
     }
 }
 
-/// Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to.
+/// Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, schema slug, schema identifier, and description) - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to.
 pub async fn rusl_web_api_schema_controller_index(
     configuration: &configuration::Configuration,
-    filters: Option<serde_json::Value>,
+    filters: Option<
+        std::collections::HashMap<
+            String,
+            models::RuslWebApiSchemaControllerIndexFiltersParameterValue,
+        >,
+    >,
     order_by: Option<Vec<String>>,
     order_directions: Option<Vec<String>>,
     first: Option<i32>,
     after: Option<&str>,
+    last: Option<i32>,
+    before: Option<&str>,
+    limit: Option<i32>,
+    offset: Option<i32>,
+    page: Option<i32>,
+    page_size: Option<i32>,
 ) -> Result<
     models::RuslWebApiSchemaControllerIndex200Response,
     Error<RuslWebApiSchemaControllerIndexError>,
@@ -261,6 +274,12 @@ pub async fn rusl_web_api_schema_controller_index(
     let p_query_order_directions = order_directions;
     let p_query_first = first;
     let p_query_after = after;
+    let p_query_last = last;
+    let p_query_before = before;
+    let p_query_limit = limit;
+    let p_query_offset = offset;
+    let p_query_page = page;
+    let p_query_page_size = page_size;
 
     let uri_str = format!("{}/api/schemas", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
@@ -311,6 +330,24 @@ pub async fn rusl_web_api_schema_controller_index(
     }
     if let Some(ref param_value) = p_query_after {
         req_builder = req_builder.query(&[("after", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_last {
+        req_builder = req_builder.query(&[("last", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_before {
+        req_builder = req_builder.query(&[("before", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_limit {
+        req_builder = req_builder.query(&[("limit", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_offset {
+        req_builder = req_builder.query(&[("offset", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page {
+        req_builder = req_builder.query(&[("page", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page_size {
+        req_builder = req_builder.query(&[("page_size", &param_value.to_string())]);
     }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());

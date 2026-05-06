@@ -13,6 +13,13 @@ use crate::{apis::ResponseContent, models};
 use reqwest;
 use serde::{de::Error as _, Deserialize, Serialize};
 
+/// struct for typed errors of method [`rusl_web_api_annotation_controller_activate`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiAnnotationControllerActivateError {
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`rusl_web_api_annotation_controller_create`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -31,6 +38,10 @@ pub enum RuslWebApiAnnotationControllerDeprecateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationControllerFilterError {
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status500(models::Error2),
     UnknownValue(serde_json::Value),
 }
 
@@ -83,7 +94,61 @@ pub enum RuslWebApiAnnotationControllerUpdateError {
     UnknownValue(serde_json::Value),
 }
 
-/// Create a community annotation on a visible annotatable subject. Currently supported subjects: schemas, schema_versions, schema_proposals, bundles, bundle_versions, and annotations. Requires account membership.
+/// Set an annotation's status to ACTIVE using an explicit lifecycle action.
+pub async fn rusl_web_api_annotation_controller_activate(
+    configuration: &configuration::Configuration,
+    account_slug: &str,
+    id: &str,
+) -> Result<models::Annotation, Error<RuslWebApiAnnotationControllerActivateError>> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_account_slug = account_slug;
+    let p_path_id = id;
+
+    let uri_str = format!(
+        "{}/api/{account_slug}/annotations/{id}/activate",
+        configuration.base_path,
+        account_slug = crate::apis::urlencode(p_path_account_slug),
+        id = crate::apis::urlencode(p_path_id)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::Annotation`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::Annotation`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiAnnotationControllerActivateError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Create a community annotation on a visible annotatable subject. The type must be a registered annotation type identifier. Currently supported subjects: schemas, schema_versions, schema_proposals, bundles, bundle_versions, and annotations. Requires account membership.
 pub async fn rusl_web_api_annotation_controller_create(
     configuration: &configuration::Configuration,
     account_slug: &str,
@@ -140,20 +205,15 @@ pub async fn rusl_web_api_annotation_controller_create(
     }
 }
 
-/// Marks an annotation as deprecated without creating a new one.
+/// Set an annotation's status to DEPRECATED using an explicit lifecycle action.
 pub async fn rusl_web_api_annotation_controller_deprecate(
     configuration: &configuration::Configuration,
     account_slug: &str,
     id: &str,
-    rusl_web_api_annotation_controller_revoke_request: Option<
-        models::RuslWebApiAnnotationControllerRevokeRequest,
-    >,
 ) -> Result<models::Annotation, Error<RuslWebApiAnnotationControllerDeprecateError>> {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
     let p_path_id = id;
-    let p_body_rusl_web_api_annotation_controller_revoke_request =
-        rusl_web_api_annotation_controller_revoke_request;
 
     let uri_str = format!(
         "{}/api/{account_slug}/annotations/{id}/deprecate",
@@ -168,7 +228,6 @@ pub async fn rusl_web_api_annotation_controller_deprecate(
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
-    req_builder = req_builder.json(&p_body_rusl_web_api_annotation_controller_revoke_request);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;
@@ -200,10 +259,20 @@ pub async fn rusl_web_api_annotation_controller_deprecate(
     }
 }
 
-/// Flop-paginated search across annotations. Filterable by subject_type, subject_guid, type, account_slug, status.
+/// Search annotations with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, subject account slug, subject GUID, subject type, type, label, and validation schema identifier) - annotation_type_id - subject_guid - subject_type - subject_account_slug - type - account_slug - status - set_by_user_id - inserted_at - updated_at
 pub async fn rusl_web_api_annotation_controller_filter(
     configuration: &configuration::Configuration,
-) -> Result<models::Annotation, Error<RuslWebApiAnnotationControllerFilterError>> {
+    rusl_web_api_annotation_controller_filter_request: Option<
+        models::RuslWebApiAnnotationControllerFilterRequest,
+    >,
+) -> Result<
+    models::RuslWebApiAnnotationControllerFilter200Response,
+    Error<RuslWebApiAnnotationControllerFilterError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_rusl_web_api_annotation_controller_filter_request =
+        rusl_web_api_annotation_controller_filter_request;
+
     let uri_str = format!("{}/api/annotations/filter", configuration.base_path);
     let mut req_builder = configuration
         .client
@@ -212,6 +281,7 @@ pub async fn rusl_web_api_annotation_controller_filter(
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
+    req_builder = req_builder.json(&p_body_rusl_web_api_annotation_controller_filter_request);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;
@@ -228,8 +298,8 @@ pub async fn rusl_web_api_annotation_controller_filter(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::Annotation`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::Annotation`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationControllerFilter200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationControllerFilter200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -250,7 +320,6 @@ pub async fn rusl_web_api_annotation_controller_lookup(
     subject_guids: Option<&str>,
     types: Option<&str>,
     account_slugs: Option<&str>,
-    statuses: Option<&str>,
 ) -> Result<
     models::RuslWebApiAnnotationControllerLookup200Response,
     Error<RuslWebApiAnnotationControllerLookupError>,
@@ -260,7 +329,6 @@ pub async fn rusl_web_api_annotation_controller_lookup(
     let p_query_subject_guids = subject_guids;
     let p_query_types = types;
     let p_query_account_slugs = account_slugs;
-    let p_query_statuses = statuses;
 
     let uri_str = format!("{}/api/annotations/lookup", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
@@ -276,9 +344,6 @@ pub async fn rusl_web_api_annotation_controller_lookup(
     }
     if let Some(ref param_value) = p_query_account_slugs {
         req_builder = req_builder.query(&[("account_slugs", &param_value.to_string())]);
-    }
-    if let Some(ref param_value) = p_query_statuses {
-        req_builder = req_builder.query(&[("statuses", &param_value.to_string())]);
     }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
@@ -314,20 +379,15 @@ pub async fn rusl_web_api_annotation_controller_lookup(
     }
 }
 
-/// Reactivates a previously deprecated or revoked annotation.
+/// Set an annotation's status back to ACTIVE from another lifecycle state.
 pub async fn rusl_web_api_annotation_controller_reactivate(
     configuration: &configuration::Configuration,
     account_slug: &str,
     id: &str,
-    rusl_web_api_annotation_controller_revoke_request: Option<
-        models::RuslWebApiAnnotationControllerRevokeRequest,
-    >,
 ) -> Result<models::Annotation, Error<RuslWebApiAnnotationControllerReactivateError>> {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
     let p_path_id = id;
-    let p_body_rusl_web_api_annotation_controller_revoke_request =
-        rusl_web_api_annotation_controller_revoke_request;
 
     let uri_str = format!(
         "{}/api/{account_slug}/annotations/{id}/reactivate",
@@ -342,7 +402,6 @@ pub async fn rusl_web_api_annotation_controller_reactivate(
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
-    req_builder = req_builder.json(&p_body_rusl_web_api_annotation_controller_revoke_request);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;
@@ -374,20 +433,15 @@ pub async fn rusl_web_api_annotation_controller_reactivate(
     }
 }
 
-/// Revokes an annotation so it is no longer considered valid.
+/// Set an annotation's status to REVOKED using an explicit lifecycle action.
 pub async fn rusl_web_api_annotation_controller_revoke(
     configuration: &configuration::Configuration,
     account_slug: &str,
     id: &str,
-    rusl_web_api_annotation_controller_revoke_request: Option<
-        models::RuslWebApiAnnotationControllerRevokeRequest,
-    >,
 ) -> Result<models::Annotation, Error<RuslWebApiAnnotationControllerRevokeError>> {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
     let p_path_id = id;
-    let p_body_rusl_web_api_annotation_controller_revoke_request =
-        rusl_web_api_annotation_controller_revoke_request;
 
     let uri_str = format!(
         "{}/api/{account_slug}/annotations/{id}/revoke",
@@ -402,7 +456,6 @@ pub async fn rusl_web_api_annotation_controller_revoke(
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
-    req_builder = req_builder.json(&p_body_rusl_web_api_annotation_controller_revoke_request);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;
@@ -543,23 +596,18 @@ pub async fn rusl_web_api_annotation_controller_type_typeahead(
 pub async fn rusl_web_api_annotation_controller_types(
     configuration: &configuration::Configuration,
     subject_guids: Option<&str>,
-    statuses: Option<&str>,
 ) -> Result<
     models::RuslWebApiAnnotationControllerTypes200Response,
     Error<RuslWebApiAnnotationControllerTypesError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_query_subject_guids = subject_guids;
-    let p_query_statuses = statuses;
 
     let uri_str = format!("{}/api/annotations/types", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref param_value) = p_query_subject_guids {
         req_builder = req_builder.query(&[("subject_guids", &param_value.to_string())]);
-    }
-    if let Some(ref param_value) = p_query_statuses {
-        req_builder = req_builder.query(&[("statuses", &param_value.to_string())]);
     }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
@@ -600,15 +648,15 @@ pub async fn rusl_web_api_annotation_controller_update(
     configuration: &configuration::Configuration,
     account_slug: &str,
     id: &str,
-    rusl_web_api_annotation_controller_revoke_request: Option<
-        models::RuslWebApiAnnotationControllerRevokeRequest,
+    rusl_web_api_annotation_controller_update_request: Option<
+        models::RuslWebApiAnnotationControllerUpdateRequest,
     >,
 ) -> Result<models::Annotation, Error<RuslWebApiAnnotationControllerUpdateError>> {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
     let p_path_id = id;
-    let p_body_rusl_web_api_annotation_controller_revoke_request =
-        rusl_web_api_annotation_controller_revoke_request;
+    let p_body_rusl_web_api_annotation_controller_update_request =
+        rusl_web_api_annotation_controller_update_request;
 
     let uri_str = format!(
         "{}/api/{account_slug}/annotations/{id}",
@@ -623,7 +671,7 @@ pub async fn rusl_web_api_annotation_controller_update(
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
-    req_builder = req_builder.json(&p_body_rusl_web_api_annotation_controller_revoke_request);
+    req_builder = req_builder.json(&p_body_rusl_web_api_annotation_controller_update_request);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;

@@ -28,6 +28,16 @@ pub struct Bundle1 {
         skip_serializing_if = "Option::is_none"
     )]
     pub archived_at: Option<Option<String>>,
+    /// Full identifier in account_slug/bundles/slug form
+    #[serde(rename = "bundle_identifier")]
+    pub bundle_identifier: String,
+    #[serde(
+        rename = "current_version",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub current_version: Option<Option<Box<models::BundleVersion1>>>,
     /// Bundle Description
     #[serde(
         rename = "description",
@@ -51,6 +61,13 @@ pub struct Bundle1 {
     /// Bundle Lifecycle Status
     #[serde(rename = "status")]
     pub status: Status,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
@@ -64,6 +81,7 @@ impl Bundle1 {
     pub fn new(
         __typename: Typename,
         account_slug: String,
+        bundle_identifier: String,
         id: String,
         inserted_at: String,
         slug: String,
@@ -74,12 +92,15 @@ impl Bundle1 {
             __typename,
             account_slug,
             archived_at: None,
+            bundle_identifier,
+            current_version: None,
             description: None,
             guid: None,
             id,
             inserted_at,
             slug,
             status,
+            subject_description: None,
             updated_at,
             visibility: None,
         }

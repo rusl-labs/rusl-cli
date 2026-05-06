@@ -54,6 +54,8 @@ EXAMPLES\n\
         $ rusl generate typescript --print-request > request.json\n\
         $ ./my-plugin < request.json")]
     Generate(GenerateArgs),
+    /// Start the Rusl MCP server over stdio
+    Mcp(McpArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -119,3 +121,6 @@ pub struct GenerateArgs {
     #[arg(long)]
     pub print_request: bool,
 }
+
+#[derive(Parser, Debug)]
+pub struct McpArgs {}

@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **inserted_at** | **String** |  | 
 **label** | Option<**String**> | Client-defined label for filtering subscriptions | [optional]
 **subject_guid** | Option<**String**> |  | [optional]
+**subscription_kind** | **SubscriptionKind** | Operational role of the subscription (enum: custom, resource_watch) | 
 **updated_at** | **String** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

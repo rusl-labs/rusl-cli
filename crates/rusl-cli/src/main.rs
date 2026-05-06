@@ -10,6 +10,7 @@ use tracing_subscriber::EnvFilter;
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive("rusl=info".parse()?))
+        .with_writer(std::io::stderr)
         .init();
 
     let cli = Cli::parse();
@@ -24,6 +25,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Outdated(args) => commands::outdated::run(args).await?,
         Commands::Why(args) => commands::why::run(args).await?,
         Commands::Generate(args) => commands::generate::run(args).await?,
+        Commands::Mcp(args) => commands::mcp::run(args).await?,
     }
 
     Ok(())

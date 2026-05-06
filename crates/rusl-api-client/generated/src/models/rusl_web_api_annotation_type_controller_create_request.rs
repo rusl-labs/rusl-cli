@@ -38,6 +38,13 @@ pub struct RuslWebApiAnnotationTypeControllerCreateRequest {
     /// Annotation type slug
     #[serde(rename = "slug")]
     pub slug: String,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::OpenApiSchema2SubjectDescription>>>,
     #[serde(rename = "visibility", skip_serializing_if = "Option::is_none")]
     pub visibility: Option<Visibility>,
 }
@@ -55,6 +62,7 @@ impl RuslWebApiAnnotationTypeControllerCreateRequest {
             schema_identifier,
             schema_mode,
             slug,
+            subject_description: None,
             visibility: None,
         }
     }

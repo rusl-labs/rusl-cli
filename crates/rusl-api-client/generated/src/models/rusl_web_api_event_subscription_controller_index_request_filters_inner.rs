@@ -44,6 +44,8 @@ pub enum Field {
     AccountGuid,
     #[serde(rename = "label")]
     Label,
+    #[serde(rename = "subscription_kind")]
+    SubscriptionKind,
 }
 
 impl Default for Field {

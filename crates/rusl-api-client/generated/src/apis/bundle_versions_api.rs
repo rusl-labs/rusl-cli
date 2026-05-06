@@ -172,7 +172,14 @@ pub async fn rusl_web_api_bundle_version_controller_index(
     configuration: &configuration::Configuration,
     account_slug: &str,
     bundle_slug: &str,
-    stability: Option<&str>,
+    first: Option<i32>,
+    after: Option<&str>,
+    last: Option<i32>,
+    before: Option<&str>,
+    limit: Option<i32>,
+    offset: Option<i32>,
+    page: Option<i32>,
+    page_size: Option<i32>,
 ) -> Result<
     models::RuslWebApiBundleVersionControllerIndex200Response,
     Error<RuslWebApiBundleVersionControllerIndexError>,
@@ -180,7 +187,14 @@ pub async fn rusl_web_api_bundle_version_controller_index(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
     let p_path_bundle_slug = bundle_slug;
-    let p_query_stability = stability;
+    let p_query_first = first;
+    let p_query_after = after;
+    let p_query_last = last;
+    let p_query_before = before;
+    let p_query_limit = limit;
+    let p_query_offset = offset;
+    let p_query_page = page;
+    let p_query_page_size = page_size;
 
     let uri_str = format!(
         "{}/api/{account_slug}/bundles/{bundle_slug}/versions",
@@ -190,8 +204,29 @@ pub async fn rusl_web_api_bundle_version_controller_index(
     );
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
-    if let Some(ref param_value) = p_query_stability {
-        req_builder = req_builder.query(&[("stability", &param_value.to_string())]);
+    if let Some(ref param_value) = p_query_first {
+        req_builder = req_builder.query(&[("first", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_after {
+        req_builder = req_builder.query(&[("after", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_last {
+        req_builder = req_builder.query(&[("last", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_before {
+        req_builder = req_builder.query(&[("before", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_limit {
+        req_builder = req_builder.query(&[("limit", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_offset {
+        req_builder = req_builder.query(&[("offset", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page {
+        req_builder = req_builder.query(&[("page", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page_size {
+        req_builder = req_builder.query(&[("page_size", &param_value.to_string())]);
     }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());

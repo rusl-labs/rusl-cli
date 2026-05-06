@@ -40,8 +40,8 @@ pub enum Field {
     SubjectGuid,
     #[serde(rename = "subject_type")]
     SubjectType,
-    #[serde(rename = "reaction_type")]
-    ReactionType,
+    #[serde(rename = "interaction_type")]
+    InteractionType,
 }
 
 impl Default for Field {

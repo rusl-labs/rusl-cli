@@ -74,7 +74,7 @@ pub enum RuslWebApiReactionControllerUnfavouriteError {
     UnknownValue(serde_json::Value),
 }
 
-/// Check which of the given subject_guids the authenticated user has reacted to. Returns full reaction records for matches — absence means not reacted. Max 50 GUIDs.
+/// Check which of the given subject_guids the authenticated user has reacted to. Returns full interaction records for matches — absence means not reacted. Max 50 GUIDs.
 pub async fn rusl_web_api_reaction_controller_check(
     configuration: &configuration::Configuration,
     subject_guids: &str,
@@ -188,7 +188,7 @@ pub async fn rusl_web_api_reaction_controller_favourite(
     }
 }
 
-/// List the authenticated user's favourites with pagination and filtering by subject_type, subject_guid, or reaction_type.
+/// List the authenticated user's favourites with pagination and filtering by subject_type, subject_guid, or interaction_type.
 pub async fn rusl_web_api_reaction_controller_index(
     configuration: &configuration::Configuration,
     rusl_web_api_reaction_controller_index_request: Option<
@@ -245,7 +245,7 @@ pub async fn rusl_web_api_reaction_controller_index(
     }
 }
 
-/// Search the authenticated user's reactions across all types with pagination and filtering. Filter by reaction_type, subject_guid, subject_type, or any combination.
+/// Search the authenticated user's reactions across all types with pagination and filtering. Filter by interaction_type, subject_guid, subject_type, or any combination.
 pub async fn rusl_web_api_reaction_controller_reactions(
     configuration: &configuration::Configuration,
     rusl_web_api_reaction_controller_index_request: Option<

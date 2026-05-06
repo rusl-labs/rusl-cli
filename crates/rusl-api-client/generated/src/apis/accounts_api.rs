@@ -19,6 +19,7 @@ use serde::{de::Error as _, Deserialize, Serialize};
 pub enum RuslWebApiAccountControllerCreateError {
     Status400(models::Error2),
     Status401(models::Error2),
+    Status402(models::EntitlementDenied1),
     Status403(models::Error2),
     Status404(models::Error2),
     Status409(models::Error2),
@@ -131,11 +132,22 @@ pub async fn rusl_web_api_account_controller_create(
 /// List accounts with full Flop pagination and filtering support.  Supports filtering by: - slug (string match) - type (user, organization) - owner_user_id (UUID) - created_order (integer) - mine (boolean - filters to accounts owned by current user, requires authentication)  Supports ordering by: - slug (default) - created_order
 pub async fn rusl_web_api_account_controller_index(
     configuration: &configuration::Configuration,
-    filters: Option<serde_json::Value>,
+    filters: Option<
+        std::collections::HashMap<
+            String,
+            models::RuslWebApiAccountControllerIndexFiltersParameterValue,
+        >,
+    >,
     order_by: Option<Vec<String>>,
     order_directions: Option<Vec<String>>,
     first: Option<i32>,
     after: Option<&str>,
+    last: Option<i32>,
+    before: Option<&str>,
+    limit: Option<i32>,
+    offset: Option<i32>,
+    page: Option<i32>,
+    page_size: Option<i32>,
 ) -> Result<
     models::RuslWebApiAccountControllerIndex200Response,
     Error<RuslWebApiAccountControllerIndexError>,
@@ -146,6 +158,12 @@ pub async fn rusl_web_api_account_controller_index(
     let p_query_order_directions = order_directions;
     let p_query_first = first;
     let p_query_after = after;
+    let p_query_last = last;
+    let p_query_before = before;
+    let p_query_limit = limit;
+    let p_query_offset = offset;
+    let p_query_page = page;
+    let p_query_page_size = page_size;
 
     let uri_str = format!("{}/api/accounts", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
@@ -196,6 +214,24 @@ pub async fn rusl_web_api_account_controller_index(
     }
     if let Some(ref param_value) = p_query_after {
         req_builder = req_builder.query(&[("after", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_last {
+        req_builder = req_builder.query(&[("last", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_before {
+        req_builder = req_builder.query(&[("before", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_limit {
+        req_builder = req_builder.query(&[("limit", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_offset {
+        req_builder = req_builder.query(&[("offset", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page {
+        req_builder = req_builder.query(&[("page", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page_size {
+        req_builder = req_builder.query(&[("page_size", &param_value.to_string())]);
     }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());

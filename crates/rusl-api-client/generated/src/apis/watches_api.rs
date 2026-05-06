@@ -13,10 +13,52 @@ use crate::{apis::ResponseContent, models};
 use reqwest;
 use serde::{de::Error as _, Deserialize, Serialize};
 
+/// struct for typed errors of method [`rusl_web_api_watch_controller_unwatch_account`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiWatchControllerUnwatchAccountError {
+    Status400(models::Error2),
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status409(models::Error2),
+    Status422(models::Error2),
+    Status500(models::Error2),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_watch_controller_unwatch_bundle`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiWatchControllerUnwatchBundleError {
+    Status400(models::Error2),
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status409(models::Error2),
+    Status422(models::Error2),
+    Status500(models::Error2),
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`rusl_web_api_watch_controller_unwatch_proposal`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerUnwatchProposalError {
+    Status400(models::Error2),
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status409(models::Error2),
+    Status422(models::Error2),
+    Status500(models::Error2),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_watch_controller_unwatch_schema`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiWatchControllerUnwatchSchemaError {
     Status400(models::Error2),
     Status401(models::Error2),
     Status403(models::Error2),
@@ -83,6 +125,121 @@ pub enum RuslWebApiWatchControllerWatchSchemaError {
     UnknownValue(serde_json::Value),
 }
 
+pub async fn rusl_web_api_watch_controller_unwatch_account(
+    configuration: &configuration::Configuration,
+    slug: &str,
+) -> Result<
+    models::RuslWebApiWatchControllerUnwatchAccount200Response,
+    Error<RuslWebApiWatchControllerUnwatchAccountError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_slug = slug;
+
+    let uri_str = format!(
+        "{}/api/accounts/{slug}/watch",
+        configuration.base_path,
+        slug = crate::apis::urlencode(p_path_slug)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::DELETE, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiWatchControllerUnwatchAccount200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiWatchControllerUnwatchAccount200Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiWatchControllerUnwatchAccountError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+pub async fn rusl_web_api_watch_controller_unwatch_bundle(
+    configuration: &configuration::Configuration,
+    account_slug: &str,
+    bundle_slug: &str,
+) -> Result<
+    models::RuslWebApiWatchControllerUnwatchBundle200Response,
+    Error<RuslWebApiWatchControllerUnwatchBundleError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_account_slug = account_slug;
+    let p_path_bundle_slug = bundle_slug;
+
+    let uri_str = format!(
+        "{}/api/{account_slug}/bundles/{bundle_slug}/watch",
+        configuration.base_path,
+        account_slug = crate::apis::urlencode(p_path_account_slug),
+        bundle_slug = crate::apis::urlencode(p_path_bundle_slug)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::DELETE, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiWatchControllerUnwatchBundle200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiWatchControllerUnwatchBundle200Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiWatchControllerUnwatchBundleError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
 pub async fn rusl_web_api_watch_controller_unwatch_proposal(
     configuration: &configuration::Configuration,
     proposal_number: i32,
@@ -136,6 +293,65 @@ pub async fn rusl_web_api_watch_controller_unwatch_proposal(
     } else {
         let content = resp.text().await?;
         let entity: Option<RuslWebApiWatchControllerUnwatchProposalError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+pub async fn rusl_web_api_watch_controller_unwatch_schema(
+    configuration: &configuration::Configuration,
+    account_slug: &str,
+    schema_slug: &str,
+) -> Result<
+    models::RuslWebApiWatchControllerUnwatchSchema200Response,
+    Error<RuslWebApiWatchControllerUnwatchSchemaError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_account_slug = account_slug;
+    let p_path_schema_slug = schema_slug;
+
+    let uri_str = format!(
+        "{}/api/{account_slug}/schemas/{schema_slug}/watch",
+        configuration.base_path,
+        account_slug = crate::apis::urlencode(p_path_account_slug),
+        schema_slug = crate::apis::urlencode(p_path_schema_slug)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::DELETE, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiWatchControllerUnwatchSchema200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiWatchControllerUnwatchSchema200Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiWatchControllerUnwatchSchemaError> =
             serde_json::from_str(&content).ok();
         Err(Error::ResponseError(ResponseContent {
             status,

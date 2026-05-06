@@ -21,9 +21,6 @@ pub struct RuslWebApiProposalControllerAcceptRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub description: Option<Option<String>>,
-    /// Optional stability flag for the accepted schema version. Defaults to experimental.
-    #[serde(rename = "stability", skip_serializing_if = "Option::is_none")]
-    pub stability: Option<Stability>,
     /// Optional version override (must be >= proposed version)
     #[serde(rename = "version", skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
@@ -33,26 +30,7 @@ impl RuslWebApiProposalControllerAcceptRequest {
     pub fn new() -> RuslWebApiProposalControllerAcceptRequest {
         RuslWebApiProposalControllerAcceptRequest {
             description: None,
-            stability: None,
             version: None,
         }
-    }
-}
-/// Optional stability flag for the accepted schema version. Defaults to experimental.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum Stability {
-    #[serde(rename = "experimental")]
-    Experimental,
-    #[serde(rename = "beta")]
-    Beta,
-    #[serde(rename = "stable")]
-    Stable,
-    #[serde(rename = "frozen")]
-    Frozen,
-}
-
-impl Default for Stability {
-    fn default() -> Stability {
-        Self::Experimental
     }
 }

@@ -41,6 +41,17 @@ pub enum RuslWebApiBundleControllerCreateError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`rusl_web_api_bundle_controller_index`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiBundleControllerIndexError {
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status500(models::Error2),
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`rusl_web_api_bundle_controller_lookup`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -223,6 +234,144 @@ pub async fn rusl_web_api_bundle_controller_create(
     }
 }
 
+/// Search bundles across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, bundle slug, bundle identifier, and description) - account_slug - slug - visibility - status  Results are scoped by user permissions. Anonymous users see only PUBLIC bundles, authenticated users also see PRIVATE bundles from accounts they can access.
+pub async fn rusl_web_api_bundle_controller_index(
+    configuration: &configuration::Configuration,
+    filters: Option<
+        std::collections::HashMap<
+            String,
+            models::RuslWebApiBundleControllerIndexFiltersParameterValue,
+        >,
+    >,
+    order_by: Option<Vec<String>>,
+    order_directions: Option<Vec<String>>,
+    first: Option<i32>,
+    after: Option<&str>,
+    last: Option<i32>,
+    before: Option<&str>,
+    limit: Option<i32>,
+    offset: Option<i32>,
+    page: Option<i32>,
+    page_size: Option<i32>,
+) -> Result<
+    models::RuslWebApiBundleControllerIndex200Response,
+    Error<RuslWebApiBundleControllerIndexError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_query_filters = filters;
+    let p_query_order_by = order_by;
+    let p_query_order_directions = order_directions;
+    let p_query_first = first;
+    let p_query_after = after;
+    let p_query_last = last;
+    let p_query_before = before;
+    let p_query_limit = limit;
+    let p_query_offset = offset;
+    let p_query_page = page;
+    let p_query_page_size = page_size;
+
+    let uri_str = format!("{}/api/bundles", configuration.base_path);
+    let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
+
+    if let Some(ref param_value) = p_query_filters {
+        req_builder = req_builder.query(&[("filters", &serde_json::to_string(param_value)?)]);
+    }
+    if let Some(ref param_value) = p_query_order_by {
+        req_builder = match "multi" {
+            "multi" => req_builder.query(
+                &param_value
+                    .into_iter()
+                    .map(|p| ("order_by".to_owned(), p.to_string()))
+                    .collect::<Vec<(std::string::String, std::string::String)>>(),
+            ),
+            _ => req_builder.query(&[(
+                "order_by",
+                &param_value
+                    .into_iter()
+                    .map(|p| p.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+                    .to_string(),
+            )]),
+        };
+    }
+    if let Some(ref param_value) = p_query_order_directions {
+        req_builder = match "multi" {
+            "multi" => req_builder.query(
+                &param_value
+                    .into_iter()
+                    .map(|p| ("order_directions".to_owned(), p.to_string()))
+                    .collect::<Vec<(std::string::String, std::string::String)>>(),
+            ),
+            _ => req_builder.query(&[(
+                "order_directions",
+                &param_value
+                    .into_iter()
+                    .map(|p| p.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+                    .to_string(),
+            )]),
+        };
+    }
+    if let Some(ref param_value) = p_query_first {
+        req_builder = req_builder.query(&[("first", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_after {
+        req_builder = req_builder.query(&[("after", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_last {
+        req_builder = req_builder.query(&[("last", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_before {
+        req_builder = req_builder.query(&[("before", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_limit {
+        req_builder = req_builder.query(&[("limit", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_offset {
+        req_builder = req_builder.query(&[("offset", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page {
+        req_builder = req_builder.query(&[("page", &param_value.to_string())]);
+    }
+    if let Some(ref param_value) = p_query_page_size {
+        req_builder = req_builder.query(&[("page_size", &param_value.to_string())]);
+    }
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleControllerIndex200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleControllerIndex200Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiBundleControllerIndexError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
 pub async fn rusl_web_api_bundle_controller_lookup(
     configuration: &configuration::Configuration,
     ids: &str,
@@ -281,7 +430,7 @@ pub async fn rusl_web_api_bundle_controller_paginate(
         models::RuslWebApiBundleControllerPaginateRequest,
     >,
 ) -> Result<
-    models::RuslWebApiBundleControllerPaginate200Response,
+    models::RuslWebApiBundleControllerIndex200Response,
     Error<RuslWebApiBundleControllerPaginateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -318,8 +467,8 @@ pub async fn rusl_web_api_bundle_controller_paginate(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleControllerPaginate200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleControllerPaginate200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleControllerIndex200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleControllerIndex200Response`")))),
         }
     } else {
         let content = resp.text().await?;

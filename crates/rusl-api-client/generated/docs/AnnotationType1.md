@@ -18,7 +18,8 @@ Name | Type | Description | Notes
 **schema_mode** | **SchemaMode** | How annotation content is validated (enum: CURRENT, PINNED) | 
 **slug** | **String** | Annotation type slug | 
 **status** | **Status** | Annotation type lifecycle status (enum: ACTIVE, ARCHIVED) | 
-**type_identifier** | **String** | Full identifier in account_slug/slug form | 
+**subject_description** | Option<[**models::Annotation1SubjectDescription**](Annotation1SubjectDescription.md)> |  | [optional]
+**type_identifier** | **String** | Full identifier in account_slug/annotation-types/slug form | 
 **updated_at** | **String** | Updated at | 
 **visibility** | **Visibility** | Annotation type visibility (enum: PUBLIC, PRIVATE) | 
 

@@ -24,9 +24,6 @@ pub struct RuslWebApiBundleVersionControllerCreateRequest {
     /// Manifest content (JSON or TOML)
     #[serde(rename = "manifest")]
     pub manifest: String,
-    /// Release stability flag
-    #[serde(rename = "stability", skip_serializing_if = "Option::is_none")]
-    pub stability: Option<Stability>,
     /// SemVer version string
     #[serde(rename = "version")]
     pub version: String,
@@ -40,26 +37,7 @@ impl RuslWebApiBundleVersionControllerCreateRequest {
         RuslWebApiBundleVersionControllerCreateRequest {
             description: None,
             manifest,
-            stability: None,
             version,
         }
-    }
-}
-/// Release stability flag
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum Stability {
-    #[serde(rename = "experimental")]
-    Experimental,
-    #[serde(rename = "beta")]
-    Beta,
-    #[serde(rename = "stable")]
-    Stable,
-    #[serde(rename = "frozen")]
-    Frozen,
-}
-
-impl Default for Stability {
-    fn default() -> Stability {
-        Self::Experimental
     }
 }

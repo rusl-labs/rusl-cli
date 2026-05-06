@@ -76,7 +76,14 @@ pub struct AnnotationType2 {
     /// Annotation type lifecycle status
     #[serde(rename = "status")]
     pub status: Status,
-    /// Full identifier in account_slug/slug form
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
+    /// Full identifier in account_slug/annotation-types/slug form
     #[serde(rename = "type_identifier")]
     pub type_identifier: String,
     /// Updated at
@@ -119,6 +126,7 @@ impl AnnotationType2 {
             schema_mode,
             slug,
             status,
+            subject_description: None,
             type_identifier,
             updated_at,
             visibility,

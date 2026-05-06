@@ -28,6 +28,13 @@ pub struct OpenApiSchema5 {
     /// Schema Slug
     #[serde(rename = "slug")]
     pub slug: String,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::OpenApiSchema2SubjectDescription>>>,
     /// Visibility
     #[serde(rename = "visibility", skip_serializing_if = "Option::is_none")]
     pub visibility: Option<Visibility>,
@@ -40,6 +47,7 @@ impl OpenApiSchema5 {
             description: None,
             schema_format: None,
             slug,
+            subject_description: None,
             visibility: None,
         }
     }

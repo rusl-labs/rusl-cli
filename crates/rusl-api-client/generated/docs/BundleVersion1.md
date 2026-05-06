@@ -14,7 +14,6 @@ Name | Type | Description | Notes
 **manifest** | **String** | Raw manifest content (JSON or TOML) | 
 **manifest_format** | **ManifestFormat** | Format of the manifest content (enum: JSON, TOML) | 
 **published_at** | Option<**String**> | Published At | [optional]
-**stability** | **Stability** | Release stability channel (enum: experimental, beta, stable, frozen) | 
 **status** | **Status** | Version Status (enum: DRAFT, ACTIVE, DEPRECATED, YANKED) | 
 **updated_at** | Option<**String**> | Updated At | [optional]
 **version** | **String** | SemVer Version | 

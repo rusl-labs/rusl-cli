@@ -17,7 +17,7 @@ Method | HTTP request | Description
 > models::RuslWebApiReactionControllerCheck200Response rusl_web_api_reaction_controller_check(subject_guids, reaction_types)
 Check favourites for multiple entities
 
-Check which of the given subject_guids the authenticated user has reacted to. Returns full reaction records for matches — absence means not reacted. Max 50 GUIDs.
+Check which of the given subject_guids the authenticated user has reacted to. Returns full interaction records for matches — absence means not reacted. Max 50 GUIDs.
 
 ### Parameters
 
@@ -78,7 +78,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebApiReactionControllerIndex200Response rusl_web_api_reaction_controller_index(rusl_web_api_reaction_controller_index_request)
 List favourites
 
-List the authenticated user's favourites with pagination and filtering by subject_type, subject_guid, or reaction_type.
+List the authenticated user's favourites with pagination and filtering by subject_type, subject_guid, or interaction_type.
 
 ### Parameters
 
@@ -108,7 +108,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebApiReactionControllerIndex200Response rusl_web_api_reaction_controller_reactions(rusl_web_api_reaction_controller_index_request)
 Search all reactions
 
-Search the authenticated user's reactions across all types with pagination and filtering. Filter by reaction_type, subject_guid, subject_type, or any combination.
+Search the authenticated user's reactions across all types with pagination and filtering. Filter by interaction_type, subject_guid, subject_type, or any combination.
 
 ### Parameters
 

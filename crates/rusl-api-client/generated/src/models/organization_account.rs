@@ -48,6 +48,9 @@ pub struct OrganizationAccount {
     /// Owner User ID
     #[serde(rename = "owner_user_id")]
     pub owner_user_id: String,
+    /// The plan slug that gates this account's capabilities (entitlements / quotas / rate limits). Defaults to \"free\".
+    #[serde(rename = "plan")]
+    pub plan: String,
     /// A URL safe and unique identifier for the account
     #[serde(rename = "slug")]
     pub slug: String,
@@ -71,6 +74,7 @@ impl OrganizationAccount {
         guid: String,
         inserted_at: String,
         owner_user_id: String,
+        plan: String,
         slug: String,
         r#type: Type,
         updated_at: String,
@@ -85,6 +89,7 @@ impl OrganizationAccount {
             member_count: None,
             owner_user: None,
             owner_user_id,
+            plan,
             slug,
             team_visibility: None,
             r#type,

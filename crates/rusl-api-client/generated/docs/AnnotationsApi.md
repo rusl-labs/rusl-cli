@@ -4,6 +4,7 @@ All URIs are relative to *http://localhost:4000*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**rusl_web_api_annotation_controller_activate**](AnnotationsApi.md#rusl_web_api_annotation_controller_activate) | **POST** /api/{account_slug}/annotations/{id}/activate | Activate an annotation
 [**rusl_web_api_annotation_controller_create**](AnnotationsApi.md#rusl_web_api_annotation_controller_create) | **POST** /api/{account_slug}/annotations | Create an annotation
 [**rusl_web_api_annotation_controller_deprecate**](AnnotationsApi.md#rusl_web_api_annotation_controller_deprecate) | **POST** /api/{account_slug}/annotations/{id}/deprecate | Deprecate an annotation
 [**rusl_web_api_annotation_controller_filter**](AnnotationsApi.md#rusl_web_api_annotation_controller_filter) | **POST** /api/annotations/filter | Search annotations
@@ -17,12 +18,43 @@ Method | HTTP request | Description
 
 
 
+## rusl_web_api_annotation_controller_activate
+
+> models::Annotation rusl_web_api_annotation_controller_activate(account_slug, id)
+Activate an annotation
+
+Set an annotation's status to ACTIVE using an explicit lifecycle action.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**account_slug** | **String** | Account slug | [required] |
+**id** | **String** | Annotation ID | [required] |
+
+### Return type
+
+[**models::Annotation**](Annotation.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## rusl_web_api_annotation_controller_create
 
 > models::Annotation rusl_web_api_annotation_controller_create(account_slug, rusl_web_api_annotation_controller_create_request)
 Create an annotation
 
-Create a community annotation on a visible annotatable subject. Currently supported subjects: schemas, schema_versions, schema_proposals, bundles, bundle_versions, and annotations. Requires account membership.
+Create a community annotation on a visible annotatable subject. The type must be a registered annotation type identifier. Currently supported subjects: schemas, schema_versions, schema_proposals, bundles, bundle_versions, and annotations. Requires account membership.
 
 ### Parameters
 
@@ -50,10 +82,10 @@ No authorization required
 
 ## rusl_web_api_annotation_controller_deprecate
 
-> models::Annotation rusl_web_api_annotation_controller_deprecate(account_slug, id, rusl_web_api_annotation_controller_revoke_request)
+> models::Annotation rusl_web_api_annotation_controller_deprecate(account_slug, id)
 Deprecate an annotation
 
-Marks an annotation as deprecated without creating a new one.
+Set an annotation's status to DEPRECATED using an explicit lifecycle action.
 
 ### Parameters
 
@@ -62,34 +94,6 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **id** | **String** | Annotation ID | [required] |
-**rusl_web_api_annotation_controller_revoke_request** | Option<[**RuslWebApiAnnotationControllerRevokeRequest**](RuslWebApiAnnotationControllerRevokeRequest.md)> | Deprecate Annotation |  |
-
-### Return type
-
-[**models::Annotation**](Annotation.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
-- **Content-Type**: application/json
-- **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-
-## rusl_web_api_annotation_controller_filter
-
-> models::Annotation rusl_web_api_annotation_controller_filter()
-Search annotations
-
-Flop-paginated search across annotations. Filterable by subject_type, subject_guid, type, account_slug, status.
-
-### Parameters
-
-This endpoint does not need any parameter.
 
 ### Return type
 
@@ -107,9 +111,39 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## rusl_web_api_annotation_controller_filter
+
+> models::RuslWebApiAnnotationControllerFilter200Response rusl_web_api_annotation_controller_filter(rusl_web_api_annotation_controller_filter_request)
+Search annotations
+
+Search annotations with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, subject account slug, subject GUID, subject type, type, label, and validation schema identifier) - annotation_type_id - subject_guid - subject_type - subject_account_slug - type - account_slug - status - set_by_user_id - inserted_at - updated_at 
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**rusl_web_api_annotation_controller_filter_request** | Option<[**RuslWebApiAnnotationControllerFilterRequest**](RuslWebApiAnnotationControllerFilterRequest.md)> | Filter parameters |  |
+
+### Return type
+
+[**models::RuslWebApiAnnotationControllerFilter200Response**](RuslWeb_Api_AnnotationController_filter_200_response.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## rusl_web_api_annotation_controller_lookup
 
-> models::RuslWebApiAnnotationControllerLookup200Response rusl_web_api_annotation_controller_lookup(ids, subject_guids, types, account_slugs, statuses)
+> models::RuslWebApiAnnotationControllerLookup200Response rusl_web_api_annotation_controller_lookup(ids, subject_guids, types, account_slugs)
 Bulk lookup annotations
 
 Look up annotations by IDs or subject GUIDs with subject visibility.
@@ -123,7 +157,6 @@ Name | Type | Description  | Required | Notes
 **subject_guids** | Option<**String**> | Comma-separated subject GUIDs |  |
 **types** | Option<**String**> | Comma-separated annotation types |  |
 **account_slugs** | Option<**String**> | Comma-separated account slugs |  |
-**statuses** | Option<**String**> | Comma-separated statuses (ACTIVE, DEPRECATED, REVOKED) or 'all' |  |
 
 ### Return type
 
@@ -143,10 +176,10 @@ No authorization required
 
 ## rusl_web_api_annotation_controller_reactivate
 
-> models::Annotation rusl_web_api_annotation_controller_reactivate(account_slug, id, rusl_web_api_annotation_controller_revoke_request)
+> models::Annotation rusl_web_api_annotation_controller_reactivate(account_slug, id)
 Reactivate an annotation
 
-Reactivates a previously deprecated or revoked annotation.
+Set an annotation's status back to ACTIVE from another lifecycle state.
 
 ### Parameters
 
@@ -155,7 +188,6 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **id** | **String** | Annotation ID | [required] |
-**rusl_web_api_annotation_controller_revoke_request** | Option<[**RuslWebApiAnnotationControllerRevokeRequest**](RuslWebApiAnnotationControllerRevokeRequest.md)> | Reactivate Annotation |  |
 
 ### Return type
 
@@ -167,7 +199,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: application/json
+- **Content-Type**: Not defined
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -175,10 +207,10 @@ No authorization required
 
 ## rusl_web_api_annotation_controller_revoke
 
-> models::Annotation rusl_web_api_annotation_controller_revoke(account_slug, id, rusl_web_api_annotation_controller_revoke_request)
+> models::Annotation rusl_web_api_annotation_controller_revoke(account_slug, id)
 Revoke an annotation
 
-Revokes an annotation so it is no longer considered valid.
+Set an annotation's status to REVOKED using an explicit lifecycle action.
 
 ### Parameters
 
@@ -187,7 +219,6 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **id** | **String** | Annotation ID | [required] |
-**rusl_web_api_annotation_controller_revoke_request** | Option<[**RuslWebApiAnnotationControllerRevokeRequest**](RuslWebApiAnnotationControllerRevokeRequest.md)> | Revoke Annotation |  |
 
 ### Return type
 
@@ -199,7 +230,7 @@ No authorization required
 
 ### HTTP request headers
 
-- **Content-Type**: application/json
+- **Content-Type**: Not defined
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -268,7 +299,7 @@ No authorization required
 
 ## rusl_web_api_annotation_controller_types
 
-> models::RuslWebApiAnnotationControllerTypes200Response rusl_web_api_annotation_controller_types(subject_guids, statuses)
+> models::RuslWebApiAnnotationControllerTypes200Response rusl_web_api_annotation_controller_types(subject_guids)
 List distinct annotation types
 
 Returns distinct annotation types with counts for given subjects.
@@ -279,7 +310,6 @@ Returns distinct annotation types with counts for given subjects.
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **subject_guids** | Option<**String**> | Comma-separated subject GUIDs to check |  |
-**statuses** | Option<**String**> | Comma-separated statuses or 'all' |  |
 
 ### Return type
 
@@ -299,7 +329,7 @@ No authorization required
 
 ## rusl_web_api_annotation_controller_update
 
-> models::Annotation rusl_web_api_annotation_controller_update(account_slug, id, rusl_web_api_annotation_controller_revoke_request)
+> models::Annotation rusl_web_api_annotation_controller_update(account_slug, id, rusl_web_api_annotation_controller_update_request)
 Update an annotation
 
 Update an annotation owned by your account.
@@ -311,7 +341,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **id** | **String** | Annotation ID | [required] |
-**rusl_web_api_annotation_controller_revoke_request** | Option<[**RuslWebApiAnnotationControllerRevokeRequest**](RuslWebApiAnnotationControllerRevokeRequest.md)> | Update Annotation |  |
+**rusl_web_api_annotation_controller_update_request** | Option<[**RuslWebApiAnnotationControllerUpdateRequest**](RuslWebApiAnnotationControllerUpdateRequest.md)> | Update Annotation |  |
 
 ### Return type
 

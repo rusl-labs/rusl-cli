@@ -114,7 +114,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_proposal_controller_index
 
-> models::RuslWebApiProposalControllerIndex200Response rusl_web_api_proposal_controller_index(account_slug, schema_slug, status, first, after)
+> models::RuslWebApiProposalControllerIndex200Response rusl_web_api_proposal_controller_index(account_slug, schema_slug, status, first, after, last, before, limit, offset, page, page_size)
 List Proposals
 
 Paginate proposals for a schema
@@ -127,8 +127,14 @@ Name | Type | Description  | Required | Notes
 **account_slug** | **String** | Account slug | [required] |
 **schema_slug** | **String** | Schema slug | [required] |
 **status** | Option<**String**> | Status |  |
-**first** | Option<**i32**> | First |  |
-**after** | Option<**String**> | After |  |
+**first** | Option<**i32**> | Cursor pagination: number of items to return from the start. |  |[default to 20]
+**after** | Option<**String**> | Cursor pagination: return items after this cursor. |  |
+**last** | Option<**i32**> | Cursor pagination: number of items to return from the end. |  |[default to 20]
+**before** | Option<**String**> | Cursor pagination: return items before this cursor. |  |
+**limit** | Option<**i32**> | Offset pagination: maximum number of items to return. This is the default pagination mode when no pagination params are provided. |  |[default to 20]
+**offset** | Option<**i32**> | Offset pagination: zero-based starting offset. |  |[default to 0]
+**page** | Option<**i32**> | Page pagination: 1-based page number. |  |[default to 1]
+**page_size** | Option<**i32**> | Page pagination: number of items per page. |  |[default to 20]
 
 ### Return type
 

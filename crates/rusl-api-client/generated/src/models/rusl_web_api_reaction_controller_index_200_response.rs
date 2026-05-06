@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiReactionControllerIndex200Response {
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
-    pub data: Option<Box<models::EntityReaction1>>,
+    pub data: Option<Box<models::ResourceInteraction1>>,
     #[serde(rename = "page_info", skip_serializing_if = "Option::is_none")]
     pub page_info: Option<Box<models::RuslWebApiBundleVersionControllerIndex200ResponsePageInfo>>,
 }

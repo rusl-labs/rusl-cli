@@ -11,37 +11,134 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+/// RuslWebApiBundleVersionControllerIndex200ResponsePageInfo : Pagination metadata. Some fields are only populated for specific pagination modes and are otherwise null.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiBundleVersionControllerIndex200ResponsePageInfo {
-    /// Has Next Page
-    #[serde(rename = "has_next_page", skip_serializing_if = "Option::is_none")]
-    pub has_next_page: Option<bool>,
-    /// Has Previous Page
-    #[serde(rename = "has_previous_page", skip_serializing_if = "Option::is_none")]
-    pub has_previous_page: Option<bool>,
-    /// Page Size
-    #[serde(rename = "page_size", skip_serializing_if = "Option::is_none")]
-    pub page_size: Option<i32>,
-    /// Params
-    #[serde(rename = "params", skip_serializing_if = "Option::is_none")]
-    pub params: Option<serde_json::Value>,
-    /// Start Cursor
-    #[serde(rename = "start_cursor", skip_serializing_if = "Option::is_none")]
-    pub start_cursor: Option<String>,
-    /// Total Count
-    #[serde(rename = "total_count", skip_serializing_if = "Option::is_none")]
-    pub total_count: Option<i32>,
+    /// Current offset for offset or page pagination
+    #[serde(
+        rename = "current_offset",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub current_offset: Option<Option<i32>>,
+    /// Current page number for page or offset pagination
+    #[serde(
+        rename = "current_page",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub current_page: Option<Option<i32>>,
+    /// Cursor for the last item in the current cursor window
+    #[serde(
+        rename = "end_cursor",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub end_cursor: Option<Option<String>>,
+    /// Whether another page exists
+    #[serde(rename = "has_next_page")]
+    pub has_next_page: bool,
+    /// Whether a previous page exists
+    #[serde(rename = "has_previous_page")]
+    pub has_previous_page: bool,
+    /// Next offset for offset or page pagination
+    #[serde(
+        rename = "next_offset",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub next_offset: Option<Option<i32>>,
+    /// Next page number for page or offset pagination
+    #[serde(
+        rename = "next_page",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub next_page: Option<Option<i32>>,
+    /// Resolved page size or limit for the current result set
+    #[serde(
+        rename = "page_size",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub page_size: Option<Option<i32>>,
+    /// Original params captured on validation errors
+    #[serde(
+        rename = "params",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub params: Option<Option<serde_json::Value>>,
+    /// Previous offset for offset or page pagination
+    #[serde(
+        rename = "previous_offset",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub previous_offset: Option<Option<i32>>,
+    /// Previous page number for page or offset pagination
+    #[serde(
+        rename = "previous_page",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub previous_page: Option<Option<i32>>,
+    /// Cursor for the first item in the current cursor window
+    #[serde(
+        rename = "start_cursor",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub start_cursor: Option<Option<String>>,
+    /// Total matching rows. Null for cursor pagination.
+    #[serde(
+        rename = "total_count",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub total_count: Option<Option<i32>>,
+    /// Total pages for page or offset pagination
+    #[serde(
+        rename = "total_pages",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub total_pages: Option<Option<i32>>,
 }
 
 impl RuslWebApiBundleVersionControllerIndex200ResponsePageInfo {
-    pub fn new() -> RuslWebApiBundleVersionControllerIndex200ResponsePageInfo {
+    /// Pagination metadata. Some fields are only populated for specific pagination modes and are otherwise null.
+    pub fn new(
+        has_next_page: bool,
+        has_previous_page: bool,
+    ) -> RuslWebApiBundleVersionControllerIndex200ResponsePageInfo {
         RuslWebApiBundleVersionControllerIndex200ResponsePageInfo {
-            has_next_page: None,
-            has_previous_page: None,
+            current_offset: None,
+            current_page: None,
+            end_cursor: None,
+            has_next_page,
+            has_previous_page,
+            next_offset: None,
+            next_page: None,
             page_size: None,
             params: None,
+            previous_offset: None,
+            previous_page: None,
             start_cursor: None,
             total_count: None,
+            total_pages: None,
         }
     }
 }

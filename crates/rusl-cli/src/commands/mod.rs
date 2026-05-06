@@ -3,6 +3,7 @@ pub mod generate;
 pub mod install;
 pub mod list;
 pub mod login;
+pub mod mcp;
 pub mod outdated;
 pub mod remove;
 pub mod whoami;

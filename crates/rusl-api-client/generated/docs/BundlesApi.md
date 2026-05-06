@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**rusl_web_api_bundle_controller_archive**](BundlesApi.md#rusl_web_api_bundle_controller_archive) | **POST** /api/{account_slug}/bundles/{bundle_slug}/archive | Archive a bundle
 [**rusl_web_api_bundle_controller_create**](BundlesApi.md#rusl_web_api_bundle_controller_create) | **POST** /api/{account_slug}/bundles | Create a new bundle
+[**rusl_web_api_bundle_controller_index**](BundlesApi.md#rusl_web_api_bundle_controller_index) | **GET** /api/bundles | Search bundles across accounts
 [**rusl_web_api_bundle_controller_lookup**](BundlesApi.md#rusl_web_api_bundle_controller_lookup) | **GET** /api/bundles/lookup | Lookup bundles by IDs
 [**rusl_web_api_bundle_controller_paginate**](BundlesApi.md#rusl_web_api_bundle_controller_paginate) | **POST** /api/{account_slug}/bundles/filter | Paginate bundles
 [**rusl_web_api_bundle_controller_show**](BundlesApi.md#rusl_web_api_bundle_controller_show) | **GET** /api/{account_slug}/bundles/{bundle_slug} | Fetch a bundle
@@ -72,6 +73,46 @@ Name | Type | Description  | Required | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## rusl_web_api_bundle_controller_index
+
+> models::RuslWebApiBundleControllerIndex200Response rusl_web_api_bundle_controller_index(filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
+Search bundles across accounts
+
+Search bundles across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, bundle slug, bundle identifier, and description) - account_slug - slug - visibility - status  Results are scoped by user permissions. Anonymous users see only PUBLIC bundles, authenticated users also see PRIVATE bundles from accounts they can access. 
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**filters** | Option<[**std::collections::HashMap<String, models::RuslWebApiBundleControllerIndexFiltersParameterValue>**](Models__RuslWebApiBundleControllerIndexFiltersParameterValue.md)> | Flop filters. Supports q text search via field=q and op=ilike_or. See https://hexdocs.pm/flop/readme.html#parameter-format |  |
+**order_by** | Option<[**Vec<String>**](String.md)> | Fields to order by |  |
+**order_directions** | Option<[**Vec<String>**](String.md)> | Order directions |  |
+**first** | Option<**i32**> | Cursor pagination: number of items to return from the start. |  |[default to 20]
+**after** | Option<**String**> | Cursor pagination: return items after this cursor. |  |
+**last** | Option<**i32**> | Cursor pagination: number of items to return from the end. |  |[default to 20]
+**before** | Option<**String**> | Cursor pagination: return items before this cursor. |  |
+**limit** | Option<**i32**> | Offset pagination: maximum number of items to return. This is the default pagination mode when no pagination params are provided. |  |[default to 20]
+**offset** | Option<**i32**> | Offset pagination: zero-based starting offset. |  |[default to 0]
+**page** | Option<**i32**> | Page pagination: 1-based page number. |  |[default to 1]
+**page_size** | Option<**i32**> | Page pagination: number of items per page. |  |[default to 20]
+
+### Return type
+
+[**models::RuslWebApiBundleControllerIndex200Response**](RuslWeb_Api_BundleController_index_200_response.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## rusl_web_api_bundle_controller_lookup
 
 > models::RuslWebApiBundleControllerLookup200Response rusl_web_api_bundle_controller_lookup(ids)
@@ -102,7 +143,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_bundle_controller_paginate
 
-> models::RuslWebApiBundleControllerPaginate200Response rusl_web_api_bundle_controller_paginate(account_slug, rusl_web_api_bundle_controller_paginate_request)
+> models::RuslWebApiBundleControllerIndex200Response rusl_web_api_bundle_controller_paginate(account_slug, rusl_web_api_bundle_controller_paginate_request)
 Paginate bundles
 
 ### Parameters
@@ -115,7 +156,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiBundleControllerPaginate200Response**](RuslWeb_Api_BundleController_paginate_200_response.md)
+[**models::RuslWebApiBundleControllerIndex200Response**](RuslWeb_Api_BundleController_index_200_response.md)
 
 ### Authorization
 

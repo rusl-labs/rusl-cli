@@ -26,9 +26,15 @@ pub struct RegistryClient {
 
 impl RegistryClient {
     pub fn new(config: Config) -> Self {
-        Self {
-            api: RuslApiClient::new(config.api_base_url),
-        }
+        Self::with_api(RuslApiClient::new(config.api_base_url))
+    }
+
+    pub fn with_user_agent(config: Config, user_agent: impl Into<String>) -> Self {
+        Self::with_api(RuslApiClient::new(config.api_base_url).with_user_agent(user_agent))
+    }
+
+    fn with_api(api: RuslApiClient) -> Self {
+        Self { api }
     }
 
     pub async fn fetch_schema_meta(
@@ -95,6 +101,22 @@ impl RegistryClient {
 
         self.persist_session(&mut credentials, &session)?;
         Ok(me)
+    }
+
+    pub async fn search(
+        &self,
+        request: models::GlobalSearchRequest,
+    ) -> Result<models::SearchResponse> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .search(&mut session, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to search registry")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
     }
 
     fn load_session(&self) -> Result<(Option<Credentials>, SessionTokens)> {
@@ -191,7 +213,7 @@ mod tests {
         http::{HeaderMap, StatusCode},
         routing::{get, post},
     };
-    use rusl_api_client::models::MeResponse;
+    use rusl_api_client::models::{self, MeResponse};
     use serde_json::{Value, json};
     use serial_test::serial;
     use std::{collections::VecDeque, ffi::OsString, sync::Arc};
@@ -207,6 +229,13 @@ mod tests {
         method: &'static str,
         path: &'static str,
         authorization: Option<String>,
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    struct RecordedSearchRequest {
+        authorization: Option<String>,
+        user_agent: Option<String>,
+        body: Value,
     }
 
     #[derive(Debug, Clone)]
@@ -234,13 +263,16 @@ mod tests {
     #[derive(Clone)]
     struct TestState {
         requests: Arc<Mutex<Vec<RecordedRequest>>>,
+        search_requests: Arc<Mutex<Vec<RecordedSearchRequest>>>,
         me_responses: Arc<Mutex<VecDeque<ResponseSpec>>>,
         exchange_responses: Arc<Mutex<VecDeque<ResponseSpec>>>,
+        search_responses: Arc<Mutex<VecDeque<ResponseSpec>>>,
     }
 
     struct TestServer {
         base_url: String,
         requests: Arc<Mutex<Vec<RecordedRequest>>>,
+        search_requests: Arc<Mutex<Vec<RecordedSearchRequest>>>,
         shutdown: Option<oneshot::Sender<()>>,
         task: JoinHandle<()>,
     }
@@ -250,16 +282,28 @@ mod tests {
             me_responses: Vec<ResponseSpec>,
             exchange_responses: Vec<ResponseSpec>,
         ) -> Self {
+            Self::start_with_search(me_responses, exchange_responses, Vec::new()).await
+        }
+
+        async fn start_with_search(
+            me_responses: Vec<ResponseSpec>,
+            exchange_responses: Vec<ResponseSpec>,
+            search_responses: Vec<ResponseSpec>,
+        ) -> Self {
             let requests = Arc::new(Mutex::new(Vec::new()));
+            let search_requests = Arc::new(Mutex::new(Vec::new()));
             let state = TestState {
                 requests: requests.clone(),
+                search_requests: search_requests.clone(),
                 me_responses: Arc::new(Mutex::new(VecDeque::from(me_responses))),
                 exchange_responses: Arc::new(Mutex::new(VecDeque::from(exchange_responses))),
+                search_responses: Arc::new(Mutex::new(VecDeque::from(search_responses))),
             };
 
             let app = Router::new()
                 .route("/api/auth/sessions/me", get(me_handler))
                 .route("/api/tokens/exchange", post(exchange_handler))
+                .route("/api/search", post(search_handler))
                 .with_state(state);
 
             let listener = TcpListener::bind("127.0.0.1:0")
@@ -279,6 +323,7 @@ mod tests {
             Self {
                 base_url: format!("http://{address}"),
                 requests,
+                search_requests,
                 shutdown: Some(shutdown_tx),
                 task,
             }
@@ -286,6 +331,10 @@ mod tests {
 
         async fn recorded_requests(&self) -> Vec<RecordedRequest> {
             self.requests.lock().await.clone()
+        }
+
+        async fn recorded_search_requests(&self) -> Vec<RecordedSearchRequest> {
+            self.search_requests.lock().await.clone()
         }
     }
 
@@ -422,6 +471,78 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    #[serial]
+    async fn search_uses_stored_session_and_custom_user_agent() {
+        let server = TestServer::start_with_search(
+            Vec::new(),
+            Vec::new(),
+            vec![ResponseSpec::ok(json!({
+                "data": [{
+                    "description": "Shared primitives",
+                    "discovery_profile": { "account_slug": "hassox" },
+                    "document_type": "schema",
+                    "document_type_label": "Schema",
+                    "guid": "schema_guid",
+                    "highlights": [],
+                    "identifier": "hassox/common"
+                }],
+                "facets": [],
+                "page_info": {
+                    "current_page": 1,
+                    "has_next_page": false,
+                    "has_previous_page": false,
+                    "page_size": 10,
+                    "total_count": 1,
+                    "total_pages": 1
+                }
+            }))],
+        )
+        .await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = HomeGuard::new(temp_dir.path());
+        Credentials {
+            access_token: "access-token".to_string(),
+            refresh_token: "refresh-token".to_string(),
+        }
+        .save()
+        .expect("save credentials");
+
+        let client = RegistryClient::with_user_agent(
+            Config {
+                api_base_url: server.base_url.clone(),
+                website_url: "https://example.test".to_string(),
+                schema_dir: None,
+                generators: Default::default(),
+            },
+            "rusl/0.1.0 (mcp)",
+        );
+
+        let response = client
+            .search(models::GlobalSearchRequest {
+                q: Some("bearing".to_string()),
+                page: Some(1),
+                per_page: Some(10),
+                ..models::GlobalSearchRequest::new()
+            })
+            .await
+            .expect("search registry");
+
+        assert_eq!(response.data[0].identifier, "hassox/common");
+        assert_eq!(
+            server.recorded_search_requests().await,
+            vec![RecordedSearchRequest {
+                authorization: Some("Bearer access-token".to_string()),
+                user_agent: Some("rusl/0.1.0 (mcp)".to_string()),
+                body: json!({
+                    "page": 1,
+                    "per_page": 10,
+                    "q": "bearing"
+                }),
+            }]
+        );
+    }
+
     async fn me_handler(
         State(state): State<TestState>,
         headers: HeaderMap,
@@ -440,6 +561,24 @@ mod tests {
         (response.status, Json(response.body))
     }
 
+    async fn search_handler(
+        State(state): State<TestState>,
+        headers: HeaderMap,
+        Json(body): Json<Value>,
+    ) -> (StatusCode, Json<Value>) {
+        state
+            .search_requests
+            .lock()
+            .await
+            .push(RecordedSearchRequest {
+                authorization: header_value(&headers, "authorization"),
+                user_agent: header_value(&headers, "user-agent"),
+                body,
+            });
+        let response = next_response(&state.search_responses).await;
+        (response.status, Json(response.body))
+    }
+
     async fn record_request(
         state: &TestState,
         method: &'static str,
@@ -449,11 +588,15 @@ mod tests {
         state.requests.lock().await.push(RecordedRequest {
             method,
             path,
-            authorization: headers
-                .get("authorization")
-                .and_then(|value| value.to_str().ok())
-                .map(ToOwned::to_owned),
+            authorization: header_value(headers, "authorization"),
         });
+    }
+
+    fn header_value(headers: &HeaderMap, name: &str) -> Option<String> {
+        headers
+            .get(name)
+            .and_then(|value| value.to_str().ok())
+            .map(ToOwned::to_owned)
     }
 
     async fn next_response(queue: &Arc<Mutex<VecDeque<ResponseSpec>>>) -> ResponseSpec {

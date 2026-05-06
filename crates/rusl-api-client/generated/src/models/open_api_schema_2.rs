@@ -11,7 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// OpenApiSchema2 : Create Schema Request
+/// OpenApiSchema2 : Update Schema Request
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema2 {
     /// Description
@@ -22,16 +22,24 @@ pub struct OpenApiSchema2 {
         skip_serializing_if = "Option::is_none"
     )]
     pub description: Option<Option<String>>,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description: Option<Option<Box<models::OpenApiSchema2SubjectDescription>>>,
     /// Visibility
     #[serde(rename = "visibility", skip_serializing_if = "Option::is_none")]
     pub visibility: Option<Visibility>,
 }
 
 impl OpenApiSchema2 {
-    /// Create Schema Request
+    /// Update Schema Request
     pub fn new() -> OpenApiSchema2 {
         OpenApiSchema2 {
             description: None,
+            subject_description: None,
             visibility: None,
         }
     }

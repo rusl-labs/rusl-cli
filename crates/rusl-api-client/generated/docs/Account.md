@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **member_count** | Option<**i32**> | Number of members in the account | [optional]
 **owner_user** | Option<[**models::Account1OwnerUser**](Account1OwnerUser.md)> |  | [optional]
 **owner_user_id** | **String** | Owner User ID | 
+**plan** | **String** | The plan slug that gates this account's capabilities (entitlements / quotas / rate limits). Defaults to \"free\". | 
 **slug** | **String** | A URL safe and unique identifier for the account | 
 **team_visibility** | Option<**TeamVisibility**> | Whether the account's team members are publicly visible (enum: public, private) | [optional]
 **r#type** | **Type** | All users have a user account (type: user), but there may be other accounts (enum: organization, user) | 
