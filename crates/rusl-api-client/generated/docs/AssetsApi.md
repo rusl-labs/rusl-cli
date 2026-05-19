@@ -137,7 +137,7 @@ Name | Type | Description  | Required | Notes
 > models::UploadIntentResponse1 rusl_web_api_asset_controller_upload_intent(upload_intent_request1)
 Create an Upload Intent
 
-Request a presigned URL for direct-to-storage file upload.  Creates an asset in :pending status and returns a presigned PUT URL. The client uploads the file directly to RustFS using this URL. RustFS notifies the API via webhook when the upload completes, transitioning the asset to :ready status. 
+Request a presigned URL for direct-to-storage file upload.  Creates an asset in :pending status and returns a presigned PUT URL. The client uploads the file directly to RustFS using this URL. RustFS notifies the API via webhook when the upload completes, transitioning the asset to :ready status.
 
 ### Parameters
 
@@ -160,4 +160,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

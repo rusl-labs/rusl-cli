@@ -7,6 +7,7 @@ Method | HTTP request | Description
 [**rusl_web_api_annotation_controller_activate**](AnnotationsApi.md#rusl_web_api_annotation_controller_activate) | **POST** /api/{account_slug}/annotations/{id}/activate | Activate an annotation
 [**rusl_web_api_annotation_controller_create**](AnnotationsApi.md#rusl_web_api_annotation_controller_create) | **POST** /api/{account_slug}/annotations | Create an annotation
 [**rusl_web_api_annotation_controller_deprecate**](AnnotationsApi.md#rusl_web_api_annotation_controller_deprecate) | **POST** /api/{account_slug}/annotations/{id}/deprecate | Deprecate an annotation
+[**rusl_web_api_annotation_controller_endorse**](AnnotationsApi.md#rusl_web_api_annotation_controller_endorse) | **POST** /api/annotations/{id}/endorse | Endorse an annotation
 [**rusl_web_api_annotation_controller_filter**](AnnotationsApi.md#rusl_web_api_annotation_controller_filter) | **POST** /api/annotations/filter | Search annotations
 [**rusl_web_api_annotation_controller_lookup**](AnnotationsApi.md#rusl_web_api_annotation_controller_lookup) | **GET** /api/annotations/lookup | Bulk lookup annotations
 [**rusl_web_api_annotation_controller_reactivate**](AnnotationsApi.md#rusl_web_api_annotation_controller_reactivate) | **POST** /api/{account_slug}/annotations/{id}/reactivate | Reactivate an annotation
@@ -14,6 +15,7 @@ Method | HTTP request | Description
 [**rusl_web_api_annotation_controller_show**](AnnotationsApi.md#rusl_web_api_annotation_controller_show) | **GET** /api/annotations/{id} | Get a single annotation
 [**rusl_web_api_annotation_controller_type_typeahead**](AnnotationsApi.md#rusl_web_api_annotation_controller_type_typeahead) | **GET** /api/annotations/type_typeahead | Typeahead for annotation types
 [**rusl_web_api_annotation_controller_types**](AnnotationsApi.md#rusl_web_api_annotation_controller_types) | **GET** /api/annotations/types | List distinct annotation types
+[**rusl_web_api_annotation_controller_unendorse**](AnnotationsApi.md#rusl_web_api_annotation_controller_unendorse) | **DELETE** /api/annotations/{id}/endorse | Unendorse an annotation
 [**rusl_web_api_annotation_controller_update**](AnnotationsApi.md#rusl_web_api_annotation_controller_update) | **PATCH** /api/{account_slug}/annotations/{id} | Update an annotation
 
 
@@ -111,12 +113,42 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## rusl_web_api_annotation_controller_endorse
+
+> models::RuslWebApiReactionControllerFavourite201Response rusl_web_api_annotation_controller_endorse(id)
+Endorse an annotation
+
+Add a positive endorsement interaction to the annotation identified by ID. Endorsements are user-level signal boosts backed by resource interactions.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**id** | **String** | Annotation ID | [required] |
+
+### Return type
+
+[**models::RuslWebApiReactionControllerFavourite201Response**](RuslWeb_Api_ReactionController_favourite_201_response.md)
+
+### Authorization
+
+[authorization](../README.md#authorization)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## rusl_web_api_annotation_controller_filter
 
 > models::RuslWebApiAnnotationControllerFilter200Response rusl_web_api_annotation_controller_filter(rusl_web_api_annotation_controller_filter_request)
 Search annotations
 
-Search annotations with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, subject account slug, subject GUID, subject type, type, label, and validation schema identifier) - annotation_type_id - subject_guid - subject_type - subject_account_slug - type - account_slug - status - set_by_user_id - inserted_at - updated_at 
+Search annotations with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, subject account slug, subject GUID, subject type, type, label, and validation schema identifier) - annotation_type_id - subject_guid - subject_type - subject_account_slug - type - type_cardinality - account_slug - status - set_by_user_id - inserted_at - updated_at
 
 ### Parameters
 
@@ -327,6 +359,36 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 
+## rusl_web_api_annotation_controller_unendorse
+
+> models::RuslWebApiAnnotationControllerUnendorse200Response rusl_web_api_annotation_controller_unendorse(id)
+Unendorse an annotation
+
+Remove the authenticated user's endorsement interaction from an annotation.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**id** | **String** | Annotation ID | [required] |
+
+### Return type
+
+[**models::RuslWebApiAnnotationControllerUnendorse200Response**](RuslWeb_Api_AnnotationController_unendorse_200_response.md)
+
+### Authorization
+
+[authorization](../README.md#authorization)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
 ## rusl_web_api_annotation_controller_update
 
 > models::Annotation rusl_web_api_annotation_controller_update(account_slug, id, rusl_web_api_annotation_controller_update_request)
@@ -357,4 +419,3 @@ No authorization required
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

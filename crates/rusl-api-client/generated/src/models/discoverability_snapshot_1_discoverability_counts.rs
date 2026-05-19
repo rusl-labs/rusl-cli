@@ -19,6 +19,8 @@ pub struct DiscoverabilitySnapshot1DiscoverabilityCounts {
     pub bundle_inclusions: Option<i32>,
     #[serde(rename = "dependent_schemas", skip_serializing_if = "Option::is_none")]
     pub dependent_schemas: Option<i32>,
+    #[serde(rename = "endorsements")]
+    pub endorsements: i32,
     #[serde(rename = "favourites")]
     pub favourites: i32,
     #[serde(rename = "usages", skip_serializing_if = "Option::is_none")]
@@ -35,6 +37,7 @@ pub struct DiscoverabilitySnapshot1DiscoverabilityCounts {
 impl DiscoverabilitySnapshot1DiscoverabilityCounts {
     pub fn new(
         attached_annotations: i32,
+        endorsements: i32,
         favourites: i32,
         watchers: i32,
     ) -> DiscoverabilitySnapshot1DiscoverabilityCounts {
@@ -42,6 +45,7 @@ impl DiscoverabilitySnapshot1DiscoverabilityCounts {
             attached_annotations,
             bundle_inclusions: None,
             dependent_schemas: None,
+            endorsements,
             favourites,
             usages: None,
             used_as_validation_schema: None,

@@ -76,6 +76,9 @@ pub struct Annotation {
     /// Registered annotation type identifier
     #[serde(rename = "type")]
     pub r#type: String,
+    /// Cardinality policy copied from the registered annotation type for database enforcement
+    #[serde(rename = "type_cardinality")]
+    pub type_cardinality: TypeCardinality,
     /// Updated at
     #[serde(rename = "updated_at", skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<String>,
@@ -109,6 +112,7 @@ impl Annotation {
         status: Status,
         subject_guid: String,
         r#type: String,
+        type_cardinality: TypeCardinality,
     ) -> Annotation {
         Annotation {
             __typename,
@@ -126,6 +130,7 @@ impl Annotation {
             subject_guid,
             subject_type: None,
             r#type,
+            type_cardinality,
             updated_at: None,
             validated_at_version: None,
             validation_schema_identifier: None,
@@ -158,5 +163,19 @@ pub enum Status {
 impl Default for Status {
     fn default() -> Status {
         Self::Active
+    }
+}
+/// Cardinality policy copied from the registered annotation type for database enforcement
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum TypeCardinality {
+    #[serde(rename = "ONE_PER_SUBJECT_PER_ACCOUNT")]
+    OnePerSubjectPerAccount,
+    #[serde(rename = "MANY_PER_SUBJECT_PER_ACCOUNT")]
+    ManyPerSubjectPerAccount,
+}
+
+impl Default for TypeCardinality {
+    fn default() -> TypeCardinality {
+        Self::OnePerSubjectPerAccount
     }
 }

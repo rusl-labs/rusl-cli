@@ -1,6 +1,7 @@
 use crate::config;
 use crate::manifest::lock::LockManifest;
 use crate::registry::client::{RegistryClient, RegistryVersion};
+use crate::resource_identifier::{ResourceKind, display_package_key, parse_package_key};
 use anyhow::{Context, Result};
 use pubgrub::SemanticVersion;
 use std::env;
@@ -50,12 +51,12 @@ pub async fn load_outdated_dependencies() -> Result<OutdatedOutput> {
         };
 
         let metadata = match target.kind {
-            RegistryKind::Bundle => {
+            ResourceKind::Bundle => {
                 client
                     .fetch_bundle_meta(&target.account, &target.slug)
                     .await
             }
-            RegistryKind::Schema => {
+            ResourceKind::Schema => {
                 client
                     .fetch_schema_meta(&target.account, &target.slug)
                     .await
@@ -84,34 +85,21 @@ pub async fn load_outdated_dependencies() -> Result<OutdatedOutput> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum RegistryKind {
-    Schema,
-    Bundle,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 struct RegistryTarget {
-    kind: RegistryKind,
+    kind: ResourceKind,
     account: String,
     slug: String,
     display_name: String,
 }
 
 fn parse_registry_target(package_key: &str) -> Option<RegistryTarget> {
-    let (kind, path) = package_key.split_once(':')?;
-    let (account, slug) = path.split_once('/')?;
-
-    let kind = match kind {
-        "bundle" => RegistryKind::Bundle,
-        "schema" => RegistryKind::Schema,
-        _ => return None,
-    };
+    let resource = parse_package_key(package_key)?;
 
     Some(RegistryTarget {
-        kind,
-        account: account.to_string(),
-        slug: slug.to_string(),
-        display_name: display_name(package_key),
+        kind: resource.kind,
+        account: resource.account,
+        slug: resource.slug,
+        display_name: display_package_key(package_key),
     })
 }
 
@@ -126,24 +114,15 @@ fn parse_version(version: &str) -> Option<SemanticVersion> {
     version.parse::<SemanticVersion>().ok()
 }
 
-fn display_name(package_key: &str) -> String {
-    if let Some(path) = package_key.strip_prefix("bundle:") {
-        format!("bundles/{path}")
-    } else if let Some(path) = package_key.strip_prefix("schema:") {
-        path.to_string()
-    } else {
-        package_key.to_string()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
-        OutdatedItem, OutdatedOutput, display_name, latest_version, load_outdated_dependencies,
+        OutdatedItem, OutdatedOutput, latest_version, load_outdated_dependencies,
         parse_registry_target,
     };
     use crate::config::credentials::Credentials;
     use crate::registry::client::RegistryVersion;
+    use crate::resource_identifier::display_package_key;
     use axum::{
         Json, Router,
         extract::{Path as AxumPath, State},
@@ -158,8 +137,11 @@ mod tests {
 
     #[test]
     fn formats_registry_display_names() {
-        assert_eq!(display_name("bundle:acme/common"), "bundles/acme/common");
-        assert_eq!(display_name("schema:acme/types"), "acme/types");
+        assert_eq!(
+            display_package_key("bundle:acme/common"),
+            "acme/bundles/common"
+        );
+        assert_eq!(display_package_key("schema:acme/types"), "acme/types");
     }
 
     #[test]
@@ -168,7 +150,7 @@ mod tests {
 
         assert_eq!(target.account, "acme");
         assert_eq!(target.slug, "common");
-        assert_eq!(target.display_name, "bundles/acme/common");
+        assert_eq!(target.display_name, "acme/bundles/common");
         assert!(parse_registry_target("external:https://example.com/schema.json").is_none());
     }
 
@@ -219,7 +201,10 @@ mod tests {
     impl TestServer {
         async fn start() -> Self {
             let app = Router::new()
-                .route("/schemas/{account}/{slug}/metadata", get(metadata_handler))
+                .route(
+                    "/resources/{account}/{slug}/metadata",
+                    get(metadata_handler),
+                )
                 .with_state(TestState);
             let listener = TcpListener::bind("127.0.0.1:0")
                 .await

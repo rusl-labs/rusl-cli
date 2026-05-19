@@ -18,7 +18,7 @@ Method | HTTP request | Description
 > models::RuslWebApiSchemaVersionControllerExampleDataIndex200Response rusl_web_api_schema_version_controller_example_data_index(account_slug, schema_slug, version, filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
 List schema example data
 
-Paginate committed example data for a schema across all committed versions.  Supports: - `version` prefix filtering against canonical schema version ordering (`1`, `1.2`, `1.2.3`) - Flop filters on `version`, `schema_version_id`, `position`, `title`, `inserted_at`, and `updated_at` - Flop ordering on `canonical_version`, `position`, `inserted_at`, and `updated_at` 
+Paginate committed example data for a schema across all committed versions.  Supports: - `version` prefix filtering against canonical schema version ordering (`1`, `1.2`, `1.2.3`) - Flop filters on `version`, `schema_version_id`, `position`, `title`, `inserted_at`, and `updated_at` - Flop ordering on `canonical_version`, `position`, `inserted_at`, and `updated_at`
 
 ### Parameters
 
@@ -222,4 +222,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

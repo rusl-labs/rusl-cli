@@ -14,7 +14,7 @@ Method | HTTP request | Description
 > models::RuslWebApiDiscoveryControllerSearch200Response rusl_web_api_discovery_controller_search(q, subject_type, status, order_by, first, after, last, before, limit, offset, page, page_size)
 Search discovery profiles
 
-Full-text search across discovery profiles (generated summaries, keywords, and facets for schemas and bundles). Results include the hydrated subject so agents can reason about the profile and the entity it describes in a single round-trip.  Scope-aware: anonymous callers see only public subjects; authenticated callers also see subjects in accounts they can read. 
+Full-text search across discovery profiles (generated summaries, keywords, and facets for schemas and bundles). Results include the hydrated subject so agents can reason about the profile and the entity it describes in a single round-trip.  Scope-aware: anonymous callers see only public subjects; authenticated callers also see subjects in accounts they can read.
 
 ### Parameters
 
@@ -55,7 +55,7 @@ No authorization required
 > models::RuslWebApiDiscoveryControllerShow200Response rusl_web_api_discovery_controller_show(subject_guid)
 Fetch a discovery profile by subject GUID
 
-Returns the discovery profile for a single subject GUID, paired with the hydrated subject. Responds 404 if the profile does not exist or the caller cannot see the subject. 
+Returns the discovery profile for a single subject GUID, paired with the hydrated subject. Responds 404 if the profile does not exist or the caller cannot see the subject.
 
 ### Parameters
 
@@ -78,4 +78,3 @@ No authorization required
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

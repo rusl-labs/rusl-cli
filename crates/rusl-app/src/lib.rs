@@ -1,8 +1,7 @@
 pub mod cache;
+pub mod cache_service;
 pub mod config;
 pub mod dependency_service;
-pub mod generate;
-pub mod generate_service;
 pub mod install_service;
 pub mod list_service;
 pub mod login_service;
@@ -10,6 +9,7 @@ pub mod manifest;
 pub mod outdated_service;
 pub mod registry;
 pub mod resolver;
+pub mod resource_identifier;
 pub mod search_service;
 pub mod whoami_service;
 pub mod why_service;

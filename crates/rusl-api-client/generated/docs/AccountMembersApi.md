@@ -47,7 +47,7 @@ Name | Type | Description  | Required | Notes
 > models::AccountMemberListResponse rusl_web_api_account_member_controller_index(account_slug)
 List members of an account
 
-Returns all members of the account with their roles and user details.  For accounts with `team_visibility: public`, no authentication is required. For accounts with `team_visibility: private`, the caller must be an account member. 
+Returns all members of the account with their roles and user details.  For accounts with `team_visibility: public`, no authentication is required. For accounts with `team_visibility: private`, the caller must be an account member.
 
 ### Parameters
 
@@ -132,4 +132,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

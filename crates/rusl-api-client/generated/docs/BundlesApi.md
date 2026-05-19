@@ -78,7 +78,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebApiBundleControllerIndex200Response rusl_web_api_bundle_controller_index(filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
 Search bundles across accounts
 
-Search bundles across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, bundle slug, bundle identifier, and description) - account_slug - slug - visibility - status  Results are scoped by user permissions. Anonymous users see only PUBLIC bundles, authenticated users also see PRIVATE bundles from accounts they can access. 
+Search bundles across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, bundle slug, bundle identifier, and description) - identifier (canonical bundle identifier, supports exact and in filters) - bundle_identifier (resource-specific storage field) - account_slug - slug - visibility - status  Results are scoped by user permissions. Anonymous users see only PUBLIC bundles, authenticated users also see PRIVATE bundles from accounts they can access.
 
 ### Parameters
 
@@ -256,4 +256,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

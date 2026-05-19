@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use sha2::{Digest, Sha256};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::fs;
 
 /// The global Content-Addressable Storage (CAS) engine.
@@ -11,12 +11,7 @@ pub struct GlobalStore {
 impl GlobalStore {
     /// Initializes the immutable CAS store residing in `~/.local/share/rusl/store` (or OS equivalent)
     pub async fn new() -> Result<Self> {
-        let root_dir = if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "rusl") {
-            proj_dirs.data_dir().join("store")
-        } else {
-            // Extreme fallback if OS doesn't provide a home directory
-            std::env::current_dir()?.join(".rusl").join("store")
-        };
+        let root_dir = Self::default_root_dir()?;
 
         if !root_dir.exists() {
             fs::create_dir_all(&root_dir)
@@ -25,6 +20,17 @@ impl GlobalStore {
         }
 
         Ok(Self { root_dir })
+    }
+
+    pub fn default_root_dir() -> Result<PathBuf> {
+        let root_dir = if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "rusl") {
+            proj_dirs.data_dir().join("store")
+        } else {
+            // Extreme fallback if OS doesn't provide a home directory
+            std::env::current_dir()?.join(".rusl").join("store")
+        };
+
+        Ok(root_dir)
     }
 
     /// Computes the SHA-256 integrity hash natively
@@ -54,6 +60,32 @@ impl GlobalStore {
         }
 
         Ok((hash, file_path))
+    }
+
+    pub fn root_dir(&self) -> &Path {
+        &self.root_dir
+    }
+
+    pub async fn clear_all(&self) -> Result<bool> {
+        Self::clear_dir(&self.root_dir).await
+    }
+
+    pub async fn clear_default() -> Result<(bool, PathBuf)> {
+        let root_dir = Self::default_root_dir()?;
+        let cleared = Self::clear_dir(&root_dir).await?;
+        Ok((cleared, root_dir))
+    }
+
+    async fn clear_dir(root_dir: &Path) -> Result<bool> {
+        if !root_dir.exists() {
+            return Ok(false);
+        }
+
+        fs::remove_dir_all(root_dir)
+            .await
+            .with_context(|| format!("Failed to clear global cache at {root_dir:?}"))?;
+
+        Ok(true)
     }
 
     /// Resolves the absolute path of a cached schema strictly by its unique integrity digest.

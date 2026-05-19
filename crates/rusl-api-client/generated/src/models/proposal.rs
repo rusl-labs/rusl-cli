@@ -121,6 +121,9 @@ pub struct Proposal {
         skip_serializing_if = "Option::is_none"
     )]
     pub proposed_version: Option<Option<String>>,
+    /// Explicit JSON Schema root instance types declared by content.type
+    #[serde(rename = "root_instance_types")]
+    pub root_instance_types: Vec<String>,
     /// Schema format
     #[serde(rename = "schema_format", skip_serializing_if = "Option::is_none")]
     pub schema_format: Option<SchemaFormat>,
@@ -154,6 +157,7 @@ impl Proposal {
         guid: String,
         id: String,
         inserted_at: String,
+        root_instance_types: Vec<String>,
         schema_id: String,
         status: Status,
         updated_at: String,
@@ -178,6 +182,7 @@ impl Proposal {
             proposal_number: None,
             proposed_by_user_id: None,
             proposed_version: None,
+            root_instance_types,
             schema_format: None,
             schema_id,
             schema_version_id: None,

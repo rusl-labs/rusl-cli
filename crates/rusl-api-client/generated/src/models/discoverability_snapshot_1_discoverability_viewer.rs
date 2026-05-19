@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DiscoverabilitySnapshot1DiscoverabilityViewer {
+    #[serde(rename = "endorsed")]
+    pub endorsed: bool,
     #[serde(rename = "favourited")]
     pub favourited: bool,
     #[serde(rename = "watching")]
@@ -20,8 +22,13 @@ pub struct DiscoverabilitySnapshot1DiscoverabilityViewer {
 }
 
 impl DiscoverabilitySnapshot1DiscoverabilityViewer {
-    pub fn new(favourited: bool, watching: bool) -> DiscoverabilitySnapshot1DiscoverabilityViewer {
+    pub fn new(
+        endorsed: bool,
+        favourited: bool,
+        watching: bool,
+    ) -> DiscoverabilitySnapshot1DiscoverabilityViewer {
         DiscoverabilitySnapshot1DiscoverabilityViewer {
+            endorsed,
             favourited,
             watching,
         }

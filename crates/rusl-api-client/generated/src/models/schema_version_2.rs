@@ -45,6 +45,9 @@ pub struct SchemaVersion2 {
         skip_serializing_if = "Option::is_none"
     )]
     pub published_at: Option<Option<String>>,
+    /// Explicit JSON Schema root instance types declared by content.type
+    #[serde(rename = "root_instance_types")]
+    pub root_instance_types: Vec<String>,
     /// Schema format
     #[serde(rename = "schema_format", skip_serializing_if = "Option::is_none")]
     pub schema_format: Option<SchemaFormat>,
@@ -66,6 +69,7 @@ impl SchemaVersion2 {
         content: serde_json::Value,
         guid: String,
         id: String,
+        root_instance_types: Vec<String>,
         status: Status,
         version: String,
     ) -> SchemaVersion2 {
@@ -77,6 +81,7 @@ impl SchemaVersion2 {
             id,
             inserted_at: None,
             published_at: None,
+            root_instance_types,
             schema_format: None,
             status,
             updated_at: None,

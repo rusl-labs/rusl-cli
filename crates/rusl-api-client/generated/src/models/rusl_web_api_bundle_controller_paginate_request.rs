@@ -128,6 +128,8 @@ pub enum OrderBy {
     FavouriteCount,
     #[serde(rename = "watcher_count")]
     WatcherCount,
+    #[serde(rename = "endorsement_count")]
+    EndorsementCount,
     #[serde(rename = "attached_annotation_count")]
     AttachedAnnotationCount,
     #[serde(rename = "bundle_inclusion_count")]

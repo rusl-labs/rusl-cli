@@ -54,6 +54,7 @@ Class | Method | HTTP request | Description
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_activate**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_activate) | **POST** /api/{account_slug}/annotations/{id}/activate | Activate an annotation
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_create**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_create) | **POST** /api/{account_slug}/annotations | Create an annotation
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_deprecate**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_deprecate) | **POST** /api/{account_slug}/annotations/{id}/deprecate | Deprecate an annotation
+*AnnotationsApi* | [**rusl_web_api_annotation_controller_endorse**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_endorse) | **POST** /api/annotations/{id}/endorse | Endorse an annotation
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_filter**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_filter) | **POST** /api/annotations/filter | Search annotations
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_lookup**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_lookup) | **GET** /api/annotations/lookup | Bulk lookup annotations
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_reactivate**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_reactivate) | **POST** /api/{account_slug}/annotations/{id}/reactivate | Reactivate an annotation
@@ -61,6 +62,7 @@ Class | Method | HTTP request | Description
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_show**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_show) | **GET** /api/annotations/{id} | Get a single annotation
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_type_typeahead**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_type_typeahead) | **GET** /api/annotations/type_typeahead | Typeahead for annotation types
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_types**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_types) | **GET** /api/annotations/types | List distinct annotation types
+*AnnotationsApi* | [**rusl_web_api_annotation_controller_unendorse**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_unendorse) | **DELETE** /api/annotations/{id}/endorse | Unendorse an annotation
 *AnnotationsApi* | [**rusl_web_api_annotation_controller_update**](docs/AnnotationsApi.md#rusl_web_api_annotation_controller_update) | **PATCH** /api/{account_slug}/annotations/{id} | Update an annotation
 *AssetsApi* | [**rusl_web_api_asset_controller_index**](docs/AssetsApi.md#rusl_web_api_asset_controller_index) | **GET** /api/assets | List Assets by IDs
 *AssetsApi* | [**rusl_web_api_asset_controller_lookup**](docs/AssetsApi.md#rusl_web_api_asset_controller_lookup) | **GET** /api/assets/lookup | Lookup assets by IDs
@@ -132,10 +134,10 @@ Class | Method | HTTP request | Description
 *ProposalsApi* | [**rusl_web_api_proposal_controller_reject**](docs/ProposalsApi.md#rusl_web_api_proposal_controller_reject) | **POST** /api/{account_slug}/schemas/{schema_slug}/proposals/{proposal_number}/reject | Reject a proposal
 *ProposalsApi* | [**rusl_web_api_proposal_controller_show**](docs/ProposalsApi.md#rusl_web_api_proposal_controller_show) | **GET** /api/{account_slug}/schemas/{schema_slug}/proposals/{proposal_number} | Show a proposal
 *ProposalsApi* | [**rusl_web_api_proposal_controller_update**](docs/ProposalsApi.md#rusl_web_api_proposal_controller_update) | **PATCH** /api/{account_slug}/schemas/{schema_slug}/proposals/{proposal_number} | Update a proposal
-*RawBundlesApi* | [**rusl_web_raw_bundle_controller_show**](docs/RawBundlesApi.md#rusl_web_raw_bundle_controller_show) | **GET** /bundles/{account_slug}/{bundle_slug_and_version} | Serve raw bundle manifest content
-*RawBundlesApi* | [**rusl_web_raw_bundle_metadata_controller_show**](docs/RawBundlesApi.md#rusl_web_raw_bundle_metadata_controller_show) | **GET** /bundles/{account_slug}/{bundle_slug}/metadata | Bundle resolution metadata index
-*RawSchemasApi* | [**rusl_web_raw_schema_controller_show**](docs/RawSchemasApi.md#rusl_web_raw_schema_controller_show) | **GET** /schemas/{account_slug}/{schema_slug_and_version} | Serve raw JSON schema content
-*RawSchemasApi* | [**rusl_web_raw_schema_metadata_controller_show**](docs/RawSchemasApi.md#rusl_web_raw_schema_metadata_controller_show) | **GET** /schemas/{account_slug}/{schema_slug}/metadata | Schema resolution metadata index
+*RawBundlesApi* | [**rusl_web_raw_bundle_controller_show**](docs/RawBundlesApi.md#rusl_web_raw_bundle_controller_show) | **GET** /resources/{account_slug}/bundles/{bundle_slug_and_version} | Serve raw bundle manifest content
+*RawBundlesApi* | [**rusl_web_raw_bundle_metadata_controller_show**](docs/RawBundlesApi.md#rusl_web_raw_bundle_metadata_controller_show) | **GET** /resources/{account_slug}/bundles/{bundle_slug}/metadata | Bundle resolution metadata index
+*RawSchemasApi* | [**rusl_web_raw_schema_controller_show**](docs/RawSchemasApi.md#rusl_web_raw_schema_controller_show) | **GET** /resources/{account_slug}/{schema_slug_and_version} | Serve raw JSON schema content
+*RawSchemasApi* | [**rusl_web_raw_schema_metadata_controller_show**](docs/RawSchemasApi.md#rusl_web_raw_schema_metadata_controller_show) | **GET** /resources/{account_slug}/{schema_slug}/metadata | Schema resolution metadata index
 *SchemaVersionsApi* | [**rusl_web_api_schema_version_controller_example_data_index**](docs/SchemaVersionsApi.md#rusl_web_api_schema_version_controller_example_data_index) | **GET** /api/{account_slug}/schemas/{schema_slug}/example_data | List schema example data
 *SchemaVersionsApi* | [**rusl_web_api_schema_version_controller_index**](docs/SchemaVersionsApi.md#rusl_web_api_schema_version_controller_index) | **GET** /api/{account_slug}/schemas/{schema_slug}/versions | List Schema Versions
 *SchemaVersionsApi* | [**rusl_web_api_schema_version_controller_lookup**](docs/SchemaVersionsApi.md#rusl_web_api_schema_version_controller_lookup) | **GET** /api/schema_versions/lookup | Lookup schema versions by IDs
@@ -152,7 +154,9 @@ Class | Method | HTTP request | Description
 *SchemasApi* | [**rusl_web_api_schema_controller_unarchive**](docs/SchemasApi.md#rusl_web_api_schema_controller_unarchive) | **POST** /api/{account_slug}/schemas/{schema_slug}/unarchive | Unarchive a schema
 *SchemasApi* | [**rusl_web_api_schema_controller_update**](docs/SchemasApi.md#rusl_web_api_schema_controller_update) | **PATCH** /api/{account_slug}/schemas/{schema_slug} | Update a schema
 *SearchApi* | [**rusl_web_api_search_controller_annotation_types**](docs/SearchApi.md#rusl_web_api_search_controller_annotation_types) | **POST** /api/annotation-types/search | Search annotation types
-*SearchApi* | [**rusl_web_api_search_controller_global**](docs/SearchApi.md#rusl_web_api_search_controller_global) | **POST** /api/search | Search schemas and annotation types
+*SearchApi* | [**rusl_web_api_search_controller_annotations**](docs/SearchApi.md#rusl_web_api_search_controller_annotations) | **POST** /api/annotations/search | Search annotations
+*SearchApi* | [**rusl_web_api_search_controller_bundles**](docs/SearchApi.md#rusl_web_api_search_controller_bundles) | **POST** /api/bundles/search | Search bundles
+*SearchApi* | [**rusl_web_api_search_controller_global**](docs/SearchApi.md#rusl_web_api_search_controller_global) | **POST** /api/search | Search schemas, bundles, annotation types, and annotations
 *SearchApi* | [**rusl_web_api_search_controller_schemas**](docs/SearchApi.md#rusl_web_api_search_controller_schemas) | **POST** /api/schemas/search | Search schemas
 *SystemApi* | [**rusl_web_health_controller_health**](docs/SystemApi.md#rusl_web_health_controller_health) | **GET** /health | Health check endpoint
 *UsersApi* | [**rusl_web_api_user_controller_bulk_lookup**](docs/UsersApi.md#rusl_web_api_user_controller_bulk_lookup) | **GET** /api/users/lookup | Lookup users by IDs
@@ -193,6 +197,7 @@ Class | Method | HTTP request | Description
  - [Annotation](docs/Annotation.md)
  - [Annotation1](docs/Annotation1.md)
  - [Annotation1SubjectDescription](docs/Annotation1SubjectDescription.md)
+ - [AnnotationSearchRequest](docs/AnnotationSearchRequest.md)
  - [AnnotationType](docs/AnnotationType.md)
  - [AnnotationType1](docs/AnnotationType1.md)
  - [AnnotationType2](docs/AnnotationType2.md)
@@ -206,6 +211,7 @@ Class | Method | HTTP request | Description
  - [Bundle2](docs/Bundle2.md)
  - [BundleEntry](docs/BundleEntry.md)
  - [BundleEntry1](docs/BundleEntry1.md)
+ - [BundleSearchRequest](docs/BundleSearchRequest.md)
  - [BundleVersion](docs/BundleVersion.md)
  - [BundleVersion1](docs/BundleVersion1.md)
  - [BundleVersion2](docs/BundleVersion2.md)
@@ -310,6 +316,7 @@ Class | Method | HTTP request | Description
  - [RuslWebApiAnnotationControllerLookup200Response](docs/RuslWebApiAnnotationControllerLookup200Response.md)
  - [RuslWebApiAnnotationControllerTypes200Response](docs/RuslWebApiAnnotationControllerTypes200Response.md)
  - [RuslWebApiAnnotationControllerTypes200ResponseDataInner](docs/RuslWebApiAnnotationControllerTypes200ResponseDataInner.md)
+ - [RuslWebApiAnnotationControllerUnendorse200Response](docs/RuslWebApiAnnotationControllerUnendorse200Response.md)
  - [RuslWebApiAnnotationControllerUpdateRequest](docs/RuslWebApiAnnotationControllerUpdateRequest.md)
  - [RuslWebApiAnnotationTypeControllerCreateRequest](docs/RuslWebApiAnnotationTypeControllerCreateRequest.md)
  - [RuslWebApiAnnotationTypeControllerIndex200Response](docs/RuslWebApiAnnotationTypeControllerIndex200Response.md)
@@ -391,8 +398,8 @@ Class | Method | HTTP request | Description
  - [RuslWebApiWatchControllerUnwatchSchema200Response](docs/RuslWebApiWatchControllerUnwatchSchema200Response.md)
  - [RuslWebHealthControllerHealth200Response](docs/RuslWebHealthControllerHealth200Response.md)
  - [RuslWebRawBundleMetadataControllerShow200Response](docs/RuslWebRawBundleMetadataControllerShow200Response.md)
+ - [RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner](docs/RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner.md)
  - [RuslWebRawSchemaMetadataControllerShow200Response](docs/RuslWebRawSchemaMetadataControllerShow200Response.md)
- - [RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner](docs/RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner.md)
  - [Schema](docs/Schema.md)
  - [Schema1](docs/Schema1.md)
  - [Schema2](docs/Schema2.md)
@@ -415,6 +422,8 @@ Class | Method | HTTP request | Description
  - [SessionAccount1](docs/SessionAccount1.md)
  - [SessionAccount1Permissions](docs/SessionAccount1Permissions.md)
  - [SessionAccount1PermissionsSchemas](docs/SessionAccount1PermissionsSchemas.md)
+ - [UnendorseResponse](docs/UnendorseResponse.md)
+ - [UnendorseResponse1](docs/UnendorseResponse1.md)
  - [UnfavouriteResponse](docs/UnfavouriteResponse.md)
  - [UnfavouriteResponse1](docs/UnfavouriteResponse1.md)
  - [UnwatchAccountResponse](docs/UnwatchAccountResponse.md)
@@ -472,6 +481,3 @@ cargo doc --open
 ```
 
 ## Author
-
-
-

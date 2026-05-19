@@ -27,6 +27,34 @@ pub enum RuslWebApiSearchControllerAnnotationTypesError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`rusl_web_api_search_controller_annotations`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiSearchControllerAnnotationsError {
+    Status400(models::Error2),
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status409(models::Error2),
+    Status422(models::Error2),
+    Status500(models::Error2),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_search_controller_bundles`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiSearchControllerBundlesError {
+    Status400(models::Error2),
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status409(models::Error2),
+    Status422(models::Error2),
+    Status500(models::Error2),
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`rusl_web_api_search_controller_global`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -55,7 +83,7 @@ pub enum RuslWebApiSearchControllerSchemasError {
     UnknownValue(serde_json::Value),
 }
 
-/// Search registered annotation type projection documents with annotation-type specific filters and facets. Annotation document search is intentionally not part of this endpoint.
+/// Search registered annotation type projection documents with annotation-type specific filters and facets.
 pub async fn rusl_web_api_search_controller_annotation_types(
     configuration: &configuration::Configuration,
     annotation_type_search_request: Option<models::AnnotationTypeSearchRequest>,
@@ -103,7 +131,103 @@ pub async fn rusl_web_api_search_controller_annotation_types(
     }
 }
 
-/// Search the public server-side search surface across schemas and registered annotation types. Access filtering is injected by the server: anonymous callers see public results, and authenticated callers also see private results in accounts they can access.
+/// Search annotation projection documents with annotation-specific filters and facets. Compact view excludes annotation content; full view includes the annotation content and bounded summaries for registered type and target subject context.
+pub async fn rusl_web_api_search_controller_annotations(
+    configuration: &configuration::Configuration,
+    annotation_search_request: Option<models::AnnotationSearchRequest>,
+) -> Result<models::SearchResponse, Error<RuslWebApiSearchControllerAnnotationsError>> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_annotation_search_request = annotation_search_request;
+
+    let uri_str = format!("{}/api/annotations/search", configuration.base_path);
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    req_builder = req_builder.json(&p_body_annotation_search_request);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::SearchResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::SearchResponse`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiSearchControllerAnnotationsError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Search bundle projection documents with bundle-specific filters, facets, and dependency-count sorting. Raw Typesense parameters are not accepted.
+pub async fn rusl_web_api_search_controller_bundles(
+    configuration: &configuration::Configuration,
+    bundle_search_request: Option<models::BundleSearchRequest>,
+) -> Result<models::SearchResponse, Error<RuslWebApiSearchControllerBundlesError>> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_bundle_search_request = bundle_search_request;
+
+    let uri_str = format!("{}/api/bundles/search", configuration.base_path);
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    req_builder = req_builder.json(&p_body_bundle_search_request);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::SearchResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::SearchResponse`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiSearchControllerBundlesError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Search the public server-side search surface across schemas, bundles, registered annotation types, and annotation documents. Access filtering is injected by the server: anonymous callers see public results, and authenticated callers also see private results in accounts they can access.
 pub async fn rusl_web_api_search_controller_global(
     configuration: &configuration::Configuration,
     global_search_request: Option<models::GlobalSearchRequest>,

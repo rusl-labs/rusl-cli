@@ -4,17 +4,17 @@ All URIs are relative to *http://localhost:4000*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**rusl_web_raw_bundle_controller_show**](RawBundlesApi.md#rusl_web_raw_bundle_controller_show) | **GET** /bundles/{account_slug}/{bundle_slug_and_version} | Serve raw bundle manifest content
-[**rusl_web_raw_bundle_metadata_controller_show**](RawBundlesApi.md#rusl_web_raw_bundle_metadata_controller_show) | **GET** /bundles/{account_slug}/{bundle_slug}/metadata | Bundle resolution metadata index
+[**rusl_web_raw_bundle_controller_show**](RawBundlesApi.md#rusl_web_raw_bundle_controller_show) | **GET** /resources/{account_slug}/bundles/{bundle_slug_and_version} | Serve raw bundle manifest content
+[**rusl_web_raw_bundle_metadata_controller_show**](RawBundlesApi.md#rusl_web_raw_bundle_metadata_controller_show) | **GET** /resources/{account_slug}/bundles/{bundle_slug}/metadata | Bundle resolution metadata index
 
 
 
 ## rusl_web_raw_bundle_controller_show
 
-> String rusl_web_raw_bundle_controller_show(account_slug, bundle_slug_and_version)
+> String rusl_web_raw_bundle_controller_show(account_slug, bundle_slug_and_version, disposition)
 Serve raw bundle manifest content
 
-Serves the raw bundle manifest at its canonical URL. Supports versioned access via `@v1.0.0` suffix for pinned, immutable content.  - Public bundles: no authentication required, CDN-cacheable - Private bundles: requires authenticated user with account membership - Pinned versions (`@vX.Y.Z`): immutable, long-lived cache - Latest (no version suffix): short-lived cache, busted on version changes 
+Serves the raw bundle manifest at its canonical `/resources/{account_slug}/bundles/{bundle_slug}` URL. Supports versioned access via `@v1.0.0` suffix for pinned, immutable content.  - Public bundles: no authentication required, CDN-cacheable - Private bundles: requires authenticated user with account membership - Pinned versions (`@vX.Y.Z`): immutable, long-lived cache - Latest (no version suffix): short-lived cache, busted on version changes
 
 ### Parameters
 
@@ -23,6 +23,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **bundle_slug_and_version** | **String** | Bundle slug, optionally with pinned version (e.g. `my-bundle` or `my-bundle@v1.0.0`) | [required] |
+**disposition** | Option<**String**> | Optional response disposition. Omit or use `inline` to inspect the raw content; use `attachment` to force a file download. |  |
 
 ### Return type
 
@@ -45,7 +46,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebRawBundleMetadataControllerShow200Response rusl_web_raw_bundle_metadata_controller_show(account_slug, bundle_slug)
 Bundle resolution metadata index
 
-Returns every resolvable version of a bundle and its dependency constraints in a single payload, enabling the PubGrub resolver to evaluate the full dependency graph without additional network round-trips.  Includes ACTIVE and DEPRECATED versions. DRAFT and YANKED versions are excluded. 
+Returns every resolvable version of a bundle and its dependency constraints in a single payload, enabling the PubGrub resolver to evaluate the full dependency graph without additional network round-trips.  Canonical metadata lives under `/resources/{account_slug}/bundles/{bundle_slug}/metadata`.  Includes ACTIVE and DEPRECATED versions. DRAFT and YANKED versions are excluded.
 
 ### Parameters
 
@@ -69,4 +70,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

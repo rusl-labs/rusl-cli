@@ -1,9 +1,16 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::manifest::lock::LockManifest;
+use crate::resource_identifier::{
+    RegistryResource, ResourceKind, display_package_key, package_key_for,
+    package_key_from_identifier,
+};
 use anyhow::{Context, Result, bail};
 use std::collections::HashSet;
 use std::env;
 use std::fs;
+
+const LOCAL_BUNDLE_NAME: &str = "local bundle";
+const LOCAL_BUNDLE_VERSION: &str = "unversioned";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ListOutput {
@@ -68,7 +75,7 @@ fn build_flat_view(lock: &LockManifest) -> ListFlatView {
         .dependencies
         .iter()
         .map(|(name, dep)| ListFlatItem {
-            display_name: display_name(name),
+            display_name: display_package_key(name),
             version: dep.version.clone(),
             source: if is_external_source(&dep.source) {
                 Some(dep.source.clone())
@@ -93,12 +100,25 @@ fn build_tree_view(cwd: &std::path::Path, lock: &LockManifest) -> Result<ListTre
         toml::from_str(&manifest_str).context("Failed to parse rusl.bundle.toml")?;
 
     let mut root_deps = manifest
-        .schemas
+        .rusl
+        .resources
         .keys()
-        .map(|name| format!("schema:{name}"))
-        .chain(manifest.bundles.keys().map(|name| format!("bundle:{name}")))
+        .filter_map(|identifier| package_key_from_identifier(identifier))
+        .chain(
+            manifest
+                .schemas
+                .keys()
+                .filter_map(|name| package_key_for(ResourceKind::Schema, name)),
+        )
+        .chain(
+            manifest
+                .bundles
+                .keys()
+                .filter_map(|name| package_key_for(ResourceKind::Bundle, name)),
+        )
         .collect::<Vec<_>>();
     root_deps.sort();
+    root_deps.dedup();
 
     let mut seen = HashSet::new();
     let dependencies = root_deps
@@ -107,8 +127,11 @@ fn build_tree_view(cwd: &std::path::Path, lock: &LockManifest) -> Result<ListTre
         .collect();
 
     Ok(ListTreeView {
-        root_name: manifest.bundle.name,
-        root_version: manifest.bundle.version,
+        root_name: display_optional_bundle_identifier(manifest.bundle.name.as_deref()),
+        root_version: manifest
+            .bundle
+            .version
+            .unwrap_or_else(|| LOCAL_BUNDLE_VERSION.to_string()),
         dependencies,
     })
 }
@@ -118,7 +141,7 @@ fn build_tree_node(key: &str, lock: &LockManifest, seen: &mut HashSet<String>) -
 
     if seen.contains(key) {
         return ListTreeNode {
-            display_name: display_name(key),
+            display_name: display_package_key(key),
             version,
             repeated: true,
             children: Vec::new(),
@@ -138,20 +161,10 @@ fn build_tree_node(key: &str, lock: &LockManifest, seen: &mut HashSet<String>) -
         .unwrap_or_default();
 
     ListTreeNode {
-        display_name: display_name(key),
+        display_name: display_package_key(key),
         version,
         repeated: false,
         children,
-    }
-}
-
-fn display_name(key: &str) -> String {
-    if let Some(path) = key.strip_prefix("bundle:") {
-        format!("bundles/{path}")
-    } else if let Some(path) = key.strip_prefix("schema:") {
-        path.to_string()
-    } else {
-        key.to_string()
     }
 }
 
@@ -159,13 +172,25 @@ fn is_external_source(source: &str) -> bool {
     !source.contains("rusl.app") && !source.contains("localhost")
 }
 
+fn display_bundle_identifier(identifier: &str) -> String {
+    RegistryResource::bundle(identifier)
+        .map(|resource| resource.identifier())
+        .unwrap_or_else(|| identifier.to_string())
+}
+
+fn display_optional_bundle_identifier(identifier: Option<&str>) -> String {
+    identifier
+        .map(display_bundle_identifier)
+        .unwrap_or_else(|| LOCAL_BUNDLE_NAME.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        ListOutput, build_flat_view, build_tree_node, display_name, is_external_source,
-        load_dependencies,
+        ListOutput, build_flat_view, build_tree_node, is_external_source, load_dependencies,
     };
     use crate::manifest::lock::{LockDependency, LockManifest};
+    use crate::resource_identifier::display_package_key;
     use serial_test::serial;
     use std::{
         collections::{BTreeMap, HashSet},
@@ -176,8 +201,11 @@ mod tests {
 
     #[test]
     fn formats_dependency_display_names() {
-        assert_eq!(display_name("bundle:acme/common"), "bundles/acme/common");
-        assert_eq!(display_name("schema:acme/types"), "acme/types");
+        assert_eq!(
+            display_package_key("bundle:acme/common"),
+            "acme/bundles/common"
+        );
+        assert_eq!(display_package_key("schema:acme/types"), "acme/types");
     }
 
     #[test]
@@ -190,7 +218,7 @@ mod tests {
         let bundle = flat
             .items
             .iter()
-            .find(|item| item.display_name == "bundles/acme/common")
+            .find(|item| item.display_name == "acme/bundles/common")
             .expect("bundle item should exist");
         let external = flat
             .items
@@ -205,7 +233,7 @@ mod tests {
         );
         assert!(is_external_source("https://example.com/schema.json"));
         assert!(!is_external_source(
-            "https://api.rusl.app/schemas/acme/common"
+            "https://api.rusl.app/resources/acme/common"
         ));
     }
 
@@ -223,11 +251,11 @@ mod tests {
     fn sample_lock() -> LockManifest {
         let mut dependencies = BTreeMap::new();
         dependencies.insert(
-            "bundle:acme/common".to_string(),
+            "bundle:acme/bundles/common".to_string(),
             LockDependency {
                 version: "2.0.0".to_string(),
                 integrity: "sha256-bundle".to_string(),
-                source: "https://api.rusl.app/bundles/acme/common".to_string(),
+                source: "https://api.rusl.app/resources/acme/bundles/common".to_string(),
                 dependencies: vec!["schema:acme/shared".to_string()],
             },
         );
@@ -236,9 +264,9 @@ mod tests {
             LockDependency {
                 version: "1.0.0".to_string(),
                 integrity: "sha256-root".to_string(),
-                source: "https://api.rusl.app/schemas/acme/root".to_string(),
+                source: "https://api.rusl.app/resources/acme/root".to_string(),
                 dependencies: vec![
-                    "bundle:acme/common".to_string(),
+                    "bundle:acme/bundles/common".to_string(),
                     "schema:acme/shared".to_string(),
                 ],
             },
@@ -306,11 +334,7 @@ mod tests {
         std::fs::write(
             temp_dir.path().join("rusl.bundle.toml"),
             r#"
-[bundle]
-name = "hassox/demo"
-version = "0.1.0"
-
-[schemas]
+[rusl.resources]
 "acme/root" = ">=1.0.0"
 "#,
         )
@@ -339,7 +363,8 @@ source = "https://example.com/schema.json"
         let ListOutput::Tree(tree) = output else {
             panic!("expected tree output");
         };
-        assert_eq!(tree.root_name, "hassox/demo");
+        assert_eq!(tree.root_name, "local bundle");
+        assert_eq!(tree.root_version, "unversioned");
         assert_eq!(tree.dependencies.len(), 1);
         assert_eq!(tree.dependencies[0].display_name, "acme/root");
         assert_eq!(tree.dependencies[0].children[0].display_name, "acme/shared");

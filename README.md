@@ -1,6 +1,6 @@
 # Rusl Schema Manager
 
-`rusl` is a Rust workspace for resolving, caching, linking, and generating code from schema dependencies.
+`rusl` is a Rust workspace for resolving, caching, and linking schema dependencies.
 
 ## Workspace Layout
 
@@ -44,11 +44,6 @@ Project configuration lives in `rusl.config.toml`:
 ```toml
 api_base_url = "http://localhost:4000"
 website_url = "http://localhost:3000"
-
-[generators.typescript]
-command = "bunx rusl-gen-typescript"
-output_dir = "./generated/types"
-default = true
 ```
 
 Resolution order:
@@ -65,13 +60,10 @@ Resolution order:
 Example `rusl.bundle.toml`:
 
 ```toml
-[bundle]
-name = "my-company/test-bundle"
-version = "0.1.0"
-
-[schemas]
+[rusl.resources]
 "rusl/common" = "*"
 "external/address" = ">= 1.2.0"
+"rusl/bundles/common" = ">= 1.0.0"
 ```
 
 Install dependencies:
@@ -80,10 +72,10 @@ Install dependencies:
 rusl install
 ```
 
-Generate code with the default configured generator:
+Clear cached schema blobs and local schema links:
 
 ```bash
-rusl generate
+rusl cache --clear
 ```
 
 Authenticate with the local or configured backend:

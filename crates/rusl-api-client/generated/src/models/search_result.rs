@@ -68,6 +68,10 @@ pub enum DocumentType {
     Schema,
     #[serde(rename = "annotation_type")]
     AnnotationType,
+    #[serde(rename = "annotation")]
+    Annotation,
+    #[serde(rename = "bundle")]
+    Bundle,
 }
 
 impl Default for DocumentType {

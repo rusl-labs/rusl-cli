@@ -30,6 +30,15 @@ from pathlib import Path
 import sys
 
 root = Path(sys.argv[1])
+
+def clean_text(text):
+    lines = [line.rstrip() for line in text.splitlines()]
+    while lines and lines[-1] == "":
+        lines.pop()
+    if not lines:
+        return ""
+    return "\n".join(lines) + "\n"
+
 for path in root.rglob("*.rs"):
     text = path.read_text()
     updated = text.replace("models::serde_json::Value", "serde_json::Value")
@@ -39,6 +48,18 @@ for path in root.rglob("*.rs"):
             "#![allow(clippy::all)]\n#![allow(unused_imports)]\n#![allow(clippy::too_many_arguments)]\n",
             1,
         )
+    updated = clean_text(updated)
+    if updated != text:
+        path.write_text(updated)
+
+for path in root.rglob("*"):
+    if not path.is_file():
+        continue
+    try:
+        text = path.read_text()
+    except UnicodeDecodeError:
+        continue
+    updated = clean_text(text)
     if updated != text:
         path.write_text(updated)
 PY_FIX

@@ -1,5 +1,8 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::registry::client::RegistryClient;
+use crate::resource_identifier::{
+    RegistryResource, ResourceKind, package_key_for, package_key_from_identifier, parse_package_key,
+};
 use anyhow::{Context, Result};
 use pubgrub::{
     DefaultStringReporter, OfflineDependencyProvider, PubGrubError, Ranges, Reporter,
@@ -7,6 +10,9 @@ use pubgrub::{
 };
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::str::FromStr;
+
+const LOCAL_ROOT_PACKAGE: &str = "__local__/bundles/root";
+const LOCAL_ROOT_VERSION: &str = "0.0.0";
 
 pub trait ProgressReporter {
     fn set_message(&self, message: String);
@@ -46,18 +52,42 @@ where
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
 
-    let root_pkg = format!("bundle:{}", manifest.bundle.name);
+    let root_pkg = manifest
+        .bundle
+        .name
+        .as_deref()
+        .and_then(|name| package_key_for(ResourceKind::Bundle, name))
+        .unwrap_or_else(|| format!("bundle:{LOCAL_ROOT_PACKAGE}"));
     let root_version: SemanticVersion = manifest
         .bundle
         .version
+        .as_deref()
+        .unwrap_or(LOCAL_ROOT_VERSION)
         .parse()
         .context("Root bundle version is not valid semantic version")?;
 
     let mut version_deps: HashMap<(String, String), Vec<String>> = HashMap::new();
     let mut root_deps = Vec::new();
 
+    for (identifier, req) in &manifest.rusl.resources {
+        let Some(key) = package_key_from_identifier(identifier) else {
+            progress.println(format!(
+                "Warning: Invalid resource identifier: {identifier}"
+            ));
+            continue;
+        };
+        let range = parse_version_range(req).unwrap_or(Ranges::full());
+        root_deps.push((key.clone(), range));
+        if visited.insert(key.clone()) {
+            queue.push_back(key);
+        }
+    }
+
     for (name, req) in &manifest.schemas {
-        let key = format!("schema:{name}");
+        let Some(key) = package_key_for(ResourceKind::Schema, name) else {
+            progress.println(format!("Warning: Invalid schema identifier: {name}"));
+            continue;
+        };
         let range = parse_version_range(req).unwrap_or(Ranges::full());
         root_deps.push((key.clone(), range));
         if visited.insert(key.clone()) {
@@ -66,7 +96,10 @@ where
     }
 
     for (name, req) in &manifest.bundles {
-        let key = format!("bundle:{name}");
+        let Some(key) = package_key_for(ResourceKind::Bundle, name) else {
+            progress.println(format!("Warning: Invalid bundle identifier: {name}"));
+            continue;
+        };
         let range = parse_version_range(req).unwrap_or(Ranges::full());
         root_deps.push((key.clone(), range));
         if visited.insert(key.clone()) {
@@ -80,19 +113,22 @@ where
 
     progress.set_message("Fetching package metadata...".to_string());
     while let Some(package_key) = queue.pop_front() {
-        let mut split = package_key.split(':');
-        let kind = split.next().unwrap_or("");
-        let path = split.next().unwrap_or("");
-
-        let Some((account, slug)) = path.split_once('/') else {
+        let Some(target) = parse_package_key(&package_key) else {
             progress.println(format!("Warning: Invalid package name: {package_key}"));
             continue;
         };
 
-        let metadata = if kind == "bundle" {
-            client.fetch_bundle_meta(account, slug).await
-        } else {
-            client.fetch_schema_meta(account, slug).await
+        let metadata = match target.kind {
+            ResourceKind::Bundle => {
+                client
+                    .fetch_bundle_meta(&target.account, &target.slug)
+                    .await
+            }
+            ResourceKind::Schema => {
+                client
+                    .fetch_schema_meta(&target.account, &target.slug)
+                    .await
+            }
         };
 
         match metadata {
@@ -102,7 +138,13 @@ where
                         let mut dependencies = Vec::new();
 
                         for (dep_name, dep_req) in &version_info.schemas {
-                            let dep_key = format!("schema:{dep_name}");
+                            let Some(dep_key) = dependency_key(ResourceKind::Schema, dep_name)
+                            else {
+                                progress.println(format!(
+                                    "Warning: Invalid schema dependency identifier: {dep_name}"
+                                ));
+                                continue;
+                            };
                             let range = parse_version_range(dep_req).unwrap_or(Ranges::full());
                             dependencies.push((dep_key.clone(), range));
                             if visited.insert(dep_key.clone()) {
@@ -111,7 +153,13 @@ where
                         }
 
                         for (dep_name, dep_req) in &version_info.bundles {
-                            let dep_key = format!("bundle:{dep_name}");
+                            let Some(dep_key) = dependency_key(ResourceKind::Bundle, dep_name)
+                            else {
+                                progress.println(format!(
+                                    "Warning: Invalid bundle dependency identifier: {dep_name}"
+                                ));
+                                continue;
+                            };
                             let range = parse_version_range(dep_req).unwrap_or(Ranges::full());
                             dependencies.push((dep_key.clone(), range));
                             if visited.insert(dep_key.clone()) {
@@ -162,6 +210,14 @@ where
     }
 }
 
+fn dependency_key(kind: ResourceKind, identifier: &str) -> Option<String> {
+    match kind {
+        ResourceKind::Schema => RegistryResource::schema(identifier),
+        ResourceKind::Bundle => RegistryResource::bundle(identifier),
+    }
+    .map(|resource| resource.package_key())
+}
+
 #[cfg(test)]
 mod tests {
     use super::{ProgressReporter, resolve_graph};
@@ -176,7 +232,6 @@ mod tests {
     };
     use serde_json::{Value, json};
     use serial_test::serial;
-    use std::collections::HashMap;
     use tokio::{net::TcpListener, sync::oneshot, task::JoinHandle};
 
     #[derive(Default)]
@@ -207,11 +262,11 @@ mod tests {
         async fn start() -> Self {
             let app = Router::new()
                 .route(
-                    "/schemas/{account}/{slug}/metadata",
+                    "/resources/{account}/{slug}/metadata",
                     get(schema_metadata_handler),
                 )
                 .route(
-                    "/bundles/{account}/{slug}/metadata",
+                    "/resources/{account}/bundles/{slug}/metadata",
                     get(bundle_metadata_handler),
                 )
                 .with_state(TestState);
@@ -255,7 +310,6 @@ mod tests {
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
             schema_dir: None,
-            generators: HashMap::new(),
         });
         let manifest: BundleManifest = toml::from_str(
             r#"
@@ -263,7 +317,7 @@ mod tests {
 name = "hassox/demo"
 version = "0.1.0"
 
-[schemas]
+[rusl.resources]
 "hassox/root" = ">=1.0.0"
 "#,
         )
@@ -290,7 +344,6 @@ version = "0.1.0"
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
             schema_dir: None,
-            generators: HashMap::new(),
         });
         let manifest: BundleManifest = toml::from_str(
             r#"
@@ -298,11 +351,9 @@ version = "0.1.0"
 name = "hassox/demo"
 version = "0.1.0"
 
-[schemas]
+[rusl.resources]
 "hassox/root" = ">=1.0.0"
-
-[bundles]
-"hassox/consumer" = ">=1.0.0"
+"hassox/bundles/consumer" = ">=1.0.0"
 "#,
         )
         .expect("parse manifest");
