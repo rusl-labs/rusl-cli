@@ -38,10 +38,14 @@ impl RuslWebApiSchemaControllerIndexFiltersParameterValue {
 pub enum Field {
     #[serde(rename = "q")]
     Q,
+    #[serde(rename = "identifier")]
+    Identifier,
     #[serde(rename = "account_slug")]
     AccountSlug,
     #[serde(rename = "slug")]
     Slug,
+    #[serde(rename = "schema_identifier")]
+    SchemaIdentifier,
     #[serde(rename = "visibility")]
     Visibility,
     #[serde(rename = "status")]

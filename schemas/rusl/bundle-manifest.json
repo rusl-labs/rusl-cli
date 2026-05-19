@@ -1,0 +1,100 @@
+{
+  "$id": "https://hassox.rusl-api.ngrok.io/resources/rusl/bundle-manifest",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bundle Manifest",
+  "description": "Defines the structure of a local Rusl bundle manifest. The registry endpoint owns canonical bundle identity and version; local files describe resources to resolve.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "bundle": {
+      "description": "Optional local metadata. Registry-managed bundle name and version are not required in local bundle files.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "description": "Optional canonical bundle identifier in account/bundles/slug form.",
+          "$ref": "#/$defs/bundle-identifier"
+        },
+        "version": {
+          "description": "Optional semantic version string.",
+          "$ref": "#/$defs/semver"
+        }
+      }
+    },
+    "rusl": {
+      "description": "Optional Rusl dependency declarations. If omitted, the bundle has no Rusl resource dependencies.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "resources": {
+          "description": "Rusl resource references keyed by canonical resource identifier with semver version requirements as values. If omitted or empty, the bundle has no Rusl resource dependencies.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/resource-identifier"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/semver-requirement"
+          }
+        }
+      }
+    },
+    "external": {
+      "description": "External schema references keyed by absolute HTTP(S) URL with optional semver version requirements.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^https?://.+"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/semver-requirement"
+      }
+    },
+    "overrides": {
+      "description": "Force nested resource versions across the graph to squash resolver conflicts.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/resource-identifier"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/semver-requirement"
+      }
+    }
+  },
+  "$defs": {
+    "schema-identifier": {
+      "description": "Canonical schema identifier in account/slug form.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*/(?!bundles$)[A-Za-z0-9][A-Za-z0-9-]*$"
+    },
+    "bundle-identifier": {
+      "description": "Canonical bundle identifier in account/bundles/slug form.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*/bundles/[A-Za-z0-9][A-Za-z0-9-]*$"
+    },
+    "resource-identifier": {
+      "description": "Canonical Rusl resource identifier for a schema or bundle.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/schema-identifier"
+        },
+        {
+          "$ref": "#/$defs/bundle-identifier"
+        }
+      ]
+    },
+    "semver": {
+      "description": "A semantic version string.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+    },
+    "semver-requirement": {
+      "description": "A semantic version requirement string, such as '*', '>= 1.0.0', or '== 1.2.3'.",
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "version": "0.3.0"
+}

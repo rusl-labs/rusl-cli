@@ -18,7 +18,7 @@ pub struct RuslWebRawSchemaMetadataControllerShow200Response {
     pub name: Option<String>,
     #[serde(rename = "versions", skip_serializing_if = "Option::is_none")]
     pub versions:
-        Option<Vec<models::RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner>>,
+        Option<Vec<models::RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner>>,
 }
 
 impl RuslWebRawSchemaMetadataControllerShow200Response {

@@ -81,7 +81,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebApiSchemaControllerIndex200Response rusl_web_api_schema_controller_index(filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
 Search schemas across accounts
 
-Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, schema slug, schema identifier, and description) - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to. 
+Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, schema slug, schema identifier, and description) - identifier (canonical schema identifier, supports exact and in filters) - schema_identifier (resource-specific storage field) - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to.
 
 ### Parameters
 
@@ -294,4 +294,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

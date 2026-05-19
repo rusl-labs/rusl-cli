@@ -131,6 +131,8 @@ pub enum OrderBy {
     Status,
     #[serde(rename = "account_slug")]
     AccountSlug,
+    #[serde(rename = "endorsement_count")]
+    EndorsementCount,
 }
 
 impl Default for OrderBy {

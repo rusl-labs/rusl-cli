@@ -78,7 +78,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebApiAnnotationTypeControllerIndex200Response rusl_web_api_annotation_type_controller_index(filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
 Search registered annotation types across accounts
 
-Search registered annotation types across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, annotation type slug, type identifier, and description) - account_slug - slug - type_identifier - visibility - status - schema_mode 
+Search registered annotation types across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, annotation type slug, type identifier, and description) - identifier (canonical annotation type identifier, supports exact and in filters) - account_slug - slug - type_identifier - visibility - status - schema_mode - cardinality
 
 ### Parameters
 
@@ -258,4 +258,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

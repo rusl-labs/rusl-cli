@@ -25,13 +25,14 @@ impl Linker {
     }
 
     /// Purges the entire schema directory to eliminate orphan symlinks.
-    pub fn purge_all(&self) -> Result<()> {
+    pub fn purge_all(&self) -> Result<bool> {
         if self.schema_dir.exists() {
             std::fs::remove_dir_all(&self.schema_dir).with_context(|| {
                 format!("Failed to prune schema cache at {:?}", self.schema_dir)
             })?;
+            return Ok(true);
         }
-        Ok(())
+        Ok(false)
     }
 
     /// Maps a global schema directly into the local working directory namespace.

@@ -35,7 +35,7 @@ impl RuslMcpServer {
 impl RuslMcpServer {
     #[tool(
         name = "search",
-        description = "Search visible Rusl schemas and annotation types using compact responses by default. Set view to full only when the user explicitly asks for full search data or large embedded fields are truly needed. Set include_metrics when popularity or discoverability signals are needed."
+        description = "Search visible Rusl resources, including schemas, bundles, annotation types, and annotations, using compact responses by default. Set identifiers to exact canonical resource identifiers when resolving known resources. Set view to full only when the user explicitly asks for full search data or large embedded fields are truly needed. Set include_metrics when popularity or discoverability signals are needed."
     )]
     async fn search(
         &self,

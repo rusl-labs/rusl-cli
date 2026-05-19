@@ -5,8 +5,12 @@ use crate::manifest::bundle::BundleManifest;
 use crate::manifest::lock::{LockDependency, LockManifest};
 use crate::registry::client::RegistryClient;
 use crate::resolver::graph::{ProgressReporter, resolve_graph};
+use crate::resource_identifier::{ResourceKind, parse_package_key};
 use anyhow::{Context, Result, bail};
 use std::collections::{BTreeMap, HashMap};
+
+const LOCAL_BUNDLE_NAME: &str = "local bundle";
+const LOCAL_BUNDLE_VERSION: &str = "unversioned";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InstallResult {
@@ -38,7 +42,12 @@ where
 
     progress.set_message(format!(
         "Resolving dependencies for {}@{}...",
-        manifest.bundle.name, manifest.bundle.version
+        manifest.bundle.name.as_deref().unwrap_or(LOCAL_BUNDLE_NAME),
+        manifest
+            .bundle
+            .version
+            .as_deref()
+            .unwrap_or(LOCAL_BUNDLE_VERSION)
     ));
     let resolved = resolve_graph(&manifest, &client, progress)
         .await
@@ -55,26 +64,27 @@ where
     let mut integrity_map: HashMap<String, String> = HashMap::new();
 
     for (package_key, version) in &resolved.versions {
-        if !package_key.starts_with("schema:") {
-            continue;
-        }
-
-        let Some((account, slug)) = package_key.trim_start_matches("schema:").split_once('/')
-        else {
+        let Some(resource) = parse_package_key(package_key) else {
             progress.println(format!(
-                "Warning: Skipping invalid schema key: {package_key}"
+                "Warning: Skipping invalid package key: {package_key}"
             ));
             continue;
         };
+        if resource.kind != ResourceKind::Schema {
+            continue;
+        }
 
-        progress.set_message(format!("Downloading {account}/{slug}@{version} ..."));
+        progress.set_message(format!(
+            "Downloading {}@{version} ...",
+            resource.identifier()
+        ));
         let blob = client
-            .download_schema_blob(account, slug, &version.to_string())
+            .download_schema_blob(&resource.account, &resource.slug, &version.to_string())
             .await?;
 
         let (integrity, cas_path) = store.put(&blob).await?;
         integrity_map.insert(package_key.clone(), integrity);
-        linker.link_schema(account, slug, &cas_path)?;
+        linker.link_schema(&resource.account, &resource.slug, &cas_path)?;
         schema_count += 1;
     }
 
@@ -161,8 +171,14 @@ mod tests {
             };
 
             let app = Router::new()
-                .route("/schemas/{account}/{slug}/metadata", get(metadata_handler))
-                .route("/schemas/{account}/{slug_and_version}", get(schema_handler))
+                .route(
+                    "/resources/{account}/{slug}/metadata",
+                    get(metadata_handler),
+                )
+                .route(
+                    "/resources/{account}/{slug_and_version}",
+                    get(schema_handler),
+                )
                 .with_state(state);
 
             let listener = TcpListener::bind("127.0.0.1:0")
@@ -257,11 +273,7 @@ mod tests {
         std::fs::write(
             workspace_dir.join("rusl.bundle.toml"),
             r#"
-[bundle]
-name = "hassox/demo"
-version = "0.1.0"
-
-[schemas]
+[rusl.resources]
 "hassox/root" = ">=1.0.0"
 "#,
         )
@@ -312,19 +324,19 @@ version = "0.1.0"
             server.recorded_requests().await,
             vec![
                 RecordedRequest {
-                    path: "/schemas/hassox/root/metadata".to_string(),
+                    path: "/resources/hassox/root/metadata".to_string(),
                     authorization: None,
                 },
                 RecordedRequest {
-                    path: "/schemas/hassox/dep/metadata".to_string(),
+                    path: "/resources/hassox/dep/metadata".to_string(),
                     authorization: None,
                 },
                 RecordedRequest {
-                    path: "/schemas/hassox/dep@v1.0.0".to_string(),
+                    path: "/resources/hassox/dep@v1.0.0".to_string(),
                     authorization: None,
                 },
                 RecordedRequest {
-                    path: "/schemas/hassox/root@v1.0.0".to_string(),
+                    path: "/resources/hassox/root@v1.0.0".to_string(),
                     authorization: None,
                 },
             ]
@@ -338,7 +350,7 @@ version = "0.1.0"
     ) -> (StatusCode, Json<Value>) {
         record_request(
             &state,
-            format!("/schemas/{account}/{slug}/metadata"),
+            format!("/resources/{account}/{slug}/metadata"),
             &headers,
         )
         .await;
@@ -376,7 +388,7 @@ version = "0.1.0"
     ) -> (StatusCode, Json<Value>) {
         record_request(
             &state,
-            format!("/schemas/{account}/{slug_and_version}"),
+            format!("/resources/{account}/{slug_and_version}"),
             &headers,
         )
         .await;

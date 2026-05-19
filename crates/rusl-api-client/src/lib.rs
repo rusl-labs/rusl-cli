@@ -118,6 +118,7 @@ impl RuslApiClient {
                 &config,
                 account,
                 schema_slug_and_version,
+                None,
             )
             .await
             .map_err(map_api_error)

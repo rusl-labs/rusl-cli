@@ -13,7 +13,7 @@ Method | HTTP request | Description
 > rusl_web_api_webhook_controller_storage()
 Storage Webhook
 
-Receives object-created event notifications from RustFS (or any S3-compatible storage).  Secured via an Authorization header token matching STORAGE_WEBHOOK_SECRET. On receiving a valid event, transitions the matching asset from :pending to :ready. 
+Receives object-created event notifications from RustFS (or any S3-compatible storage).  Secured via an Authorization header token matching STORAGE_WEBHOOK_SECRET. On receiving a valid event, transitions the matching asset from :pending to :ready.
 
 ### Parameters
 
@@ -33,4 +33,3 @@ No authorization required
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

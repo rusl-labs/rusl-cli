@@ -1,9 +1,16 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::manifest::lock::LockManifest;
+use crate::resource_identifier::{
+    RegistryResource, ResourceKind, display_package_key, package_key_for,
+    package_key_from_identifier,
+};
 use anyhow::{Context, Result, bail};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::env;
 use std::fs;
+
+const LOCAL_BUNDLE_NAME: &str = "local bundle";
+const LOCAL_BUNDLE_VERSION: &str = "unversioned";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WhyOutput {
@@ -59,12 +66,25 @@ pub fn load_dependency_paths(package: &str) -> Result<WhyOutput> {
     let manifest: BundleManifest = toml::from_str(&manifest_str)?;
 
     let mut root_deps: Vec<String> = manifest
-        .schemas
+        .rusl
+        .resources
         .keys()
-        .map(|name| format!("schema:{name}"))
-        .chain(manifest.bundles.keys().map(|name| format!("bundle:{name}")))
+        .filter_map(|identifier| package_key_from_identifier(identifier))
+        .chain(
+            manifest
+                .schemas
+                .keys()
+                .filter_map(|name| package_key_for(ResourceKind::Schema, name)),
+        )
+        .chain(
+            manifest
+                .bundles
+                .keys()
+                .filter_map(|name| package_key_for(ResourceKind::Bundle, name)),
+        )
         .collect();
     root_deps.sort();
+    root_deps.dedup();
 
     let ancestors = find_ancestors(&target, &lock);
     let relevant_roots: Vec<&str> = root_deps
@@ -90,8 +110,11 @@ pub fn load_dependency_paths(package: &str) -> Result<WhyOutput> {
             .dependencies
             .get(&target)
             .map(|dep| dep.version.clone()),
-        root_name: manifest.bundle.name,
-        root_version: manifest.bundle.version,
+        root_name: display_optional_bundle_identifier(manifest.bundle.name.as_deref()),
+        root_version: manifest
+            .bundle
+            .version
+            .unwrap_or_else(|| LOCAL_BUNDLE_VERSION.to_string()),
         paths,
     }))
 }
@@ -123,13 +146,19 @@ fn build_search_node(
 }
 
 fn display_name(key: &str) -> String {
-    if let Some(path) = key.strip_prefix("bundle:") {
-        format!("bundles/{path}")
-    } else if let Some(path) = key.strip_prefix("schema:") {
-        path.to_string()
-    } else {
-        key.to_string()
-    }
+    display_package_key(key)
+}
+
+fn display_bundle_identifier(identifier: &str) -> String {
+    RegistryResource::bundle(identifier)
+        .map(|resource| resource.identifier())
+        .unwrap_or_else(|| identifier.to_string())
+}
+
+fn display_optional_bundle_identifier(identifier: Option<&str>) -> String {
+    identifier
+        .map(display_bundle_identifier)
+        .unwrap_or_else(|| LOCAL_BUNDLE_NAME.to_string())
 }
 
 fn resolve_search_key(search: &str, lock: &LockManifest) -> Option<String> {
@@ -142,8 +171,16 @@ fn resolve_search_key(search: &str, lock: &LockManifest) -> Option<String> {
         return Some(schema_key);
     }
 
-    let bundle_key = format!("bundle:{search}");
-    if lock.dependencies.contains_key(&bundle_key) {
+    if let Some(bundle_key) = package_key_for(ResourceKind::Bundle, search)
+        && lock.dependencies.contains_key(&bundle_key)
+    {
+        return Some(bundle_key);
+    }
+
+    if let Some(legacy_bundle_display) = search.strip_prefix("bundles/")
+        && let Some(bundle_key) = package_key_for(ResourceKind::Bundle, legacy_bundle_display)
+        && lock.dependencies.contains_key(&bundle_key)
+    {
         return Some(bundle_key);
     }
 
@@ -189,7 +226,11 @@ mod tests {
 
     #[test]
     fn display_name_formats_bundle_and_schema_keys() {
-        assert_eq!(display_name("bundle:hassox/demo"), "bundles/hassox/demo");
+        assert_eq!(display_name("bundle:hassox/demo"), "hassox/bundles/demo");
+        assert_eq!(
+            display_name("bundle:hassox/bundles/demo"),
+            "hassox/bundles/demo"
+        );
         assert_eq!(display_name("schema:rusl/common"), "rusl/common");
     }
 
@@ -198,7 +239,7 @@ mod tests {
         let lock = LockManifest {
             version: "1".to_string(),
             dependencies: BTreeMap::from([(
-                "bundle:hassox/demo".to_string(),
+                "bundle:hassox/bundles/demo".to_string(),
                 LockDependency {
                     version: "1.0.0".to_string(),
                     integrity: "sha256:demo".to_string(),
@@ -209,8 +250,12 @@ mod tests {
         };
 
         assert_eq!(
+            resolve_search_key("hassox/bundles/demo", &lock),
+            Some("bundle:hassox/bundles/demo".to_string())
+        );
+        assert_eq!(
             resolve_search_key("bundles/hassox/demo", &lock),
-            Some("bundle:hassox/demo".to_string())
+            Some("bundle:hassox/bundles/demo".to_string())
         );
     }
 
@@ -250,11 +295,7 @@ mod tests {
         std::fs::write(
             temp_dir.path().join("rusl.bundle.toml"),
             r#"
-[bundle]
-name = "hassox/demo"
-version = "0.1.0"
-
-[schemas]
+[rusl.resources]
 "acme/root" = ">=1.0.0"
 "#,
         )
@@ -284,6 +325,8 @@ source = "https://api.rusl.app"
             panic!("expected tree output");
         };
         assert_eq!(tree.target_display_name, "acme/shared");
+        assert_eq!(tree.root_name, "local bundle");
+        assert_eq!(tree.root_version, "unversioned");
         assert_eq!(tree.paths[0].display_name, "acme/root");
         assert!(tree.paths[0].children[0].is_target);
     }
@@ -300,7 +343,7 @@ source = "https://api.rusl.app"
 name = "hassox/demo"
 version = "0.1.0"
 
-[schemas]
+[rusl.resources]
 "acme/root" = ">=1.0.0"
 "#,
         )

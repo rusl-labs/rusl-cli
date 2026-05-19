@@ -48,6 +48,8 @@ pub enum Field {
     SubjectAccountSlug,
     #[serde(rename = "type")]
     Type,
+    #[serde(rename = "type_cardinality")]
+    TypeCardinality,
     #[serde(rename = "account_slug")]
     AccountSlug,
     #[serde(rename = "status")]

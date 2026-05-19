@@ -234,7 +234,7 @@ pub async fn rusl_web_api_bundle_controller_create(
     }
 }
 
-/// Search bundles across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, bundle slug, bundle identifier, and description) - account_slug - slug - visibility - status  Results are scoped by user permissions. Anonymous users see only PUBLIC bundles, authenticated users also see PRIVATE bundles from accounts they can access.
+/// Search bundles across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, bundle slug, bundle identifier, and description) - identifier (canonical bundle identifier, supports exact and in filters) - bundle_identifier (resource-specific storage field) - account_slug - slug - visibility - status  Results are scoped by user permissions. Anonymous users see only PUBLIC bundles, authenticated users also see PRIVATE bundles from accounts they can access.
 pub async fn rusl_web_api_bundle_controller_index(
     configuration: &configuration::Configuration,
     filters: Option<

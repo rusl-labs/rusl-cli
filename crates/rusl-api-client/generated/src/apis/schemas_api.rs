@@ -245,7 +245,7 @@ pub async fn rusl_web_api_schema_controller_create(
     }
 }
 
-/// Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, schema slug, schema identifier, and description) - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to.
+/// Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, schema slug, schema identifier, and description) - identifier (canonical schema identifier, supports exact and in filters) - schema_identifier (resource-specific storage field) - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to.
 pub async fn rusl_web_api_schema_controller_index(
     configuration: &configuration::Configuration,
     filters: Option<

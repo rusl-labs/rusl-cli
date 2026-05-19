@@ -82,6 +82,8 @@ pub enum InteractionType {
     Favourite,
     #[serde(rename = "watch")]
     Watch,
+    #[serde(rename = "endorse")]
+    Endorse,
 }
 
 impl Default for InteractionType {

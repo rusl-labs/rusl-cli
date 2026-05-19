@@ -1,5 +1,5 @@
 pub mod add;
-pub mod generate;
+pub mod cache;
 pub mod install;
 pub mod list;
 pub mod login;

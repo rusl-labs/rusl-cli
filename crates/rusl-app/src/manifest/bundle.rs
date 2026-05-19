@@ -5,7 +5,12 @@ use std::collections::HashMap;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BundleManifest {
     /// Information about the bundle itself
+    #[serde(default)]
     pub bundle: BundleMeta,
+
+    /// Rusl-specific configuration and resource dependencies
+    #[serde(default)]
+    pub rusl: RuslManifest,
 
     /// The schemas directly required by this project
     #[serde(default)]
@@ -24,9 +29,19 @@ pub struct BundleManifest {
     pub overrides: HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct BundleMeta {
-    pub name: String,
-    pub version: String,
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub version: Option<String>,
+    #[serde(default)]
     pub description: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct RuslManifest {
+    /// Canonical resource identifiers directly required by this project
+    #[serde(default)]
+    pub resources: HashMap<String, String>,
 }

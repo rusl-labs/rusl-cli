@@ -1,7 +1,0 @@
-[bundle]
-name = "rusl/cli-protocol-schemas"
-version = "0.1.0"
-description = "Protocol schemas for the rusl generate plugin system"
-
-[bundles]
-"rusl/cli-gen-protocol" = ">= 0.1.0"

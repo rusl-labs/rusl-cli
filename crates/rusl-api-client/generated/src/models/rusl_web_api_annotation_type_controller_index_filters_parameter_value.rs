@@ -38,6 +38,8 @@ impl RuslWebApiAnnotationTypeControllerIndexFiltersParameterValue {
 pub enum Field {
     #[serde(rename = "q")]
     Q,
+    #[serde(rename = "identifier")]
+    Identifier,
     #[serde(rename = "id")]
     Id,
     #[serde(rename = "account_slug")]
@@ -52,6 +54,8 @@ pub enum Field {
     Status,
     #[serde(rename = "schema_mode")]
     SchemaMode,
+    #[serde(rename = "cardinality")]
+    Cardinality,
 }
 
 impl Default for Field {

@@ -234,7 +234,7 @@ pub async fn rusl_web_api_annotation_type_controller_create(
     }
 }
 
-/// Search registered annotation types across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, annotation type slug, type identifier, and description) - account_slug - slug - type_identifier - visibility - status - schema_mode
+/// Search registered annotation types across all accounts with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, annotation type slug, type identifier, and description) - identifier (canonical annotation type identifier, supports exact and in filters) - account_slug - slug - type_identifier - visibility - status - schema_mode - cardinality
 pub async fn rusl_web_api_annotation_type_controller_index(
     configuration: &configuration::Configuration,
     filters: Option<

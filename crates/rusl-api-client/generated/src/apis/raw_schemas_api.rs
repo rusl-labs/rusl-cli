@@ -35,24 +35,29 @@ pub enum RuslWebRawSchemaMetadataControllerShowError {
     UnknownValue(serde_json::Value),
 }
 
-/// Serves the raw JSON schema content at the schema's `$id` URL. Supports versioned access via `@v0.2.3` suffix for pinned, immutable content.  - Public schemas: no authentication required, CDN-cacheable - Private schemas: requires authenticated user with account membership - Pinned versions (`@vX.Y.Z`): immutable, long-lived cache - Latest (no version suffix): short-lived cache, busted on version changes
+/// Serves the raw JSON schema content at the schema's canonical `/resources/{account_slug}/{schema_slug}` URL. Supports versioned access via `@v0.2.3` suffix for pinned, immutable content.  - Public schemas: no authentication required, CDN-cacheable - Private schemas: requires authenticated user with account membership - Pinned versions (`@vX.Y.Z`): immutable, long-lived cache - Latest (no version suffix): short-lived cache, busted on version changes
 pub async fn rusl_web_raw_schema_controller_show(
     configuration: &configuration::Configuration,
     account_slug: &str,
     schema_slug_and_version: &str,
+    disposition: Option<&str>,
 ) -> Result<serde_json::Value, Error<RuslWebRawSchemaControllerShowError>> {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
     let p_path_schema_slug_and_version = schema_slug_and_version;
+    let p_query_disposition = disposition;
 
     let uri_str = format!(
-        "{}/schemas/{account_slug}/{schema_slug_and_version}",
+        "{}/resources/{account_slug}/{schema_slug_and_version}",
         configuration.base_path,
         account_slug = crate::apis::urlencode(p_path_account_slug),
         schema_slug_and_version = crate::apis::urlencode(p_path_schema_slug_and_version)
     );
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
+    if let Some(ref param_value) = p_query_disposition {
+        req_builder = req_builder.query(&[("disposition", &param_value.to_string())]);
+    }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
@@ -90,7 +95,7 @@ pub async fn rusl_web_raw_schema_controller_show(
     }
 }
 
-/// Returns every resolvable version of a schema and its dependency constraints in a single payload, enabling the PubGrub resolver to evaluate the full dependency graph without additional network round-trips.  Includes ACTIVE and DEPRECATED versions. DRAFT and YANKED versions are excluded.
+/// Returns every resolvable version of a schema and its dependency constraints in a single payload, enabling the PubGrub resolver to evaluate the full dependency graph without additional network round-trips.  Canonical metadata lives under `/resources/{account_slug}/{schema_slug}/metadata`.  Includes ACTIVE and DEPRECATED versions. DRAFT and YANKED versions are excluded.
 pub async fn rusl_web_raw_schema_metadata_controller_show(
     configuration: &configuration::Configuration,
     account_slug: &str,
@@ -104,7 +109,7 @@ pub async fn rusl_web_raw_schema_metadata_controller_show(
     let p_path_schema_slug = schema_slug;
 
     let uri_str = format!(
-        "{}/schemas/{account_slug}/{schema_slug}/metadata",
+        "{}/resources/{account_slug}/{schema_slug}/metadata",
         configuration.base_path,
         account_slug = crate::apis::urlencode(p_path_account_slug),
         schema_slug = crate::apis::urlencode(p_path_schema_slug)

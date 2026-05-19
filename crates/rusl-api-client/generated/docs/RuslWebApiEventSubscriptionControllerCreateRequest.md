@@ -12,5 +12,3 @@ Name | Type | Description | Notes
 **subject_type** | Option<**SubjectType**> | Subscribable __typename (use with subject_id) (enum: accounts, schemas, schema_proposals, bundles) | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

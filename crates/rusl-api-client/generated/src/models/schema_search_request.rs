@@ -16,6 +16,12 @@ pub struct SchemaSearchRequest {
     /// Restrict results to account slugs.
     #[serde(rename = "account_slugs", skip_serializing_if = "Option::is_none")]
     pub account_slugs: Option<Vec<String>>,
+    /// Restrict results to schemas whose current version declares any root JSON instance type.
+    #[serde(
+        rename = "current_version_root_instance_types",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub current_version_root_instance_types: Option<Vec<CurrentVersionRootInstanceTypes>>,
     #[serde(
         rename = "current_version_status",
         skip_serializing_if = "Option::is_none"
@@ -24,6 +30,9 @@ pub struct SchemaSearchRequest {
     /// Restrict results to identifiers beginning with this prefix.
     #[serde(rename = "identifier_prefix", skip_serializing_if = "Option::is_none")]
     pub identifier_prefix: Option<String>,
+    /// Restrict results to exact schema identifiers.
+    #[serde(rename = "identifiers", skip_serializing_if = "Option::is_none")]
+    pub identifiers: Option<Vec<String>>,
     /// Optional response groups to add to the selected view.
     #[serde(rename = "include", skip_serializing_if = "Option::is_none")]
     pub include: Option<Vec<Include>>,
@@ -47,8 +56,10 @@ impl SchemaSearchRequest {
     pub fn new() -> SchemaSearchRequest {
         SchemaSearchRequest {
             account_slugs: None,
+            current_version_root_instance_types: None,
             current_version_status: None,
             identifier_prefix: None,
+            identifiers: None,
             include: None,
             page: None,
             per_page: None,
@@ -57,6 +68,30 @@ impl SchemaSearchRequest {
             status: None,
             view: None,
         }
+    }
+}
+/// Restrict results to schemas whose current version declares any root JSON instance type.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum CurrentVersionRootInstanceTypes {
+    #[serde(rename = "array")]
+    Array,
+    #[serde(rename = "boolean")]
+    Boolean,
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "null")]
+    Null,
+    #[serde(rename = "number")]
+    Number,
+    #[serde(rename = "object")]
+    Object,
+    #[serde(rename = "string")]
+    String,
+}
+
+impl Default for CurrentVersionRootInstanceTypes {
+    fn default() -> CurrentVersionRootInstanceTypes {
+        Self::Array
     }
 }
 ///

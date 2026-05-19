@@ -1,10 +1,11 @@
 use crate::install_service::{self, InstallResult};
 use crate::registry::client::{RegistryClient, RegistryVersion};
 use crate::resolver::graph::ProgressReporter;
+use crate::resource_identifier::RegistryResource;
 use anyhow::{Context, Result, bail};
 use pubgrub::SemanticVersion;
 use std::{future::Future, pin::Pin};
-use toml_edit::{DocumentMut, table, value};
+use toml_edit::{DocumentMut, Table, table, value};
 
 type InstallFuture<'a> = Pin<Box<dyn Future<Output = Result<InstallResult>> + 'a>>;
 
@@ -48,6 +49,8 @@ pub enum RemoveDependencyResult {
     },
 }
 
+const RESOURCES_TABLE_KEY: &str = "rusl.resources";
+
 pub async fn add_dependency<P>(
     request: AddDependencyRequest,
     progress: &P,
@@ -74,35 +77,26 @@ where
 
     let manifest_path = current_manifest_path()?;
     let mut document = read_manifest_document(&manifest_path)?;
-    let table_key = table_key(request.kind);
+    let table_key = RESOURCES_TABLE_KEY;
+    let slug = canonical_identifier(request.kind, &request.slug)?;
     let version_requirement = match request.version_requirement {
         Some(version) => version,
-        None => latest_version_requirement(request.kind, &request.slug, progress).await?,
-    };
-
-    if document.get(table_key).is_none() {
-        document[table_key] = table();
-    }
-
-    let Some(table_ref) = document.get_mut(table_key) else {
-        bail!("The [{table_key}] key exists but could not be loaded.");
-    };
-    let Some(table) = table_ref.as_table_mut() else {
-        bail!("The [{table_key}] key exists but is not a TOML table.");
+        None => latest_version_requirement(request.kind, &slug, progress).await?,
     };
 
     progress.set_message(format!(
         "Adding {}@{} to [{}]...",
-        request.slug, version_requirement, table_key
+        slug, version_requirement, table_key
     ));
-    table.insert(&request.slug, value(&version_requirement));
+    let table = resources_table_mut(&mut document)?;
+    table.insert(&slug, value(&version_requirement));
 
     std::fs::write(&manifest_path, document.to_string())
         .context("Failed to persist rusl.bundle.toml")?;
 
     let install = install(progress).await?;
     Ok(AddDependencyResult {
-        slug: request.slug,
+        slug,
         table_key,
         version_requirement,
         install,
@@ -135,27 +129,48 @@ where
 
     let manifest_path = current_manifest_path()?;
     let mut document = read_manifest_document(&manifest_path)?;
-    let table_key = table_key(request.kind);
+    let canonical_slug = canonical_identifier(request.kind, &request.slug)?;
 
-    let removed = document
-        .get_mut(table_key)
-        .and_then(|item| item.as_table_mut())
-        .and_then(|table| table.remove(&request.slug));
-
-    if removed.is_none() {
-        return Ok(RemoveDependencyResult::NotPresent {
-            slug: request.slug,
-            table_key,
-        });
+    let mut removed_table_key = None;
+    if existing_resources_table_mut(&mut document)?
+        .and_then(|table| table.remove(&canonical_slug))
+        .is_some()
+    {
+        removed_table_key = Some(RESOURCES_TABLE_KEY);
     }
 
-    progress.set_message(format!("Removing {} from [{}]...", request.slug, table_key));
+    if removed_table_key.is_none() {
+        let legacy_table_key = legacy_table_key(request.kind);
+        let removed = document
+            .get_mut(legacy_table_key)
+            .and_then(|item| item.as_table_mut())
+            .and_then(|table| {
+                table
+                    .remove(&canonical_slug)
+                    .or_else(|| table.remove(&request.slug))
+            });
+        if removed.is_some() {
+            removed_table_key = Some(legacy_table_key);
+        }
+    }
+
+    let Some(table_key) = removed_table_key else {
+        return Ok(RemoveDependencyResult::NotPresent {
+            slug: canonical_slug,
+            table_key: RESOURCES_TABLE_KEY,
+        });
+    };
+
+    progress.set_message(format!(
+        "Removing {} from [{}]...",
+        canonical_slug, table_key
+    ));
     std::fs::write(&manifest_path, document.to_string())
         .context("Failed to persist rusl.bundle.toml")?;
 
     let install = install(progress).await?;
     Ok(RemoveDependencyResult::Removed {
-        slug: request.slug,
+        slug: canonical_slug,
         table_key,
         install,
     })
@@ -177,6 +192,49 @@ fn read_manifest_document(path: &std::path::Path) -> Result<DocumentMut> {
         .context("Failed to parse rusl.bundle.toml")
 }
 
+fn resources_table_mut(document: &mut DocumentMut) -> Result<&mut Table> {
+    if document.get("rusl").is_none() {
+        document["rusl"] = table();
+    }
+
+    let Some(rusl) = document.get_mut("rusl") else {
+        bail!("The [rusl] key exists but could not be loaded.");
+    };
+    let Some(rusl_table) = rusl.as_table_mut() else {
+        bail!("The [rusl] key exists but is not a TOML table.");
+    };
+
+    if rusl_table.get("resources").is_none() {
+        rusl_table["resources"] = table();
+    }
+
+    let Some(resources) = rusl_table.get_mut("resources") else {
+        bail!("The [rusl.resources] key exists but could not be loaded.");
+    };
+    let Some(resources_table) = resources.as_table_mut() else {
+        bail!("The [rusl.resources] key exists but is not a TOML table.");
+    };
+
+    Ok(resources_table)
+}
+
+fn existing_resources_table_mut(document: &mut DocumentMut) -> Result<Option<&mut Table>> {
+    let Some(rusl) = document.get_mut("rusl") else {
+        return Ok(None);
+    };
+    let Some(rusl_table) = rusl.as_table_mut() else {
+        bail!("The [rusl] key exists but is not a TOML table.");
+    };
+    let Some(resources) = rusl_table.get_mut("resources") else {
+        return Ok(None);
+    };
+    let Some(resources_table) = resources.as_table_mut() else {
+        bail!("The [rusl.resources] key exists but is not a TOML table.");
+    };
+
+    Ok(Some(resources_table))
+}
+
 async fn latest_version_requirement<P>(
     kind: DependencyKind,
     slug: &str,
@@ -186,20 +244,48 @@ where
     P: ProgressReporter,
 {
     progress.set_message("Finding the latest version...".to_string());
-    let Some((account, name)) = slug.split_once('/') else {
-        bail!("Slug must be in format account/name");
+    let resource = match kind {
+        DependencyKind::Schema => RegistryResource::schema(slug),
+        DependencyKind::Bundle => RegistryResource::bundle(slug),
     };
+    let resource = resource.with_context(|| identifier_error(kind))?;
 
     let config = crate::config::load().context("Failed to load hierarchical configuration")?;
     let client = RegistryClient::new(config);
     let metadata = match kind {
-        DependencyKind::Schema => client.fetch_schema_meta(account, name).await?,
-        DependencyKind::Bundle => client.fetch_bundle_meta(account, name).await?,
+        DependencyKind::Schema => {
+            client
+                .fetch_schema_meta(&resource.account, &resource.slug)
+                .await?
+        }
+        DependencyKind::Bundle => {
+            client
+                .fetch_bundle_meta(&resource.account, &resource.slug)
+                .await?
+        }
     };
 
     let latest = latest_version(&metadata.versions)
         .context("The registry did not return any resolvable semantic versions for this slug.")?;
     Ok(format!(">={latest}"))
+}
+
+fn canonical_identifier(kind: DependencyKind, identifier: &str) -> Result<String> {
+    let resource = match kind {
+        DependencyKind::Schema => RegistryResource::schema(identifier),
+        DependencyKind::Bundle => RegistryResource::bundle(identifier),
+    };
+
+    resource
+        .map(|resource| resource.identifier())
+        .with_context(|| identifier_error(kind))
+}
+
+fn identifier_error(kind: DependencyKind) -> &'static str {
+    match kind {
+        DependencyKind::Schema => "Schema identifier must be in format account/name",
+        DependencyKind::Bundle => "Bundle identifier must be in format account/bundles/name",
+    }
 }
 
 fn latest_version(versions: &[RegistryVersion]) -> Option<SemanticVersion> {
@@ -209,7 +295,7 @@ fn latest_version(versions: &[RegistryVersion]) -> Option<SemanticVersion> {
         .max()
 }
 
-fn table_key(kind: DependencyKind) -> &'static str {
+fn legacy_table_key(kind: DependencyKind) -> &'static str {
     match kind {
         DependencyKind::Schema => "schemas",
         DependencyKind::Bundle => "bundles",
@@ -219,8 +305,9 @@ fn table_key(kind: DependencyKind) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::{
-        AddDependencyRequest, DependencyKind, RemoveDependencyRequest, RemoveDependencyResult,
-        add_dependency_with_installer, latest_version, remove_dependency_with_installer, table_key,
+        AddDependencyRequest, DependencyKind, RESOURCES_TABLE_KEY, RemoveDependencyRequest,
+        RemoveDependencyResult, add_dependency_with_installer, latest_version, legacy_table_key,
+        remove_dependency_with_installer,
     };
     use crate::install_service::InstallResult;
     use crate::registry::client::RegistryVersion;
@@ -273,9 +360,9 @@ mod tests {
     }
 
     #[test]
-    fn maps_dependency_kinds_to_manifest_tables() {
-        assert_eq!(table_key(DependencyKind::Schema), "schemas");
-        assert_eq!(table_key(DependencyKind::Bundle), "bundles");
+    fn maps_dependency_kinds_to_legacy_manifest_tables() {
+        assert_eq!(legacy_table_key(DependencyKind::Schema), "schemas");
+        assert_eq!(legacy_table_key(DependencyKind::Bundle), "bundles");
     }
 
     #[test]
@@ -327,12 +414,93 @@ version = "0.1.0"
         .await
         .expect("add dependency");
 
-        assert_eq!(result.table_key, "schemas");
+        assert_eq!(result.table_key, RESOURCES_TABLE_KEY);
         assert_eq!(result.version_requirement, ">=1.2.3");
         let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
             .expect("read manifest");
-        assert!(manifest.contains("[schemas]"));
+        assert!(manifest.contains("[rusl.resources]"));
         assert!(manifest.contains("\"hassox/test-schema\" = \">=1.2.3\""));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_bundle_dependency_normalizes_legacy_identifier() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/bundles/demo"
+version = "0.1.0"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        let result = add_dependency_with_installer(
+            AddDependencyRequest {
+                kind: DependencyKind::Bundle,
+                slug: "hassox/common".to_string(),
+                version_requirement: Some(">=1.2.3".to_string()),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("add dependency");
+
+        assert_eq!(result.slug, "hassox/bundles/common");
+        assert_eq!(result.table_key, RESOURCES_TABLE_KEY);
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(manifest.contains("[rusl.resources]"));
+        assert!(manifest.contains("\"hassox/bundles/common\" = \">=1.2.3\""));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn remove_dependency_deletes_existing_resource_entry_and_runs_install() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+
+[rusl.resources]
+"hassox/test-schema" = ">=1.2.3"
+"hassox/keep-schema" = ">=2.0.0"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        let result = remove_dependency_with_installer(
+            RemoveDependencyRequest {
+                kind: DependencyKind::Schema,
+                slug: "hassox/test-schema".to_string(),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("remove dependency");
+
+        assert!(matches!(
+            result,
+            RemoveDependencyResult::Removed {
+                slug,
+                table_key: RESOURCES_TABLE_KEY,
+                ..
+            } if slug == "hassox/test-schema"
+        ));
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(!manifest.contains("hassox/test-schema"));
+        assert!(manifest.contains("hassox/keep-schema"));
     }
 
     #[tokio::test]
@@ -382,6 +550,51 @@ version = "0.1.0"
 
     #[tokio::test]
     #[serial]
+    async fn remove_bundle_dependency_accepts_legacy_identifier_for_canonical_entry() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/bundles/demo"
+version = "0.1.0"
+
+[bundles]
+"hassox/bundles/common" = ">=1.2.3"
+"hassox/bundles/keep" = ">=2.0.0"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        let result = remove_dependency_with_installer(
+            RemoveDependencyRequest {
+                kind: DependencyKind::Bundle,
+                slug: "hassox/common".to_string(),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("remove dependency");
+
+        assert!(matches!(
+            result,
+            RemoveDependencyResult::Removed {
+                slug,
+                table_key: "bundles",
+                ..
+            } if slug == "hassox/bundles/common"
+        ));
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(!manifest.contains("hassox/bundles/common"));
+        assert!(manifest.contains("hassox/bundles/keep"));
+    }
+
+    #[tokio::test]
+    #[serial]
     async fn remove_dependency_returns_not_present_without_rewriting_manifest() {
         let temp_dir = TempDir::new().expect("create temp dir");
         let _guard = DirGuard::new(temp_dir.path());
@@ -416,7 +629,7 @@ version = "0.1.0"
             result,
             RemoveDependencyResult::NotPresent {
                 slug,
-                table_key: "schemas",
+                table_key: RESOURCES_TABLE_KEY,
             } if slug == "hassox/missing-schema"
         ));
         let after = std::fs::read_to_string(&manifest_path).expect("read manifest");
@@ -431,7 +644,8 @@ version = "0.1.0"
         std::fs::write(
             temp_dir.path().join("rusl.bundle.toml"),
             r#"
-schemas = "not-a-table"
+[rusl]
+resources = "not-a-table"
 
 [bundle]
 name = "hassox/demo"
@@ -456,7 +670,7 @@ version = "0.1.0"
         assert!(
             error
                 .to_string()
-                .contains("The [schemas] key exists but is not a TOML table")
+                .contains("The [rusl.resources] key exists but is not a TOML table")
         );
     }
 

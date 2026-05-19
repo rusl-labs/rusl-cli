@@ -16,9 +16,14 @@ pub struct AnnotationTypeSearchRequest {
     /// Restrict results to account slugs.
     #[serde(rename = "account_slugs", skip_serializing_if = "Option::is_none")]
     pub account_slugs: Option<Vec<String>>,
+    #[serde(rename = "cardinality", skip_serializing_if = "Option::is_none")]
+    pub cardinality: Option<Cardinality>,
     /// Restrict results to identifiers beginning with this prefix.
     #[serde(rename = "identifier_prefix", skip_serializing_if = "Option::is_none")]
     pub identifier_prefix: Option<String>,
+    /// Restrict results to exact annotation type identifiers.
+    #[serde(rename = "identifiers", skip_serializing_if = "Option::is_none")]
+    pub identifiers: Option<Vec<String>>,
     /// Optional response groups to add to the selected view.
     #[serde(rename = "include", skip_serializing_if = "Option::is_none")]
     pub include: Option<Vec<Include>>,
@@ -40,7 +45,9 @@ impl AnnotationTypeSearchRequest {
     pub fn new() -> AnnotationTypeSearchRequest {
         AnnotationTypeSearchRequest {
             account_slugs: None,
+            cardinality: None,
             identifier_prefix: None,
+            identifiers: None,
             include: None,
             page: None,
             per_page: None,
@@ -48,6 +55,20 @@ impl AnnotationTypeSearchRequest {
             status: None,
             view: None,
         }
+    }
+}
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Cardinality {
+    #[serde(rename = "ONE_PER_SUBJECT_PER_ACCOUNT")]
+    OnePerSubjectPerAccount,
+    #[serde(rename = "MANY_PER_SUBJECT_PER_ACCOUNT")]
+    ManyPerSubjectPerAccount,
+}
+
+impl Default for Cardinality {
+    fn default() -> Cardinality {
+        Self::OnePerSubjectPerAccount
     }
 }
 /// Optional response groups to add to the selected view.

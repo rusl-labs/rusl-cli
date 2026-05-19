@@ -166,7 +166,7 @@ fn session_tokens(credentials: &Option<Credentials>) -> SessionTokens {
 
 fn map_metadata_response(
     name: Option<String>,
-    versions: Option<Vec<models::RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner>>,
+    versions: Option<Vec<models::RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner>>,
 ) -> RegistryMetadataResponse {
     RegistryMetadataResponse {
         name: name.unwrap_or_default(),
@@ -179,7 +179,7 @@ fn map_metadata_response(
 }
 
 fn map_version(
-    version: models::RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner,
+    version: models::RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner,
 ) -> RegistryVersion {
     RegistryVersion {
         version: version.version.unwrap_or_default(),
@@ -389,7 +389,6 @@ mod tests {
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
             schema_dir: None,
-            generators: Default::default(),
         });
 
         let me = client.fetch_me().await.expect("fetch me");
@@ -444,7 +443,6 @@ mod tests {
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
             schema_dir: None,
-            generators: Default::default(),
         });
 
         let me = client.fetch_me().await.expect("fetch me");
@@ -513,7 +511,6 @@ mod tests {
                 api_base_url: server.base_url.clone(),
                 website_url: "https://example.test".to_string(),
                 schema_dir: None,
-                generators: Default::default(),
             },
             "rusl/0.1.0 (mcp)",
         );

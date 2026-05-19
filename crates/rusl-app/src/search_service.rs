@@ -9,7 +9,9 @@ use std::collections::HashMap;
 #[serde(rename_all = "snake_case")]
 pub enum SearchDocumentType {
     Schema,
+    Bundle,
     AnnotationType,
+    Annotation,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -24,6 +26,7 @@ pub enum SearchView {
 pub struct SearchRequest {
     pub query: Option<String>,
     pub types: Vec<SearchDocumentType>,
+    pub identifiers: Vec<String>,
     pub account_slugs: Vec<String>,
     pub page: Option<i32>,
     pub per_page: Option<i32>,
@@ -36,6 +39,7 @@ impl Default for SearchRequest {
         Self {
             query: None,
             types: Vec::new(),
+            identifiers: Vec::new(),
             account_slugs: Vec::new(),
             page: None,
             per_page: None,
@@ -119,6 +123,13 @@ fn to_api_request(request: SearchRequest) -> models::GlobalSearchRequest {
     models::GlobalSearchRequest {
         q: request.query.and_then(non_blank),
         types: non_empty(request.types.into_iter().map(map_search_type).collect()),
+        identifiers: non_empty(
+            request
+                .identifiers
+                .into_iter()
+                .filter_map(non_blank)
+                .collect(),
+        ),
         account_slugs: non_empty(
             request
                 .account_slugs
@@ -142,7 +153,9 @@ fn to_api_request(request: SearchRequest) -> models::GlobalSearchRequest {
 fn map_search_type(document_type: SearchDocumentType) -> models::global_search_request::Types {
     match document_type {
         SearchDocumentType::Schema => models::global_search_request::Types::Schema,
+        SearchDocumentType::Bundle => models::global_search_request::Types::Bundle,
         SearchDocumentType::AnnotationType => models::global_search_request::Types::AnnotationType,
+        SearchDocumentType::Annotation => models::global_search_request::Types::Annotation,
     }
 }
 
@@ -167,7 +180,9 @@ fn map_search_result(result: models::SearchResult) -> SearchResult {
         identifier: result.identifier,
         document_type: match result.document_type {
             models::search_result::DocumentType::Schema => "schema",
+            models::search_result::DocumentType::Bundle => "bundle",
             models::search_result::DocumentType::AnnotationType => "annotation_type",
+            models::search_result::DocumentType::Annotation => "annotation",
         }
         .to_string(),
         document_type_label: result.document_type_label,
@@ -243,8 +258,10 @@ mod tests {
             query: Some("  bearing ".to_string()),
             types: vec![
                 SearchDocumentType::Schema,
+                SearchDocumentType::Bundle,
                 SearchDocumentType::AnnotationType,
             ],
+            identifiers: vec![" hassox/common ".to_string(), " ".to_string()],
             account_slugs: vec![" hassox ".to_string(), " ".to_string()],
             page: Some(2),
             per_page: Some(25),
@@ -258,9 +275,11 @@ mod tests {
             request.types,
             Some(vec![
                 models::global_search_request::Types::Schema,
+                models::global_search_request::Types::Bundle,
                 models::global_search_request::Types::AnnotationType,
             ])
         );
+        assert_eq!(request.identifiers, Some(vec!["hassox/common".to_string()]));
         assert_eq!(request.page, Some(2));
         assert_eq!(request.per_page, Some(25));
         assert_eq!(

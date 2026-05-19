@@ -24,6 +24,7 @@ docs/AccountsApi.md
 docs/Annotation.md
 docs/Annotation1.md
 docs/Annotation1SubjectDescription.md
+docs/AnnotationSearchRequest.md
 docs/AnnotationType.md
 docs/AnnotationType1.md
 docs/AnnotationType2.md
@@ -42,6 +43,7 @@ docs/Bundle2.md
 docs/BundleEntriesApi.md
 docs/BundleEntry.md
 docs/BundleEntry1.md
+docs/BundleSearchRequest.md
 docs/BundleVersion.md
 docs/BundleVersion1.md
 docs/BundleVersion2.md
@@ -158,6 +160,7 @@ docs/RuslWebApiAnnotationControllerFilterRequestFiltersInner.md
 docs/RuslWebApiAnnotationControllerLookup200Response.md
 docs/RuslWebApiAnnotationControllerTypes200Response.md
 docs/RuslWebApiAnnotationControllerTypes200ResponseDataInner.md
+docs/RuslWebApiAnnotationControllerUnendorse200Response.md
 docs/RuslWebApiAnnotationControllerUpdateRequest.md
 docs/RuslWebApiAnnotationTypeControllerCreateRequest.md
 docs/RuslWebApiAnnotationTypeControllerIndex200Response.md
@@ -239,8 +242,8 @@ docs/RuslWebApiWatchControllerUnwatchProposal200Response.md
 docs/RuslWebApiWatchControllerUnwatchSchema200Response.md
 docs/RuslWebHealthControllerHealth200Response.md
 docs/RuslWebRawBundleMetadataControllerShow200Response.md
+docs/RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner.md
 docs/RuslWebRawSchemaMetadataControllerShow200Response.md
-docs/RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner.md
 docs/Schema.md
 docs/Schema1.md
 docs/Schema2.md
@@ -267,6 +270,8 @@ docs/SessionAccount1.md
 docs/SessionAccount1Permissions.md
 docs/SessionAccount1PermissionsSchemas.md
 docs/SystemApi.md
+docs/UnendorseResponse.md
+docs/UnendorseResponse1.md
 docs/UnfavouriteResponse.md
 docs/UnfavouriteResponse1.md
 docs/UnwatchAccountResponse.md
@@ -369,6 +374,7 @@ src/models/account_member_list_response.rs
 src/models/annotation.rs
 src/models/annotation_1.rs
 src/models/annotation_1_subject_description.rs
+src/models/annotation_search_request.rs
 src/models/annotation_type.rs
 src/models/annotation_type_1.rs
 src/models/annotation_type_2.rs
@@ -382,6 +388,7 @@ src/models/bundle_1.rs
 src/models/bundle_2.rs
 src/models/bundle_entry.rs
 src/models/bundle_entry_1.rs
+src/models/bundle_search_request.rs
 src/models/bundle_version.rs
 src/models/bundle_version_1.rs
 src/models/bundle_version_2.rs
@@ -487,6 +494,7 @@ src/models/rusl_web_api_annotation_controller_filter_request_filters_inner.rs
 src/models/rusl_web_api_annotation_controller_lookup_200_response.rs
 src/models/rusl_web_api_annotation_controller_types_200_response.rs
 src/models/rusl_web_api_annotation_controller_types_200_response_data_inner.rs
+src/models/rusl_web_api_annotation_controller_unendorse_200_response.rs
 src/models/rusl_web_api_annotation_controller_update_request.rs
 src/models/rusl_web_api_annotation_type_controller_create_request.rs
 src/models/rusl_web_api_annotation_type_controller_index_200_response.rs
@@ -568,8 +576,8 @@ src/models/rusl_web_api_watch_controller_unwatch_proposal_200_response.rs
 src/models/rusl_web_api_watch_controller_unwatch_schema_200_response.rs
 src/models/rusl_web_health_controller_health_200_response.rs
 src/models/rusl_web_raw_bundle_metadata_controller_show_200_response.rs
+src/models/rusl_web_raw_bundle_metadata_controller_show_200_response_versions_inner.rs
 src/models/rusl_web_raw_schema_metadata_controller_show_200_response.rs
-src/models/rusl_web_raw_schema_metadata_controller_show_200_response_versions_inner.rs
 src/models/schema.rs
 src/models/schema_1.rs
 src/models/schema_2.rs
@@ -592,6 +600,8 @@ src/models/session_account.rs
 src/models/session_account_1.rs
 src/models/session_account_1_permissions.rs
 src/models/session_account_1_permissions_schemas.rs
+src/models/unendorse_response.rs
+src/models/unendorse_response_1.rs
 src/models/unfavourite_response.rs
 src/models/unfavourite_response_1.rs
 src/models/unwatch_account_response.rs

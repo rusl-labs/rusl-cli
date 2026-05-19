@@ -12,7 +12,7 @@ use crate::models;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner {
+pub struct RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner {
     /// Bundle dependencies as name => version requirement
     #[serde(rename = "bundles", skip_serializing_if = "Option::is_none")]
     pub bundles: Option<std::collections::HashMap<String, String>>,
@@ -24,9 +24,9 @@ pub struct RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner {
     pub version: Option<String>,
 }
 
-impl RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner {
-    pub fn new() -> RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner {
-        RuslWebRawSchemaMetadataControllerShow200ResponseVersionsInner {
+impl RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner {
+    pub fn new() -> RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner {
+        RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner {
             bundles: None,
             schemas: None,
             version: None,

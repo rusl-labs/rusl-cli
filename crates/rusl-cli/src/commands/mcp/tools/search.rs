@@ -9,8 +9,12 @@ const MAX_PER_PAGE: i32 = 100;
 pub(in crate::commands::mcp) struct SearchToolRequest {
     #[schemars(description = "Search text. Omit to return all visible results.")]
     query: Option<String>,
-    #[schemars(description = "Restrict results to schema and/or annotation_type documents.")]
+    #[schemars(
+        description = "Restrict results to schema, bundle, annotation_type, and/or annotation documents."
+    )]
     types: Option<Vec<SearchToolType>>,
+    #[schemars(description = "Restrict results to exact canonical resource identifiers.")]
+    identifiers: Option<Vec<String>>,
     #[schemars(description = "Restrict results to these account slugs.")]
     account_slugs: Option<Vec<String>>,
     #[schemars(description = "One-based result page.")]
@@ -56,6 +60,7 @@ impl SearchToolRequest {
                 .into_iter()
                 .map(SearchToolType::into_search_document_type)
                 .collect(),
+            identifiers: self.identifiers.unwrap_or_default(),
             account_slugs: self.account_slugs.unwrap_or_default(),
             page: positive_page_value("page", self.page)?,
             per_page: per_page_value(self.per_page)?,
@@ -69,14 +74,18 @@ impl SearchToolRequest {
 #[serde(rename_all = "snake_case")]
 enum SearchToolType {
     Schema,
+    Bundle,
     AnnotationType,
+    Annotation,
 }
 
 impl SearchToolType {
     fn into_search_document_type(self) -> SearchDocumentType {
         match self {
             SearchToolType::Schema => SearchDocumentType::Schema,
+            SearchToolType::Bundle => SearchDocumentType::Bundle,
             SearchToolType::AnnotationType => SearchDocumentType::AnnotationType,
+            SearchToolType::Annotation => SearchDocumentType::Annotation,
         }
     }
 }

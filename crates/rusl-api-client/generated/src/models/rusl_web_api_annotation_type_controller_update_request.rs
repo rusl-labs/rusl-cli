@@ -13,6 +13,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiAnnotationTypeControllerUpdateRequest {
+    /// May move from one-per-subject-per-account to many-per-subject-per-account, but not back
+    #[serde(rename = "cardinality", skip_serializing_if = "Option::is_none")]
+    pub cardinality: Option<Cardinality>,
     #[serde(
         rename = "description",
         default,
@@ -27,13 +30,45 @@ pub struct RuslWebApiAnnotationTypeControllerUpdateRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub subject_description: Option<Option<Box<models::OpenApiSchema2SubjectDescription>>>,
+    #[serde(rename = "visibility", skip_serializing_if = "Option::is_none")]
+    pub visibility: Option<Visibility>,
 }
 
 impl RuslWebApiAnnotationTypeControllerUpdateRequest {
     pub fn new() -> RuslWebApiAnnotationTypeControllerUpdateRequest {
         RuslWebApiAnnotationTypeControllerUpdateRequest {
+            cardinality: None,
             description: None,
             subject_description: None,
+            visibility: None,
         }
+    }
+}
+/// May move from one-per-subject-per-account to many-per-subject-per-account, but not back
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Cardinality {
+    #[serde(rename = "ONE_PER_SUBJECT_PER_ACCOUNT")]
+    OnePerSubjectPerAccount,
+    #[serde(rename = "MANY_PER_SUBJECT_PER_ACCOUNT")]
+    ManyPerSubjectPerAccount,
+}
+
+impl Default for Cardinality {
+    fn default() -> Cardinality {
+        Self::OnePerSubjectPerAccount
+    }
+}
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Visibility {
+    #[serde(rename = "PUBLIC")]
+    Public,
+    #[serde(rename = "PRIVATE")]
+    Private,
+}
+
+impl Default for Visibility {
+    fn default() -> Visibility {
+        Self::Public
     }
 }

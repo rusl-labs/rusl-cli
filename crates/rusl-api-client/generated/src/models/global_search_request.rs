@@ -22,6 +22,9 @@ pub struct GlobalSearchRequest {
         skip_serializing_if = "Option::is_none"
     )]
     pub discovery_profile_status: Option<DiscoveryProfileStatus>,
+    /// Restrict results to exact canonical resource identifiers.
+    #[serde(rename = "identifiers", skip_serializing_if = "Option::is_none")]
+    pub identifiers: Option<Vec<String>>,
     /// Optional response groups to add to the selected view.
     #[serde(rename = "include", skip_serializing_if = "Option::is_none")]
     pub include: Option<Vec<Include>>,
@@ -48,6 +51,7 @@ impl GlobalSearchRequest {
         GlobalSearchRequest {
             account_slugs: None,
             discovery_profile_status: None,
+            identifiers: None,
             include: None,
             metric_names: None,
             page: None,
@@ -93,6 +97,10 @@ pub enum Types {
     Schema,
     #[serde(rename = "annotation_type")]
     AnnotationType,
+    #[serde(rename = "annotation")]
+    Annotation,
+    #[serde(rename = "bundle")]
+    Bundle,
 }
 
 impl Default for Types {

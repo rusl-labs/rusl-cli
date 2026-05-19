@@ -38,10 +38,14 @@ impl RuslWebApiBundleControllerIndexFiltersParameterValue {
 pub enum Field {
     #[serde(rename = "q")]
     Q,
+    #[serde(rename = "identifier")]
+    Identifier,
     #[serde(rename = "account_slug")]
     AccountSlug,
     #[serde(rename = "slug")]
     Slug,
+    #[serde(rename = "bundle_identifier")]
+    BundleIdentifier,
     #[serde(rename = "visibility")]
     Visibility,
     #[serde(rename = "status")]

@@ -34,6 +34,20 @@ pub enum RuslWebApiAnnotationControllerDeprecateError {
     UnknownValue(serde_json::Value),
 }
 
+/// struct for typed errors of method [`rusl_web_api_annotation_controller_endorse`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiAnnotationControllerEndorseError {
+    Status400(models::Error2),
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status409(models::Error2),
+    Status422(models::Error2),
+    Status500(models::Error2),
+    UnknownValue(serde_json::Value),
+}
+
 /// struct for typed errors of method [`rusl_web_api_annotation_controller_filter`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -84,6 +98,20 @@ pub enum RuslWebApiAnnotationControllerTypeTypeaheadError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationControllerTypesError {
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_annotation_controller_unendorse`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiAnnotationControllerUnendorseError {
+    Status400(models::Error2),
+    Status401(models::Error2),
+    Status403(models::Error2),
+    Status404(models::Error2),
+    Status409(models::Error2),
+    Status422(models::Error2),
+    Status500(models::Error2),
     UnknownValue(serde_json::Value),
 }
 
@@ -259,7 +287,64 @@ pub async fn rusl_web_api_annotation_controller_deprecate(
     }
 }
 
-/// Search annotations with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, subject account slug, subject GUID, subject type, type, label, and validation schema identifier) - annotation_type_id - subject_guid - subject_type - subject_account_slug - type - account_slug - status - set_by_user_id - inserted_at - updated_at
+/// Add a positive endorsement interaction to the annotation identified by ID. Endorsements are user-level signal boosts backed by resource interactions.
+pub async fn rusl_web_api_annotation_controller_endorse(
+    configuration: &configuration::Configuration,
+    id: &str,
+) -> Result<
+    models::RuslWebApiReactionControllerFavourite201Response,
+    Error<RuslWebApiAnnotationControllerEndorseError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_id = id;
+
+    let uri_str = format!(
+        "{}/api/annotations/{id}/endorse",
+        configuration.base_path,
+        id = crate::apis::urlencode(p_path_id)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiReactionControllerFavourite201Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiReactionControllerFavourite201Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiAnnotationControllerEndorseError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Search annotations with Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, subject account slug, subject GUID, subject type, type, label, and validation schema identifier) - annotation_type_id - subject_guid - subject_type - subject_account_slug - type - type_cardinality - account_slug - status - set_by_user_id - inserted_at - updated_at
 pub async fn rusl_web_api_annotation_controller_filter(
     configuration: &configuration::Configuration,
     rusl_web_api_annotation_controller_filter_request: Option<
@@ -634,6 +719,63 @@ pub async fn rusl_web_api_annotation_controller_types(
     } else {
         let content = resp.text().await?;
         let entity: Option<RuslWebApiAnnotationControllerTypesError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Remove the authenticated user's endorsement interaction from an annotation.
+pub async fn rusl_web_api_annotation_controller_unendorse(
+    configuration: &configuration::Configuration,
+    id: &str,
+) -> Result<
+    models::RuslWebApiAnnotationControllerUnendorse200Response,
+    Error<RuslWebApiAnnotationControllerUnendorseError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_id = id;
+
+    let uri_str = format!(
+        "{}/api/annotations/{id}/endorse",
+        configuration.base_path,
+        id = crate::apis::urlencode(p_path_id)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::DELETE, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationControllerUnendorse200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationControllerUnendorse200Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiAnnotationControllerUnendorseError> =
             serde_json::from_str(&content).ok();
         Err(Error::ResponseError(ResponseContent {
             status,

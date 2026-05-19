@@ -17,7 +17,7 @@ Method | HTTP request | Description
 > models::RuslWebApiAccountControllerCreate201Response rusl_web_api_account_controller_create(open_api_schema7)
 Create an Organization Account
 
-Create a new organization account. Requires authentication.  The authenticated user becomes the owner of the organization. 
+Create a new organization account. Requires authentication.  The authenticated user becomes the owner of the organization.
 
 ### Parameters
 
@@ -47,7 +47,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebApiAccountControllerIndex200Response rusl_web_api_account_controller_index(filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
 List Accounts
 
-List accounts with full Flop pagination and filtering support.  Supports filtering by: - slug (string match) - type (user, organization) - owner_user_id (UUID) - created_order (integer) - mine (boolean - filters to accounts owned by current user, requires authentication)  Supports ordering by: - slug (default) - created_order 
+List accounts with full Flop pagination and filtering support.  Supports filtering by: - slug (string match) - type (user, organization) - owner_user_id (UUID) - created_order (integer) - mine (boolean - filters to accounts owned by current user, requires authentication)  Supports ordering by: - slug (default) - created_order
 
 ### Parameters
 
@@ -147,7 +147,7 @@ Name | Type | Description  | Required | Notes
 > models::RuslWebApiAccountControllerShow200Response rusl_web_api_account_controller_update(slug, open_api_schema3)
 Update an Account
 
-Update account details. Requires account manage access (`account.manage` permission).  Updatable fields: - display_name - bio - website 
+Update account details. Requires account manage access (`account.manage` permission).  Updatable fields: - display_name - bio - website
 
 ### Parameters
 
@@ -171,4 +171,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

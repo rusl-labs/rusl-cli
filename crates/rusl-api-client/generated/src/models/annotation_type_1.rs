@@ -28,6 +28,9 @@ pub struct AnnotationType1 {
         skip_serializing_if = "Option::is_none"
     )]
     pub archived_at: Option<Option<String>>,
+    /// How many active annotations of this type an account may attach to one subject
+    #[serde(rename = "cardinality")]
+    pub cardinality: Cardinality,
     /// Whether annotation content becomes immutable after creation
     #[serde(rename = "content_immutable")]
     pub content_immutable: bool,
@@ -99,6 +102,7 @@ impl AnnotationType1 {
     pub fn new(
         __typename: Typename,
         account_slug: String,
+        cardinality: Cardinality,
         content_immutable: bool,
         guid: String,
         id: String,
@@ -115,6 +119,7 @@ impl AnnotationType1 {
             __typename,
             account_slug,
             archived_at: None,
+            cardinality,
             content_immutable,
             description: None,
             guid,
@@ -143,6 +148,20 @@ pub enum Typename {
 impl Default for Typename {
     fn default() -> Typename {
         Self::AnnotationTypes
+    }
+}
+/// How many active annotations of this type an account may attach to one subject
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Cardinality {
+    #[serde(rename = "ONE_PER_SUBJECT_PER_ACCOUNT")]
+    OnePerSubjectPerAccount,
+    #[serde(rename = "MANY_PER_SUBJECT_PER_ACCOUNT")]
+    ManyPerSubjectPerAccount,
+}
+
+impl Default for Cardinality {
+    fn default() -> Cardinality {
+        Self::OnePerSubjectPerAccount
     }
 }
 /// How annotation content is validated

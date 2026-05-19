@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiAnnotationTypeControllerCreateRequest {
+    #[serde(rename = "cardinality", skip_serializing_if = "Option::is_none")]
+    pub cardinality: Option<Cardinality>,
     #[serde(rename = "content_immutable", skip_serializing_if = "Option::is_none")]
     pub content_immutable: Option<bool>,
     /// Annotation type description
@@ -56,6 +58,7 @@ impl RuslWebApiAnnotationTypeControllerCreateRequest {
         slug: String,
     ) -> RuslWebApiAnnotationTypeControllerCreateRequest {
         RuslWebApiAnnotationTypeControllerCreateRequest {
+            cardinality: None,
             content_immutable: None,
             description: None,
             pinned_schema_version_id: None,
@@ -65,6 +68,20 @@ impl RuslWebApiAnnotationTypeControllerCreateRequest {
             subject_description: None,
             visibility: None,
         }
+    }
+}
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Cardinality {
+    #[serde(rename = "ONE_PER_SUBJECT_PER_ACCOUNT")]
+    OnePerSubjectPerAccount,
+    #[serde(rename = "MANY_PER_SUBJECT_PER_ACCOUNT")]
+    ManyPerSubjectPerAccount,
+}
+
+impl Default for Cardinality {
+    fn default() -> Cardinality {
+        Self::OnePerSubjectPerAccount
     }
 }
 ///
