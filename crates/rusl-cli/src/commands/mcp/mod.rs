@@ -3,65 +3,88 @@ mod tools;
 
 use crate::cli::McpArgs;
 use anyhow::Result;
-use rmcp::{
-    ErrorData, ServerHandler, ServiceExt,
-    handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{CallToolResult, Implementation, ServerCapabilities, ServerInfo},
-    tool, tool_handler, tool_router,
+use serde_json::Value;
+use std::future::Future;
+use turbomcp::prelude::{
+    McpError, McpHandler, McpHandlerExt, McpResult, Prompt, PromptResult, RequestContext, Resource,
+    ResourceResult, ServerInfo, Tool, ToolResult,
 };
 
 const MCP_USER_AGENT_CONTEXT: &str = "mcp";
 
 pub async fn run(_args: McpArgs) -> Result<()> {
-    let service = RuslMcpServer::new().serve(rmcp::transport::stdio()).await?;
-    let _reason = service.waiting().await?;
+    RuslMcpServer.run_stdio().await?;
     Ok(())
 }
 
 #[derive(Debug, Clone)]
-struct RuslMcpServer {
-    tool_router: ToolRouter<Self>,
-}
+struct RuslMcpServer;
 
-impl RuslMcpServer {
-    fn new() -> Self {
-        Self {
-            tool_router: Self::tool_router(),
+impl McpHandler for RuslMcpServer {
+    fn server_info(&self) -> ServerInfo {
+        ServerInfo::new("rusl", env!("CARGO_PKG_VERSION"))
+            .with_description("Use the search tool to find visible Rusl resources.")
+    }
+
+    fn list_tools(&self) -> Vec<Tool> {
+        vec![tools::search::definition()]
+    }
+
+    fn list_resources(&self) -> Vec<Resource> {
+        vec![]
+    }
+
+    fn list_prompts(&self) -> Vec<Prompt> {
+        vec![]
+    }
+
+    fn call_tool<'a>(
+        &'a self,
+        name: &'a str,
+        args: Value,
+        _ctx: &'a RequestContext,
+    ) -> impl Future<Output = McpResult<ToolResult>> + Send + 'a {
+        let name = name.to_string();
+
+        async move {
+            match name.as_str() {
+                "search" => tools::search::call(args).await,
+                _ => Err(McpError::tool_not_found(&name)),
+            }
         }
     }
-}
 
-#[tool_router(router = tool_router)]
-impl RuslMcpServer {
-    #[tool(
-        name = "search",
-        description = "Search visible Rusl resources, including schemas, bundles, annotation types, and annotations, using compact responses by default. Set identifiers to exact canonical resource identifiers when resolving known resources. Set view to full only when the user explicitly asks for full search data or large embedded fields are truly needed. Set include_metrics when popularity or discoverability signals are needed."
-    )]
-    async fn search(
-        &self,
-        Parameters(request): Parameters<tools::search::SearchToolRequest>,
-    ) -> Result<CallToolResult, ErrorData> {
-        tools::search::call(request).await
+    fn read_resource<'a>(
+        &'a self,
+        uri: &'a str,
+        _ctx: &'a RequestContext,
+    ) -> impl Future<Output = McpResult<ResourceResult>> + Send + 'a {
+        let uri = uri.to_string();
+
+        async move { Err(McpError::resource_not_found(uri)) }
     }
-}
 
-#[tool_handler(router = self.tool_router)]
-impl ServerHandler for RuslMcpServer {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
-            .with_server_info(Implementation::new("rusl", env!("CARGO_PKG_VERSION")))
-            .with_instructions("Use the search tool to find visible Rusl resources.")
+    fn get_prompt<'a>(
+        &'a self,
+        name: &'a str,
+        _args: Option<Value>,
+        _ctx: &'a RequestContext,
+    ) -> impl Future<Output = McpResult<PromptResult>> + Send + 'a {
+        let name = name.to_string();
+
+        async move { Err(McpError::prompt_not_found(name)) }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::RuslMcpServer;
+    use turbomcp::prelude::McpHandler;
 
     #[test]
     fn exposes_search_tool() {
-        let server = RuslMcpServer::new();
-        let tools = server.tool_router.list_all();
+        let server = RuslMcpServer;
+        let tools = server.list_tools();
         let search = tools
             .iter()
             .find(|tool| tool.name == "search")
@@ -73,6 +96,11 @@ mod tests {
                 .as_deref()
                 .is_some_and(|description| description.contains("compact responses by default"))
         );
-        assert!(search.input_schema.contains_key("properties"));
+        assert!(
+            search
+                .input_schema
+                .properties_as_object()
+                .is_some_and(|properties| properties.contains_key("query"))
+        );
     }
 }
