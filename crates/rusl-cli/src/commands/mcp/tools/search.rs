@@ -1,11 +1,24 @@
 use crate::commands::mcp::{MCP_USER_AGENT_CONTEXT, errors::to_mcp_error};
-use rmcp::{ErrorData, model::CallToolResult, schemars};
 use rusl_app::search_service::{self, SearchDocumentType, SearchView};
+use schemars::JsonSchema;
 use serde::Deserialize;
+use serde_json::Value;
+use turbomcp::prelude::{McpError, McpResult, Tool, ToolInputSchema, ToolResult};
 
 const MAX_PER_PAGE: i32 = 100;
+const SEARCH_TOOL_DESCRIPTION: &str = "Search visible Rusl resources, including schemas, bundles, annotation types, and annotations, using compact responses by default. Set identifiers to exact canonical resource identifiers when resolving known resources. Set view to full only when the user explicitly asks for full search data or large embedded fields are truly needed. Set include_metrics when popularity or discoverability signals are needed.";
 
-#[derive(Debug, Clone, Default, Deserialize, schemars::JsonSchema)]
+pub(in crate::commands::mcp) fn definition() -> Tool {
+    Tool::new("search", SEARCH_TOOL_DESCRIPTION).with_schema(input_schema())
+}
+
+fn input_schema() -> ToolInputSchema {
+    let schema = schemars::schema_for!(SearchToolRequest);
+    let value = serde_json::to_value(schema).expect("SearchToolRequest schema serializes");
+    ToolInputSchema::from_value(value)
+}
+
+#[derive(Debug, Clone, Default, Deserialize, JsonSchema)]
 pub(in crate::commands::mcp) struct SearchToolRequest {
     #[schemars(description = "Search text. Omit to return all visible results.")]
     query: Option<String>,
@@ -31,27 +44,33 @@ pub(in crate::commands::mcp) struct SearchToolRequest {
     include_metrics: Option<bool>,
 }
 
-pub(in crate::commands::mcp) async fn call(
-    request: SearchToolRequest,
-) -> Result<CallToolResult, ErrorData> {
+pub(in crate::commands::mcp) async fn call(args: Value) -> McpResult<ToolResult> {
+    let request = deserialize_request(args)?;
     let output = search_service::search_registry_with_user_agent_context(
         request.into_search_request()?,
         MCP_USER_AGENT_CONTEXT,
     )
     .await
     .map_err(to_mcp_error)?;
-    let value = serde_json::to_value(output).map_err(|error| {
-        ErrorData::internal_error(
-            format!("Failed to serialize search response: {error}"),
-            None,
-        )
-    })?;
 
-    Ok(CallToolResult::structured(value))
+    ToolResult::json(&output).map_err(|error| {
+        McpError::internal(format!("Failed to serialize search response: {error}"))
+    })
+}
+
+fn deserialize_request(args: Value) -> McpResult<SearchToolRequest> {
+    let args = match args {
+        Value::Null => Value::Object(Default::default()),
+        args => args,
+    };
+
+    serde_json::from_value(args).map_err(|error| {
+        McpError::invalid_params(format!("Invalid search tool arguments: {error}"))
+    })
 }
 
 impl SearchToolRequest {
-    fn into_search_request(self) -> Result<search_service::SearchRequest, ErrorData> {
+    fn into_search_request(self) -> McpResult<search_service::SearchRequest> {
         Ok(search_service::SearchRequest {
             query: self.query,
             types: self
@@ -70,7 +89,7 @@ impl SearchToolRequest {
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 enum SearchToolType {
     Schema,
@@ -90,7 +109,7 @@ impl SearchToolType {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 enum SearchToolView {
     #[default]
@@ -107,28 +126,26 @@ impl SearchToolView {
     }
 }
 
-fn positive_page_value(name: &str, value: Option<i32>) -> Result<Option<i32>, ErrorData> {
+fn positive_page_value(name: &str, value: Option<i32>) -> McpResult<Option<i32>> {
     if let Some(value) = value
         && value < 1
     {
-        return Err(ErrorData::invalid_params(
-            format!("{name} must be greater than zero"),
-            None,
-        ));
+        return Err(McpError::invalid_params(format!(
+            "{name} must be greater than zero"
+        )));
     }
 
     Ok(value)
 }
 
-fn per_page_value(value: Option<i32>) -> Result<Option<i32>, ErrorData> {
+fn per_page_value(value: Option<i32>) -> McpResult<Option<i32>> {
     let value = positive_page_value("per_page", value)?;
     if let Some(value) = value
         && value > MAX_PER_PAGE
     {
-        return Err(ErrorData::invalid_params(
-            format!("per_page must be less than or equal to {MAX_PER_PAGE}"),
-            None,
-        ));
+        return Err(McpError::invalid_params(format!(
+            "per_page must be less than or equal to {MAX_PER_PAGE}"
+        )));
     }
 
     Ok(value)
@@ -136,8 +153,9 @@ fn per_page_value(value: Option<i32>) -> Result<Option<i32>, ErrorData> {
 
 #[cfg(test)]
 mod tests {
-    use super::{SearchToolRequest, SearchToolView};
+    use super::{SearchToolRequest, SearchToolView, deserialize_request, input_schema};
     use rusl_app::search_service::SearchView;
+    use serde_json::json;
 
     #[test]
     fn search_tool_defaults_to_compact_without_metrics() {
@@ -196,5 +214,33 @@ mod tests {
         .expect_err("invalid per_page");
 
         assert_eq!(error.message, "per_page must be less than or equal to 100");
+    }
+
+    #[test]
+    fn search_tool_deserializes_flat_arguments() {
+        let request = deserialize_request(json!({
+            "query": "brake",
+            "types": ["schema"],
+            "view": "full",
+            "include_metrics": true
+        }))
+        .expect("deserialize search tool arguments")
+        .into_search_request()
+        .expect("convert search request");
+
+        assert_eq!(request.query.as_deref(), Some("brake"));
+        assert_eq!(request.types.len(), 1);
+        assert_eq!(request.view, SearchView::Full);
+        assert!(request.include_metrics);
+    }
+
+    #[test]
+    fn search_tool_schema_exposes_flat_properties() {
+        let schema = input_schema();
+        let properties = schema.properties_as_object().expect("schema properties");
+
+        assert!(properties.contains_key("query"));
+        assert!(properties.contains_key("types"));
+        assert!(properties.contains_key("include_metrics"));
     }
 }
