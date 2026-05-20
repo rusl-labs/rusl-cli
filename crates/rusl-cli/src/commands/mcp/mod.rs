@@ -29,6 +29,8 @@ impl McpHandler for RuslMcpServer {
     fn list_tools(&self) -> Vec<Tool> {
         let mut tools = vec![tools::search::definition(), tools::endorse::definition()];
         tools.extend(tools::feedback::definitions());
+        tools.extend(tools::proposal::definitions());
+        tools.push(tools::schema_examples::definition());
         tools
     }
 
@@ -52,8 +54,11 @@ impl McpHandler for RuslMcpServer {
             match name.as_str() {
                 "search" => tools::search::call(args).await,
                 "endorse" => tools::endorse::call(args).await,
-                feedback_tool => {
-                    if let Some(kind) = tools::feedback::kind_for_tool(feedback_tool) {
+                "list_schema_examples" => tools::schema_examples::call(args).await,
+                proposal_tool => {
+                    if let Some(kind) = tools::proposal::kind_for_tool(proposal_tool) {
+                        tools::proposal::call(kind, args).await
+                    } else if let Some(kind) = tools::feedback::kind_for_tool(proposal_tool) {
                         tools::feedback::call(kind, args).await
                     } else {
                         Err(McpError::tool_not_found(&name))
@@ -124,5 +129,11 @@ mod tests {
         );
 
         assert!(tools.iter().any(|tool| tool.name == "endorse"));
+        assert!(
+            tools
+                .iter()
+                .any(|tool| tool.name == "list_proposal_review_threads")
+        );
+        assert!(tools.iter().any(|tool| tool.name == "list_schema_examples"));
     }
 }

@@ -109,3 +109,7 @@ These rules are mechanical. Follow them unless the user explicitly overrides a s
 16. **Do not leave architectural drift behind**
     - If you touch a boundary, move the code toward the intended layer instead of adding more leakage.
     - If a new feature needs shared behavior, prefer extending `rusl-app` or `rusl-api-client` rather than bolting it onto the CLI.
+
+17. **Keep MCP tool docs current**
+    - When adding, removing, renaming, or materially changing an MCP tool, update `docs/mcp-tools.md` in the same change.
+    - Keep tool descriptions terse, documentation-ready, and agent-focused.
