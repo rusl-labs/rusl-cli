@@ -278,6 +278,13 @@ mod tests {
 "#,
         )
         .expect("write manifest");
+        std::fs::write(
+            workspace_dir.join("rusl.config.toml"),
+            r#"
+schema_dir = "schemas/vendor"
+"#,
+        )
+        .expect("write config");
 
         let result = install_project(&TestProgress)
             .await
@@ -286,13 +293,13 @@ mod tests {
         assert_eq!(result.schema_count, 2);
 
         let root_schema = workspace_dir
-            .join(".rusl")
             .join("schemas")
+            .join("vendor")
             .join("hassox")
             .join("root.json");
         let dep_schema = workspace_dir
-            .join(".rusl")
             .join("schemas")
+            .join("vendor")
             .join("hassox")
             .join("dep.json");
         assert_eq!(
