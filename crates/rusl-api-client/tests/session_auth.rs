@@ -4,7 +4,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     routing::{get, post},
 };
-use rusl_api_client::{RuslApiClient, SessionTokens, models::MeResponse};
+use rusl_api_client::{RUSL_AGENT_HEADER, RuslApiClient, SessionTokens, models::MeResponse};
 use serde_json::{Value, json};
 use std::{collections::VecDeque, sync::Arc};
 use tokio::{
@@ -19,6 +19,7 @@ struct RecordedRequest {
     path: &'static str,
     authorization: Option<String>,
     user_agent: Option<String>,
+    rusl_agent: Option<String>,
 }
 
 impl RecordedRequest {
@@ -33,6 +34,23 @@ impl RecordedRequest {
             path,
             authorization: authorization.map(ToOwned::to_owned),
             user_agent: user_agent.map(ToOwned::to_owned),
+            rusl_agent: None,
+        }
+    }
+
+    fn new_with_agent(
+        method: &'static str,
+        path: &'static str,
+        authorization: Option<&str>,
+        user_agent: Option<&str>,
+        rusl_agent: Option<&str>,
+    ) -> Self {
+        Self {
+            method,
+            path,
+            authorization: authorization.map(ToOwned::to_owned),
+            user_agent: user_agent.map(ToOwned::to_owned),
+            rusl_agent: rusl_agent.map(ToOwned::to_owned),
         }
     }
 }
@@ -152,6 +170,7 @@ async fn record_request(
         path,
         authorization: header_value(headers, "authorization"),
         user_agent: header_value(headers, "user-agent"),
+        rusl_agent: header_value(headers, RUSL_AGENT_HEADER),
     });
 }
 
@@ -209,6 +228,44 @@ async fn exchanges_refresh_token_before_request_when_access_token_is_missing() {
                 "/api/auth/sessions/me",
                 Some("Bearer fresh-access"),
                 Some("rusl-test")
+            ),
+        ]
+    );
+}
+
+#[tokio::test]
+async fn sends_rusl_agent_header_on_session_and_refresh_requests() {
+    let server = TestServer::start(
+        vec![ResponseSpec::ok(json!({ "access_token": "fresh-access" }))],
+        vec![ResponseSpec::ok(unauthenticated_me())],
+    )
+    .await;
+    let client = RuslApiClient::new(server.base_url.clone())
+        .with_user_agent("rusl-test")
+        .with_rusl_agent("mcp");
+    let mut session = SessionTokens::new(None, Some("refresh-token".to_string()));
+
+    client
+        .fetch_session_me(&mut session)
+        .await
+        .expect("fetch session me");
+
+    assert_eq!(
+        server.recorded_requests().await,
+        vec![
+            RecordedRequest::new_with_agent(
+                "POST",
+                "/api/tokens/exchange",
+                Some("Bearer refresh-token"),
+                Some("rusl-test"),
+                Some("mcp")
+            ),
+            RecordedRequest::new_with_agent(
+                "GET",
+                "/api/auth/sessions/me",
+                Some("Bearer fresh-access"),
+                Some("rusl-test"),
+                Some("mcp")
             ),
         ]
     );

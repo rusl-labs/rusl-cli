@@ -1,4 +1,4 @@
-use crate::commands::mcp::{MCP_USER_AGENT_CONTEXT, errors::to_mcp_error};
+use crate::commands::mcp::{MCP_AGENT, errors::to_mcp_error};
 use rusl_app::search_service::{self, SearchDocumentType, SearchView};
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -42,13 +42,59 @@ pub(in crate::commands::mcp) struct SearchToolRequest {
         description = "Include popularity and discoverability metrics with compact results when ranking signals are needed."
     )]
     include_metrics: Option<bool>,
+    #[schemars(description = "Restrict global search by discovery profile status.")]
+    discovery_profile_status: Option<SearchToolDiscoveryProfileStatus>,
+    #[schemars(
+        description = "Restrict global search to resources that have any of these metric names."
+    )]
+    metric_names: Option<Vec<String>>,
+    #[schemars(
+        description = "Type-specific identifier prefix for schema, bundle, or annotation_type search. Requires exactly one matching type."
+    )]
+    identifier_prefix: Option<String>,
+    #[schemars(
+        description = "Type-specific resource lifecycle status for schema, bundle, or annotation_type search."
+    )]
+    status: Option<SearchToolResourceStatus>,
+    #[schemars(description = "Type-specific current version status for schema or bundle search.")]
+    current_version_status: Option<SearchToolVersionStatus>,
+    #[schemars(
+        description = "Type-specific JSON root instance types for schema search, such as object or array."
+    )]
+    current_version_root_instance_types: Option<Vec<SearchToolJsonRootInstanceType>>,
+    #[schemars(description = "Type-specific schema format for schema search.")]
+    schema_format: Option<SearchToolSchemaFormat>,
+    #[schemars(description = "Type-specific sort for bundle search.")]
+    bundle_sort: Option<SearchToolBundleSort>,
+    #[schemars(description = "Type-specific cardinality for annotation_type search.")]
+    annotation_type_cardinality: Option<SearchToolAnnotationTypeCardinality>,
+    #[schemars(description = "Type-specific lifecycle status for annotation search.")]
+    annotation_status: Option<SearchToolAnnotationStatus>,
+    #[schemars(description = "Type-specific sort for annotation search.")]
+    annotation_sort: Option<SearchToolAnnotationSort>,
+    #[schemars(description = "Restrict annotation search to registered annotation type GUIDs.")]
+    annotation_type_guids: Option<Vec<String>>,
+    #[schemars(description = "Restrict annotation search to annotations set by these user GUIDs.")]
+    set_by_user_guids: Option<Vec<String>>,
+    #[schemars(description = "Restrict annotation search by annotated subject account slugs.")]
+    subject_account_slugs: Option<Vec<String>>,
+    #[schemars(description = "Restrict annotation search to annotated subject GUIDs.")]
+    subject_guids: Option<Vec<String>>,
+    #[schemars(description = "Restrict annotation search by annotated subject identifier prefix.")]
+    subject_identifier_prefix: Option<String>,
+    #[schemars(description = "Restrict annotation search by annotated subject types.")]
+    subject_types: Option<Vec<SearchToolAnnotationSubjectType>>,
+    #[schemars(
+        description = "Restrict annotation search to registered annotation type identifiers."
+    )]
+    type_identifiers: Option<Vec<String>>,
 }
 
 pub(in crate::commands::mcp) async fn call(args: Value) -> McpResult<ToolResult> {
     let request = deserialize_request(args)?;
     let output = search_service::search_registry_with_user_agent_context(
         request.into_search_request()?,
-        MCP_USER_AGENT_CONTEXT,
+        MCP_AGENT,
     )
     .await
     .map_err(to_mcp_error)?;
@@ -85,6 +131,48 @@ impl SearchToolRequest {
             per_page: per_page_value(self.per_page)?,
             view: self.view.unwrap_or_default().into_search_view(),
             include_metrics: self.include_metrics.unwrap_or(false),
+            discovery_profile_status: self
+                .discovery_profile_status
+                .map(SearchToolDiscoveryProfileStatus::into_search_status),
+            metric_names: self.metric_names.unwrap_or_default(),
+            identifier_prefix: self.identifier_prefix,
+            status: self
+                .status
+                .map(SearchToolResourceStatus::into_search_status),
+            current_version_status: self
+                .current_version_status
+                .map(SearchToolVersionStatus::into_search_status),
+            current_version_root_instance_types: self
+                .current_version_root_instance_types
+                .unwrap_or_default()
+                .into_iter()
+                .map(SearchToolJsonRootInstanceType::into_search_instance_type)
+                .collect(),
+            schema_format: self
+                .schema_format
+                .map(SearchToolSchemaFormat::into_search_schema_format),
+            bundle_sort: self.bundle_sort.map(SearchToolBundleSort::into_search_sort),
+            annotation_type_cardinality: self
+                .annotation_type_cardinality
+                .map(SearchToolAnnotationTypeCardinality::into_search_cardinality),
+            annotation_status: self
+                .annotation_status
+                .map(SearchToolAnnotationStatus::into_search_status),
+            annotation_sort: self
+                .annotation_sort
+                .map(SearchToolAnnotationSort::into_search_sort),
+            annotation_type_guids: self.annotation_type_guids.unwrap_or_default(),
+            set_by_user_guids: self.set_by_user_guids.unwrap_or_default(),
+            subject_account_slugs: self.subject_account_slugs.unwrap_or_default(),
+            subject_guids: self.subject_guids.unwrap_or_default(),
+            subject_identifier_prefix: self.subject_identifier_prefix,
+            subject_types: self
+                .subject_types
+                .unwrap_or_default()
+                .into_iter()
+                .map(SearchToolAnnotationSubjectType::into_search_subject_type)
+                .collect(),
+            type_identifiers: self.type_identifiers.unwrap_or_default(),
         })
     }
 }
@@ -126,6 +214,216 @@ impl SearchToolView {
     }
 }
 
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolDiscoveryProfileStatus {
+    Pending,
+    Ready,
+    Failed,
+}
+
+impl SearchToolDiscoveryProfileStatus {
+    fn into_search_status(self) -> search_service::DiscoveryProfileStatus {
+        match self {
+            SearchToolDiscoveryProfileStatus::Pending => {
+                search_service::DiscoveryProfileStatus::Pending
+            }
+            SearchToolDiscoveryProfileStatus::Ready => {
+                search_service::DiscoveryProfileStatus::Ready
+            }
+            SearchToolDiscoveryProfileStatus::Failed => {
+                search_service::DiscoveryProfileStatus::Failed
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolResourceStatus {
+    Active,
+    Archived,
+}
+
+impl SearchToolResourceStatus {
+    fn into_search_status(self) -> search_service::ResourceStatus {
+        match self {
+            SearchToolResourceStatus::Active => search_service::ResourceStatus::Active,
+            SearchToolResourceStatus::Archived => search_service::ResourceStatus::Archived,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolVersionStatus {
+    Draft,
+    Active,
+    Deprecated,
+    Yanked,
+}
+
+impl SearchToolVersionStatus {
+    fn into_search_status(self) -> search_service::VersionStatus {
+        match self {
+            SearchToolVersionStatus::Draft => search_service::VersionStatus::Draft,
+            SearchToolVersionStatus::Active => search_service::VersionStatus::Active,
+            SearchToolVersionStatus::Deprecated => search_service::VersionStatus::Deprecated,
+            SearchToolVersionStatus::Yanked => search_service::VersionStatus::Yanked,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolJsonRootInstanceType {
+    Array,
+    Boolean,
+    Integer,
+    Null,
+    Number,
+    Object,
+    String,
+}
+
+impl SearchToolJsonRootInstanceType {
+    fn into_search_instance_type(self) -> search_service::JsonRootInstanceType {
+        match self {
+            SearchToolJsonRootInstanceType::Array => search_service::JsonRootInstanceType::Array,
+            SearchToolJsonRootInstanceType::Boolean => {
+                search_service::JsonRootInstanceType::Boolean
+            }
+            SearchToolJsonRootInstanceType::Integer => {
+                search_service::JsonRootInstanceType::Integer
+            }
+            SearchToolJsonRootInstanceType::Null => search_service::JsonRootInstanceType::Null,
+            SearchToolJsonRootInstanceType::Number => search_service::JsonRootInstanceType::Number,
+            SearchToolJsonRootInstanceType::Object => search_service::JsonRootInstanceType::Object,
+            SearchToolJsonRootInstanceType::String => search_service::JsonRootInstanceType::String,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolSchemaFormat {
+    JsonSchema,
+}
+
+impl SearchToolSchemaFormat {
+    fn into_search_schema_format(self) -> search_service::SchemaFormat {
+        match self {
+            SearchToolSchemaFormat::JsonSchema => search_service::SchemaFormat::JsonSchema,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolBundleSort {
+    Relevance,
+    Dependencies,
+}
+
+impl SearchToolBundleSort {
+    fn into_search_sort(self) -> search_service::BundleSort {
+        match self {
+            SearchToolBundleSort::Relevance => search_service::BundleSort::Relevance,
+            SearchToolBundleSort::Dependencies => search_service::BundleSort::Dependencies,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolAnnotationTypeCardinality {
+    OnePerSubjectPerAccount,
+    ManyPerSubjectPerAccount,
+}
+
+impl SearchToolAnnotationTypeCardinality {
+    fn into_search_cardinality(self) -> search_service::AnnotationTypeCardinality {
+        match self {
+            SearchToolAnnotationTypeCardinality::OnePerSubjectPerAccount => {
+                search_service::AnnotationTypeCardinality::OnePerSubjectPerAccount
+            }
+            SearchToolAnnotationTypeCardinality::ManyPerSubjectPerAccount => {
+                search_service::AnnotationTypeCardinality::ManyPerSubjectPerAccount
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolAnnotationStatus {
+    Active,
+    Deprecated,
+    Revoked,
+}
+
+impl SearchToolAnnotationStatus {
+    fn into_search_status(self) -> search_service::AnnotationStatus {
+        match self {
+            SearchToolAnnotationStatus::Active => search_service::AnnotationStatus::Active,
+            SearchToolAnnotationStatus::Deprecated => search_service::AnnotationStatus::Deprecated,
+            SearchToolAnnotationStatus::Revoked => search_service::AnnotationStatus::Revoked,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolAnnotationSort {
+    Relevance,
+    Endorsements,
+}
+
+impl SearchToolAnnotationSort {
+    fn into_search_sort(self) -> search_service::AnnotationSort {
+        match self {
+            SearchToolAnnotationSort::Relevance => search_service::AnnotationSort::Relevance,
+            SearchToolAnnotationSort::Endorsements => search_service::AnnotationSort::Endorsements,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SearchToolAnnotationSubjectType {
+    Annotations,
+    BundleVersions,
+    Bundles,
+    SchemaProposals,
+    SchemaVersions,
+    Schemas,
+}
+
+impl SearchToolAnnotationSubjectType {
+    fn into_search_subject_type(self) -> search_service::AnnotationSubjectType {
+        match self {
+            SearchToolAnnotationSubjectType::Annotations => {
+                search_service::AnnotationSubjectType::Annotations
+            }
+            SearchToolAnnotationSubjectType::BundleVersions => {
+                search_service::AnnotationSubjectType::BundleVersions
+            }
+            SearchToolAnnotationSubjectType::Bundles => {
+                search_service::AnnotationSubjectType::Bundles
+            }
+            SearchToolAnnotationSubjectType::SchemaProposals => {
+                search_service::AnnotationSubjectType::SchemaProposals
+            }
+            SearchToolAnnotationSubjectType::SchemaVersions => {
+                search_service::AnnotationSubjectType::SchemaVersions
+            }
+            SearchToolAnnotationSubjectType::Schemas => {
+                search_service::AnnotationSubjectType::Schemas
+            }
+        }
+    }
+}
+
 fn positive_page_value(name: &str, value: Option<i32>) -> McpResult<Option<i32>> {
     if let Some(value) = value
         && value < 1
@@ -154,7 +452,10 @@ fn per_page_value(value: Option<i32>) -> McpResult<Option<i32>> {
 #[cfg(test)]
 mod tests {
     use super::{SearchToolRequest, SearchToolView, deserialize_request, input_schema};
-    use rusl_app::search_service::SearchView;
+    use rusl_app::search_service::{
+        AnnotationSort, AnnotationStatus, AnnotationSubjectType, DiscoveryProfileStatus,
+        JsonRootInstanceType, ResourceStatus, SearchView, VersionStatus,
+    };
     use serde_json::json;
 
     #[test]
@@ -222,7 +523,13 @@ mod tests {
             "query": "brake",
             "types": ["schema"],
             "view": "full",
-            "include_metrics": true
+            "include_metrics": true,
+            "discovery_profile_status": "ready",
+            "metric_names": ["watchers"],
+            "identifier_prefix": "hassox/",
+            "status": "active",
+            "current_version_status": "deprecated",
+            "current_version_root_instance_types": ["object"]
         }))
         .expect("deserialize search tool arguments")
         .into_search_request()
@@ -232,6 +539,53 @@ mod tests {
         assert_eq!(request.types.len(), 1);
         assert_eq!(request.view, SearchView::Full);
         assert!(request.include_metrics);
+        assert_eq!(
+            request.discovery_profile_status,
+            Some(DiscoveryProfileStatus::Ready)
+        );
+        assert_eq!(request.metric_names, vec!["watchers".to_string()]);
+        assert_eq!(request.identifier_prefix.as_deref(), Some("hassox/"));
+        assert_eq!(request.status, Some(ResourceStatus::Active));
+        assert_eq!(
+            request.current_version_status,
+            Some(VersionStatus::Deprecated)
+        );
+        assert_eq!(
+            request.current_version_root_instance_types,
+            vec![JsonRootInstanceType::Object]
+        );
+    }
+
+    #[test]
+    fn search_tool_deserializes_annotation_filters() {
+        let request = deserialize_request(json!({
+            "types": ["annotation"],
+            "annotation_status": "active",
+            "annotation_sort": "endorsements",
+            "annotation_type_guids": ["type-guid"],
+            "set_by_user_guids": ["user-guid"],
+            "subject_account_slugs": ["hassox"],
+            "subject_guids": ["subject-guid"],
+            "subject_identifier_prefix": "hassox/common",
+            "subject_types": ["schemas"],
+            "type_identifiers": ["hassox/review"]
+        }))
+        .expect("deserialize search tool arguments")
+        .into_search_request()
+        .expect("convert search request");
+
+        assert_eq!(request.annotation_status, Some(AnnotationStatus::Active));
+        assert_eq!(request.annotation_sort, Some(AnnotationSort::Endorsements));
+        assert_eq!(request.annotation_type_guids, vec!["type-guid".to_string()]);
+        assert_eq!(request.set_by_user_guids, vec!["user-guid".to_string()]);
+        assert_eq!(request.subject_account_slugs, vec!["hassox".to_string()]);
+        assert_eq!(request.subject_guids, vec!["subject-guid".to_string()]);
+        assert_eq!(
+            request.subject_identifier_prefix.as_deref(),
+            Some("hassox/common")
+        );
+        assert_eq!(request.subject_types, vec![AnnotationSubjectType::Schemas]);
+        assert_eq!(request.type_identifiers, vec!["hassox/review".to_string()]);
     }
 
     #[test]
@@ -242,5 +596,8 @@ mod tests {
         assert!(properties.contains_key("query"));
         assert!(properties.contains_key("types"));
         assert!(properties.contains_key("include_metrics"));
+        assert!(properties.contains_key("identifier_prefix"));
+        assert!(properties.contains_key("bundle_sort"));
+        assert!(properties.contains_key("annotation_sort"));
     }
 }

@@ -6,5 +6,6 @@ pub mod login;
 pub mod mcp;
 pub mod outdated;
 pub mod remove;
+pub mod search;
 pub mod whoami;
 pub mod why;

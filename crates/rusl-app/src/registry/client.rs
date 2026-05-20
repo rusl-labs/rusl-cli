@@ -33,6 +33,18 @@ impl RegistryClient {
         Self::with_api(RuslApiClient::new(config.api_base_url).with_user_agent(user_agent))
     }
 
+    pub fn with_user_agent_and_rusl_agent(
+        config: Config,
+        user_agent: impl Into<String>,
+        rusl_agent: impl Into<String>,
+    ) -> Self {
+        Self::with_api(
+            RuslApiClient::new(config.api_base_url)
+                .with_user_agent(user_agent)
+                .with_rusl_agent(rusl_agent),
+        )
+    }
+
     fn with_api(api: RuslApiClient) -> Self {
         Self { api }
     }
@@ -114,6 +126,70 @@ impl RegistryClient {
             .await
             .map_err(map_api_error)
             .context("Failed to search registry")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn search_schemas(
+        &self,
+        request: models::SchemaSearchRequest,
+    ) -> Result<models::SearchResponse> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .search_schemas(&mut session, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to search schemas")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn search_bundles(
+        &self,
+        request: models::BundleSearchRequest,
+    ) -> Result<models::SearchResponse> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .search_bundles(&mut session, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to search bundles")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn search_annotation_types(
+        &self,
+        request: models::AnnotationTypeSearchRequest,
+    ) -> Result<models::SearchResponse> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .search_annotation_types(&mut session, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to search annotation types")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn search_annotations(
+        &self,
+        request: models::AnnotationSearchRequest,
+    ) -> Result<models::SearchResponse> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .search_annotations(&mut session, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to search annotations")?;
 
         self.persist_session(&mut credentials, &session)?;
         Ok(response)
@@ -213,7 +289,10 @@ mod tests {
         http::{HeaderMap, StatusCode},
         routing::{get, post},
     };
-    use rusl_api_client::models::{self, MeResponse};
+    use rusl_api_client::{
+        RUSL_AGENT_HEADER,
+        models::{self, MeResponse},
+    };
     use serde_json::{Value, json};
     use serial_test::serial;
     use std::{collections::VecDeque, ffi::OsString, sync::Arc};
@@ -235,6 +314,7 @@ mod tests {
     struct RecordedSearchRequest {
         authorization: Option<String>,
         user_agent: Option<String>,
+        rusl_agent: Option<String>,
         body: Value,
     }
 
@@ -506,13 +586,14 @@ mod tests {
         .save()
         .expect("save credentials");
 
-        let client = RegistryClient::with_user_agent(
+        let client = RegistryClient::with_user_agent_and_rusl_agent(
             Config {
                 api_base_url: server.base_url.clone(),
                 website_url: "https://example.test".to_string(),
                 schema_dir: None,
             },
-            "rusl/0.1.0 (mcp)",
+            "rusl-cli/0.1.0 (mcp)",
+            "mcp",
         );
 
         let response = client
@@ -530,7 +611,8 @@ mod tests {
             server.recorded_search_requests().await,
             vec![RecordedSearchRequest {
                 authorization: Some("Bearer access-token".to_string()),
-                user_agent: Some("rusl/0.1.0 (mcp)".to_string()),
+                user_agent: Some("rusl-cli/0.1.0 (mcp)".to_string()),
+                rusl_agent: Some("mcp".to_string()),
                 body: json!({
                     "page": 1,
                     "per_page": 10,
@@ -570,6 +652,7 @@ mod tests {
             .push(RecordedSearchRequest {
                 authorization: header_value(&headers, "authorization"),
                 user_agent: header_value(&headers, "user-agent"),
+                rusl_agent: header_value(&headers, RUSL_AGENT_HEADER),
                 body,
             });
         let response = next_response(&state.search_responses).await;

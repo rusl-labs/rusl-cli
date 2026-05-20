@@ -2187,6 +2187,7 @@ dependencies = [
  "axum",
  "reqwest",
  "rusl-openapi-client",
+ "serde",
  "serde_json",
  "thiserror",
  "tokio",
