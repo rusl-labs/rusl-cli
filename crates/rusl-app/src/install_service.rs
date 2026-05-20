@@ -219,6 +219,8 @@ mod tests {
 
     struct EnvGuard {
         previous_home: Option<OsString>,
+        previous_xdg_config_home: Option<OsString>,
+        previous_xdg_data_home: Option<OsString>,
         previous_api_url: Option<OsString>,
         previous_dir: PathBuf,
     }
@@ -230,15 +232,21 @@ mod tests {
             api_base_url: &str,
         ) -> Self {
             let previous_home = std::env::var_os(home_var_name());
+            let previous_xdg_config_home = std::env::var_os("XDG_CONFIG_HOME");
+            let previous_xdg_data_home = std::env::var_os("XDG_DATA_HOME");
             let previous_api_url = std::env::var_os("RUSL_API_URL");
             let previous_dir = std::env::current_dir().expect("current dir");
 
             unsafe { std::env::set_var(home_var_name(), home_dir.as_os_str()) };
+            unsafe { std::env::set_var("XDG_CONFIG_HOME", home_dir.join(".config")) };
+            unsafe { std::env::set_var("XDG_DATA_HOME", home_dir.join(".local").join("share")) };
             unsafe { std::env::set_var("RUSL_API_URL", api_base_url) };
             std::env::set_current_dir(workspace_dir).expect("set current dir");
 
             Self {
                 previous_home,
+                previous_xdg_config_home,
+                previous_xdg_data_home,
                 previous_api_url,
                 previous_dir,
             }
@@ -250,6 +258,14 @@ mod tests {
             match self.previous_home.as_ref() {
                 Some(value) => unsafe { std::env::set_var(home_var_name(), value) },
                 None => unsafe { std::env::remove_var(home_var_name()) },
+            }
+            match self.previous_xdg_config_home.as_ref() {
+                Some(value) => unsafe { std::env::set_var("XDG_CONFIG_HOME", value) },
+                None => unsafe { std::env::remove_var("XDG_CONFIG_HOME") },
+            }
+            match self.previous_xdg_data_home.as_ref() {
+                Some(value) => unsafe { std::env::set_var("XDG_DATA_HOME", value) },
+                None => unsafe { std::env::remove_var("XDG_DATA_HOME") },
             }
             match self.previous_api_url.as_ref() {
                 Some(value) => unsafe { std::env::set_var("RUSL_API_URL", value) },
@@ -278,6 +294,13 @@ mod tests {
 "#,
         )
         .expect("write manifest");
+        std::fs::write(
+            workspace_dir.join("rusl.config.toml"),
+            r#"
+schema_dir = "schemas/vendor"
+"#,
+        )
+        .expect("write config");
 
         let result = install_project(&TestProgress)
             .await
@@ -286,13 +309,13 @@ mod tests {
         assert_eq!(result.schema_count, 2);
 
         let root_schema = workspace_dir
-            .join(".rusl")
             .join("schemas")
+            .join("vendor")
             .join("hassox")
             .join("root.json");
         let dep_schema = workspace_dir
-            .join(".rusl")
             .join("schemas")
+            .join("vendor")
             .join("hassox")
             .join("dep.json");
         assert_eq!(

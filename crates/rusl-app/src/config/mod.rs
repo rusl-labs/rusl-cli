@@ -23,7 +23,8 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        let default_api = option_env!("RUSL_DEFAULT_API_URL").unwrap_or("https://api.rusl.app");
+        let default_api =
+            option_env!("RUSL_DEFAULT_API_URL").unwrap_or("https://resources.rusl.app");
         let default_web = option_env!("RUSL_DEFAULT_WEBSITE_URL").unwrap_or("https://rusl.app");
 
         Self {

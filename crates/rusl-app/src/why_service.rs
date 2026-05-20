@@ -308,13 +308,13 @@ version = "1"
 [dependencies."schema:acme/root"]
 version = "1.0.0"
 integrity = "root"
-source = "https://api.rusl.app"
+source = "https://resources.rusl.app"
 dependencies = ["schema:acme/shared"]
 
 [dependencies."schema:acme/shared"]
 version = "1.2.0"
 integrity = "shared"
-source = "https://api.rusl.app"
+source = "https://resources.rusl.app"
 "#,
         )
         .expect("write lockfile");
@@ -356,7 +356,7 @@ version = "1"
 [dependencies."schema:acme/other"]
 version = "1.0.0"
 integrity = "other"
-source = "https://api.rusl.app"
+source = "https://resources.rusl.app"
 "#,
         )
         .expect("write lockfile");

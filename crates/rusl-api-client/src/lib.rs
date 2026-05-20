@@ -743,8 +743,8 @@ mod tests {
             "http://localhost:4000"
         );
         assert_eq!(
-            normalize_base_url("https://api.rusl.app///".to_string()),
-            "https://api.rusl.app"
+            normalize_base_url("https://resources.rusl.app///".to_string()),
+            "https://resources.rusl.app"
         );
     }
 

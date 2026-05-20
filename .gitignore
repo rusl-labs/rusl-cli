@@ -1,4 +1,5 @@
 /target
 worktrees/
+.envrc
 
 rusl.config.toml

@@ -178,14 +178,14 @@ where
 
 fn current_manifest_path() -> Result<std::path::PathBuf> {
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let manifest_path = cwd.join("rusl.bundle.toml");
-    if !manifest_path.exists() {
-        bail!("No rusl.bundle.toml found in current directory! Please create one.");
-    }
-    Ok(manifest_path)
+    Ok(cwd.join("rusl.bundle.toml"))
 }
 
 fn read_manifest_document(path: &std::path::Path) -> Result<DocumentMut> {
+    if !path.exists() {
+        return Ok(DocumentMut::new());
+    }
+
     let contents = std::fs::read_to_string(path).context("Failed to read rusl.bundle.toml")?;
     contents
         .parse::<DocumentMut>()
@@ -416,6 +416,32 @@ version = "0.1.0"
 
         assert_eq!(result.table_key, RESOURCES_TABLE_KEY);
         assert_eq!(result.version_requirement, ">=1.2.3");
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(manifest.contains("[rusl.resources]"));
+        assert!(manifest.contains("\"hassox/test-schema\" = \">=1.2.3\""));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dependency_creates_missing_manifest() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let progress = TestProgress::default();
+
+        let result = add_dependency_with_installer(
+            AddDependencyRequest {
+                kind: DependencyKind::Schema,
+                slug: "hassox/test-schema".to_string(),
+                version_requirement: Some(">=1.2.3".to_string()),
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("add dependency");
+
+        assert_eq!(result.table_key, RESOURCES_TABLE_KEY);
         let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
             .expect("read manifest");
         assert!(manifest.contains("[rusl.resources]"));

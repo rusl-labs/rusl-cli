@@ -4,6 +4,7 @@ mod ui;
 
 use clap::Parser;
 use cli::{Cli, Commands};
+use std::io::IsTerminal;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -14,6 +15,8 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let cli = Cli::parse();
+
+    maybe_print_update_hint(&cli.command).await;
 
     match cli.command {
         Commands::Install(args) => commands::install::run(args).await?,
@@ -30,4 +33,31 @@ async fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+async fn maybe_print_update_hint(command: &Commands) {
+    if !should_check_for_update(command) || !std::io::stderr().is_terminal() {
+        return;
+    }
+
+    if let Some(hint) =
+        rusl_app::update_check_service::check_for_update(env!("CARGO_PKG_VERSION")).await
+    {
+        eprintln!("{}", hint.message);
+    }
+}
+
+fn should_check_for_update(command: &Commands) -> bool {
+    !matches!(command, Commands::Mcp(_))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cli::McpArgs;
+
+    #[test]
+    fn skips_update_check_for_mcp_command() {
+        assert!(!should_check_for_update(&Commands::Mcp(McpArgs {})));
+    }
 }
