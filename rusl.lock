@@ -1,3 +1,56 @@
 version = "1"
 
-[dependencies]
+[dependencies."bundle:rusl/bundles/feedback-schemas"]
+version = "0.1.1"
+integrity = ""
+source = "http://localhost:4000"
+dependencies = [
+    "schema:rusl/usage-report",
+    "schema:rusl/context-loading-hint",
+    "schema:rusl/trust-signal",
+    "schema:rusl/migration-guide",
+    "schema:rusl/context-request",
+    "schema:rusl/semantic-link",
+    "schema:rusl/domain-interpretation",
+    "schema:rusl/source-attestation",
+]
+
+[dependencies."schema:rusl/context-loading-hint"]
+version = "0.1.0"
+integrity = "1c9ee5c2bb30af316d85508c0ebc71c4afa2829efa7e82796e933c58b199e51f"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/context-request"]
+version = "0.1.0"
+integrity = "5d08f4be32da7cc4c7a90f6d5d5e698d6417bd509bac214e87babf752455d465"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/domain-interpretation"]
+version = "0.1.0"
+integrity = "b80d4b4f15ac62611d30d892cbf44fbe8007fc97b8067f18a0c2acbc9df301ff"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/migration-guide"]
+version = "0.1.0"
+integrity = "69795afb195bd74bfcf8df31b048b444628b97eb0ce5db88a0c661df6e8216df"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/semantic-link"]
+version = "0.1.0"
+integrity = "f3d5c6ce195b2542a16318c942dc1079d08cf55d0b5f9a2c1dd76416f00c7504"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/source-attestation"]
+version = "0.1.0"
+integrity = "82526410b0c566321740b377e24ed946f6bc232f02acbe3fb356e41b4eee36cc"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/trust-signal"]
+version = "0.1.0"
+integrity = "2ef6346dd2c9d308cb687c45e78b402308a1c1a128447e50dfd88d6c5775fa1a"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/usage-report"]
+version = "0.1.0"
+integrity = "c2f633cf85bf6d5d6fd101213c51e07215f1a9c0206f1c3d31d68f190d5087e9"
+source = "http://localhost:4000"

@@ -1,3 +1,4 @@
+pub mod annotation_service;
 pub mod cache;
 pub mod cache_service;
 pub mod config;

@@ -195,6 +195,39 @@ impl RegistryClient {
         Ok(response)
     }
 
+    pub async fn create_annotation(
+        &self,
+        account_slug: &str,
+        request: models::RuslWebApiAnnotationControllerCreateRequest,
+    ) -> Result<models::Annotation> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_annotation(&mut session, account_slug, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to create annotation")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn endorse_annotation(
+        &self,
+        annotation_id: &str,
+    ) -> Result<models::RuslWebApiReactionControllerFavourite201Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .endorse_annotation(&mut session, annotation_id)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to endorse annotation")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
     fn load_session(&self) -> Result<(Option<Credentials>, SessionTokens)> {
         let credentials = Credentials::load();
         let session = session_tokens(&credentials);
