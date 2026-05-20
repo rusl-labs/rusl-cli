@@ -211,6 +211,154 @@ impl RuslApiClient {
         .await
     }
 
+    pub async fn create_schema(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        request: models::OpenApiSchema5,
+    ) -> Result<models::RuslWebApiSchemaControllerShow200Response, ApiError> {
+        let path = create_schema_path(account_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &Some(request)).await }
+        })
+        .await
+    }
+
+    pub async fn create_schema_proposal(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        request: models::OpenApiSchema6,
+    ) -> Result<models::RuslWebApiProposalControllerShow200Response, ApiError> {
+        let path = schema_proposals_path(account_slug, schema_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &Some(request)).await }
+        })
+        .await
+    }
+
+    pub async fn fetch_schema_proposal(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+    ) -> Result<models::RuslWebApiProposalControllerShow200Response, ApiError> {
+        let path = schema_proposal_path(account_slug, schema_slug, proposal_number);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
+    pub async fn update_schema_proposal(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        request: models::OpenApiSchema4,
+    ) -> Result<models::RuslWebApiProposalControllerShow200Response, ApiError> {
+        let path = schema_proposal_path(account_slug, schema_slug, proposal_number);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.patch_json(access_token, &path, &Some(request)).await }
+        })
+        .await
+    }
+
+    pub async fn list_proposal_review_threads(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+    ) -> Result<models::RuslWebApiProposalReviewControllerIndex200Response, ApiError> {
+        let path = proposal_review_threads_path(account_slug, schema_slug, proposal_number);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
+    pub async fn create_proposal_review_thread(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        request: models::CreateReviewThreadRequest1,
+    ) -> Result<models::RuslWebApiProposalReviewControllerReopenThread200Response, ApiError> {
+        let path = proposal_review_threads_path(account_slug, schema_slug, proposal_number);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &Some(request)).await }
+        })
+        .await
+    }
+
+    pub async fn create_proposal_review_comment(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        thread_id: &str,
+        request: models::CreateReviewCommentRequest1,
+    ) -> Result<models::RuslWebApiProposalReviewControllerCreateComment201Response, ApiError> {
+        let path = proposal_review_thread_comments_path(
+            account_slug,
+            schema_slug,
+            proposal_number,
+            thread_id,
+        );
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &Some(request)).await }
+        })
+        .await
+    }
+
+    pub async fn list_schema_examples(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        version: Option<String>,
+        page: Option<i32>,
+        page_size: Option<i32>,
+    ) -> Result<models::RuslWebApiSchemaVersionControllerExampleDataIndex200Response, ApiError>
+    {
+        let path = schema_examples_path(account_slug, schema_slug);
+        let query = SchemaExamplesQuery {
+            version,
+            page,
+            page_size,
+        };
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let query = query.clone();
+            async move {
+                self.execute_json(
+                    self.request(reqwest::Method::GET, &path, access_token)
+                        .query(&query),
+                )
+                .await
+            }
+        })
+        .await
+    }
+
     pub async fn fetch_schema_metadata(
         &self,
         session: &mut SessionTokens,
@@ -366,6 +514,23 @@ impl RuslApiClient {
             .await
     }
 
+    async fn patch_json<B, T>(
+        &self,
+        access_token: Option<String>,
+        path: &str,
+        body: &B,
+    ) -> Result<T, ApiError>
+    where
+        B: Serialize + ?Sized,
+        T: DeserializeOwned,
+    {
+        self.execute_json(
+            self.request(reqwest::Method::PATCH, path, access_token)
+                .json(body),
+        )
+        .await
+    }
+
     async fn execute_json<T>(&self, request: reqwest::RequestBuilder) -> Result<T, ApiError>
     where
         T: DeserializeOwned,
@@ -411,6 +576,16 @@ impl RuslApiClient {
 
         request
     }
+}
+
+#[derive(Clone, Serialize)]
+struct SchemaExamplesQuery {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    page: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    page_size: Option<i32>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -497,12 +672,68 @@ fn endorse_annotation_path(annotation_id: &str) -> String {
     )
 }
 
+fn create_schema_path(account_slug: &str) -> String {
+    format!("/api/{}/schemas", generated::apis::urlencode(account_slug))
+}
+
+fn schema_proposals_path(account_slug: &str, schema_slug: &str) -> String {
+    format!(
+        "/api/{}/schemas/{}/proposals",
+        generated::apis::urlencode(account_slug),
+        generated::apis::urlencode(schema_slug)
+    )
+}
+
+fn schema_proposal_path(account_slug: &str, schema_slug: &str, proposal_number: i32) -> String {
+    format!(
+        "{}/{}",
+        schema_proposals_path(account_slug, schema_slug),
+        proposal_number
+    )
+}
+
+fn proposal_review_threads_path(
+    account_slug: &str,
+    schema_slug: &str,
+    proposal_number: i32,
+) -> String {
+    format!(
+        "/api/{}/schemas/{}/proposals/{}/review_threads",
+        generated::apis::urlencode(account_slug),
+        generated::apis::urlencode(schema_slug),
+        proposal_number
+    )
+}
+
+fn proposal_review_thread_comments_path(
+    account_slug: &str,
+    schema_slug: &str,
+    proposal_number: i32,
+    thread_id: &str,
+) -> String {
+    format!(
+        "{}/{}/comments",
+        proposal_review_threads_path(account_slug, schema_slug, proposal_number),
+        generated::apis::urlencode(thread_id)
+    )
+}
+
+fn schema_examples_path(account_slug: &str, schema_slug: &str) -> String {
+    format!(
+        "/api/{}/schemas/{}/example_data",
+        generated::apis::urlencode(account_slug),
+        generated::apis::urlencode(schema_slug)
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        create_annotation_path, endorse_annotation_path, normalize_base_url,
+        create_annotation_path, create_schema_path, endorse_annotation_path, normalize_base_url,
+        proposal_review_thread_comments_path, proposal_review_threads_path,
         raw_bundle_metadata_path, raw_schema_document_path, raw_schema_metadata_path,
-        rusl_user_agent, rusl_user_agent_with_context,
+        rusl_user_agent, rusl_user_agent_with_context, schema_examples_path, schema_proposal_path,
+        schema_proposals_path,
     };
 
     #[test]
@@ -548,6 +779,27 @@ mod tests {
         assert_eq!(
             endorse_annotation_path("annotations.123/456"),
             "/api/annotations/annotations.123%2F456/endorse"
+        );
+        assert_eq!(create_schema_path("hass ox"), "/api/hass+ox/schemas");
+        assert_eq!(
+            schema_proposals_path("hass ox", "common/schema"),
+            "/api/hass+ox/schemas/common%2Fschema/proposals"
+        );
+        assert_eq!(
+            schema_proposal_path("hass ox", "common/schema", 42),
+            "/api/hass+ox/schemas/common%2Fschema/proposals/42"
+        );
+        assert_eq!(
+            proposal_review_threads_path("hass ox", "common/schema", 42),
+            "/api/hass+ox/schemas/common%2Fschema/proposals/42/review_threads"
+        );
+        assert_eq!(
+            proposal_review_thread_comments_path("hass ox", "common/schema", 42, "thread/1"),
+            "/api/hass+ox/schemas/common%2Fschema/proposals/42/review_threads/thread%2F1/comments"
+        );
+        assert_eq!(
+            schema_examples_path("hass ox", "common/schema"),
+            "/api/hass+ox/schemas/common%2Fschema/example_data"
         );
     }
 }

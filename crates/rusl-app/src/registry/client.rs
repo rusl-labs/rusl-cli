@@ -228,6 +228,181 @@ impl RegistryClient {
         Ok(response)
     }
 
+    pub async fn create_schema(
+        &self,
+        account_slug: &str,
+        request: models::OpenApiSchema5,
+    ) -> Result<models::RuslWebApiSchemaControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_schema(&mut session, account_slug, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to create schema")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn create_schema_proposal(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        request: models::OpenApiSchema6,
+    ) -> Result<models::RuslWebApiProposalControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_schema_proposal(&mut session, account_slug, schema_slug, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to create schema proposal")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn fetch_schema_proposal(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+    ) -> Result<models::RuslWebApiProposalControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .fetch_schema_proposal(&mut session, account_slug, schema_slug, proposal_number)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to fetch schema proposal")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn update_schema_proposal(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        request: models::OpenApiSchema4,
+    ) -> Result<models::RuslWebApiProposalControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .update_schema_proposal(
+                &mut session,
+                account_slug,
+                schema_slug,
+                proposal_number,
+                request,
+            )
+            .await
+            .map_err(map_api_error)
+            .context("Failed to update schema proposal")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn list_proposal_review_threads(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+    ) -> Result<models::RuslWebApiProposalReviewControllerIndex200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .list_proposal_review_threads(&mut session, account_slug, schema_slug, proposal_number)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to list proposal review threads")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn create_proposal_review_thread(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        request: models::CreateReviewThreadRequest1,
+    ) -> Result<models::RuslWebApiProposalReviewControllerReopenThread200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_proposal_review_thread(
+                &mut session,
+                account_slug,
+                schema_slug,
+                proposal_number,
+                request,
+            )
+            .await
+            .map_err(map_api_error)
+            .context("Failed to create proposal review thread")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn create_proposal_review_comment(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        thread_id: &str,
+        request: models::CreateReviewCommentRequest1,
+    ) -> Result<models::RuslWebApiProposalReviewControllerCreateComment201Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_proposal_review_comment(
+                &mut session,
+                account_slug,
+                schema_slug,
+                proposal_number,
+                thread_id,
+                request,
+            )
+            .await
+            .map_err(map_api_error)
+            .context("Failed to reply to proposal review thread")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn list_schema_examples(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        version: Option<String>,
+        page: Option<i32>,
+        page_size: Option<i32>,
+    ) -> Result<models::RuslWebApiSchemaVersionControllerExampleDataIndex200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .list_schema_examples(
+                &mut session,
+                account_slug,
+                schema_slug,
+                version,
+                page,
+                page_size,
+            )
+            .await
+            .map_err(map_api_error)
+            .context("Failed to list schema examples")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
     fn load_session(&self) -> Result<(Option<Credentials>, SessionTokens)> {
         let credentials = Credentials::load();
         let session = session_tokens(&credentials);
