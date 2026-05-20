@@ -233,7 +233,7 @@ mod tests {
         );
         assert!(is_external_source("https://example.com/schema.json"));
         assert!(!is_external_source(
-            "https://api.rusl.app/resources/acme/common"
+            "https://resources.rusl.app/resources/acme/common"
         ));
     }
 
@@ -255,7 +255,7 @@ mod tests {
             LockDependency {
                 version: "2.0.0".to_string(),
                 integrity: "sha256-bundle".to_string(),
-                source: "https://api.rusl.app/resources/acme/bundles/common".to_string(),
+                source: "https://resources.rusl.app/resources/acme/bundles/common".to_string(),
                 dependencies: vec!["schema:acme/shared".to_string()],
             },
         );
@@ -264,7 +264,7 @@ mod tests {
             LockDependency {
                 version: "1.0.0".to_string(),
                 integrity: "sha256-root".to_string(),
-                source: "https://api.rusl.app/resources/acme/root".to_string(),
+                source: "https://resources.rusl.app/resources/acme/root".to_string(),
                 dependencies: vec![
                     "bundle:acme/bundles/common".to_string(),
                     "schema:acme/shared".to_string(),
@@ -347,7 +347,7 @@ version = "1"
 [dependencies."schema:acme/root"]
 version = "1.0.0"
 integrity = "root"
-source = "https://api.rusl.app"
+source = "https://resources.rusl.app"
 dependencies = ["schema:acme/shared"]
 
 [dependencies."schema:acme/shared"]

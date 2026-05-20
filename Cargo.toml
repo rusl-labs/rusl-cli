@@ -2,3 +2,19 @@
 members = ["crates/rusl-app", "crates/rusl-api-client", "crates/rusl-cli"]
 default-members = ["crates/rusl-cli"]
 resolver = "3"
+
+[workspace.metadata.dist]
+cargo-dist-version = "0.31.0"
+ci = ["github"]
+hosting = ["github"]
+installers = ["shell", "powershell", "homebrew"]
+install-updater = false
+publish-jobs = ["homebrew"]
+tap = "rusl-labs/homebrew-tap"
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+]

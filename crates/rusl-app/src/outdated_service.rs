@@ -312,7 +312,7 @@ version = "1"
 [dependencies."schema:hassox/root"]
 version = "1.0.0"
 integrity = "root"
-source = "https://api.rusl.app"
+source = "https://resources.rusl.app"
 "#,
         )
         .expect("write lockfile");

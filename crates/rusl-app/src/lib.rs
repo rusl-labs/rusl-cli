@@ -14,5 +14,6 @@ pub mod resolver;
 pub mod resource_identifier;
 pub mod schema_example_service;
 pub mod search_service;
+pub mod update_check_service;
 pub mod whoami_service;
 pub mod why_service;

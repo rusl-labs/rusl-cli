@@ -2,6 +2,14 @@
 name = "rusl-app"
 version = "0.1.0"
 edition = "2024"
+description = "Shared application logic for the Rusl schema package manager."
+homepage = "https://github.com/rusl-labs/rusl-cli"
+repository = "https://github.com/rusl-labs/rusl-cli"
+license = "Apache-2.0"
+publish = false
+
+[package.metadata.dist]
+dist = false
 
 [dependencies]
 anyhow = "1.0.102"
@@ -16,6 +24,7 @@ rusl-api-client = { path = "../rusl-api-client" }
 reqwest = { version = "0.13.2", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
+semver = "1.0.27"
 sha2 = "0.11.0"
 tempfile = "3"
 thiserror = "2.0.18"

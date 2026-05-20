@@ -1,4 +1,4 @@
-.PHONY: help install build release test check clippy fmt fmt-check verify openapi-refresh openapi-generate
+.PHONY: help install build release test check clippy fmt fmt-check verify prepare-release openapi-refresh openapi-generate
 
 help:
 	@printf '%s\n' \
@@ -11,6 +11,7 @@ help:
 		'make fmt               Format the workspace' \
 		'make fmt-check         Check formatting' \
 		'make verify            Run the full required verification suite' \
+		'make prepare-release   Bump first-party crate versions; requires VERSION=x.y.z' \
 		'make openapi-refresh   Refresh the committed OpenAPI snapshot' \
 		'make openapi-generate  Regenerate the checked-in Rust OpenAPI client'
 
@@ -44,6 +45,13 @@ verify:
 	cargo test --workspace
 	cargo fmt --check
 	cargo build --workspace --release
+
+prepare-release:
+	@if [ -z "$(VERSION)" ]; then \
+		printf '%s\n' 'VERSION is required. Example: make prepare-release VERSION=0.2.0'; \
+		exit 1; \
+	fi
+	./scripts/prepare-release.sh "$(VERSION)"
 
 openapi-refresh:
 	./scripts/refresh-openapi-spec.sh

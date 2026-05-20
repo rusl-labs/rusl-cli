@@ -2,6 +2,15 @@
 name = "rusl"
 version = "0.1.0"
 edition = "2024"
+description = "The Rusl schema package manager CLI."
+homepage = "https://github.com/rusl-labs/rusl-cli"
+repository = "https://github.com/rusl-labs/rusl-cli"
+license = "Apache-2.0"
+readme = "../../README.md"
+publish = false
+
+[package.metadata.dist]
+dist = true
 
 [dependencies]
 anyhow = "1.0.102"
