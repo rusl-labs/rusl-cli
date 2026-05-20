@@ -183,6 +183,34 @@ impl RuslApiClient {
         .await
     }
 
+    pub async fn create_annotation(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        request: models::RuslWebApiAnnotationControllerCreateRequest,
+    ) -> Result<models::Annotation, ApiError> {
+        let path = create_annotation_path(account_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &Some(request)).await }
+        })
+        .await
+    }
+
+    pub async fn endorse_annotation(
+        &self,
+        session: &mut SessionTokens,
+        annotation_id: &str,
+    ) -> Result<models::RuslWebApiReactionControllerFavourite201Response, ApiError> {
+        let path = endorse_annotation_path(annotation_id);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.post_empty(access_token, &path).await }
+        })
+        .await
+    }
+
     pub async fn fetch_schema_metadata(
         &self,
         session: &mut SessionTokens,
@@ -330,6 +358,14 @@ impl RuslApiClient {
         .await
     }
 
+    async fn post_empty<T>(&self, access_token: Option<String>, path: &str) -> Result<T, ApiError>
+    where
+        T: DeserializeOwned,
+    {
+        self.execute_json(self.request(reqwest::Method::POST, path, access_token))
+            .await
+    }
+
     async fn execute_json<T>(&self, request: reqwest::RequestBuilder) -> Result<T, ApiError>
     where
         T: DeserializeOwned,
@@ -447,11 +483,26 @@ fn raw_bundle_metadata_path(account: &str, slug: &str) -> String {
     )
 }
 
+fn create_annotation_path(account_slug: &str) -> String {
+    format!(
+        "/api/{}/annotations",
+        generated::apis::urlencode(account_slug)
+    )
+}
+
+fn endorse_annotation_path(annotation_id: &str) -> String {
+    format!(
+        "/api/annotations/{}/endorse",
+        generated::apis::urlencode(annotation_id)
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        normalize_base_url, raw_bundle_metadata_path, raw_schema_document_path,
-        raw_schema_metadata_path, rusl_user_agent, rusl_user_agent_with_context,
+        create_annotation_path, endorse_annotation_path, normalize_base_url,
+        raw_bundle_metadata_path, raw_schema_document_path, raw_schema_metadata_path,
+        rusl_user_agent, rusl_user_agent_with_context,
     };
 
     #[test]
@@ -489,6 +540,14 @@ mod tests {
         assert_eq!(
             raw_bundle_metadata_path("hass ox", "bundle/main"),
             "/resources/hass+ox/bundles/bundle%2Fmain/metadata"
+        );
+        assert_eq!(
+            create_annotation_path("hass ox"),
+            "/api/hass+ox/annotations"
+        );
+        assert_eq!(
+            endorse_annotation_path("annotations.123/456"),
+            "/api/annotations/annotations.123%2F456/endorse"
         );
     }
 }

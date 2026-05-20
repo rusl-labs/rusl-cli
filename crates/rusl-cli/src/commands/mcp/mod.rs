@@ -23,11 +23,13 @@ struct RuslMcpServer;
 impl McpHandler for RuslMcpServer {
     fn server_info(&self) -> ServerInfo {
         ServerInfo::new("rusl", env!("CARGO_PKG_VERSION"))
-            .with_description("Use the search tool to find visible Rusl resources.")
+            .with_description("Search visible Rusl resources and create feedback annotations.")
     }
 
     fn list_tools(&self) -> Vec<Tool> {
-        vec![tools::search::definition()]
+        let mut tools = vec![tools::search::definition(), tools::endorse::definition()];
+        tools.extend(tools::feedback::definitions());
+        tools
     }
 
     fn list_resources(&self) -> Vec<Resource> {
@@ -49,7 +51,14 @@ impl McpHandler for RuslMcpServer {
         async move {
             match name.as_str() {
                 "search" => tools::search::call(args).await,
-                _ => Err(McpError::tool_not_found(&name)),
+                "endorse" => tools::endorse::call(args).await,
+                feedback_tool => {
+                    if let Some(kind) = tools::feedback::kind_for_tool(feedback_tool) {
+                        tools::feedback::call(kind, args).await
+                    } else {
+                        Err(McpError::tool_not_found(&name))
+                    }
+                }
             }
         }
     }
@@ -82,7 +91,7 @@ mod tests {
     use turbomcp::prelude::McpHandler;
 
     #[test]
-    fn exposes_search_tool() {
+    fn exposes_search_and_feedback_tools() {
         let server = RuslMcpServer;
         let tools = server.list_tools();
         let search = tools
@@ -102,5 +111,18 @@ mod tests {
                 .properties_as_object()
                 .is_some_and(|properties| properties.contains_key("query"))
         );
+
+        let context_request = tools
+            .iter()
+            .find(|tool| tool.name == "create_context_request")
+            .expect("context request tool is registered");
+        assert!(
+            context_request
+                .input_schema
+                .properties_as_object()
+                .is_some_and(|properties| properties.contains_key("failing_task"))
+        );
+
+        assert!(tools.iter().any(|tool| tool.name == "endorse"));
     }
 }

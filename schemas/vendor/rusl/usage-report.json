@@ -1,0 +1,31 @@
+{
+  "$id": "https://resources.rusl.app/schemas/rusl/usage-report",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Observed evidence about whether a schema, bundle, or annotation helped complete a real task.",
+  "properties": {
+    "agent_model": {
+      "description": "Model or agent framework that attempted the task.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "outcome": {
+      "description": "Observed task outcome.",
+      "enum": ["success", "partial_success", "failure"],
+      "type": "string"
+    },
+    "task_attempted": {
+      "description": "Short statement of the task being attempted.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "workaround_used": {
+      "description": "Optional description of coercion, manual repair, or other workaround needed.",
+      "type": "string"
+    }
+  },
+  "required": ["agent_model", "task_attempted", "outcome"],
+  "title": "Usage Report",
+  "type": "object",
+  "version": "0.1.0"
+}
