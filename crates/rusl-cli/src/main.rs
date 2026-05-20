@@ -23,6 +23,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Whoami(args) => commands::whoami::run(args).await?,
         Commands::List(args) => commands::list::run(args).await?,
         Commands::Outdated(args) => commands::outdated::run(args).await?,
+        Commands::Search(args) => commands::search::run(*args).await?,
         Commands::Why(args) => commands::why::run(args).await?,
         Commands::Cache(args) => commands::cache::run(args).await?,
         Commands::Mcp(args) => commands::mcp::run(args).await?,

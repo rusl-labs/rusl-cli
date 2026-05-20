@@ -10,7 +10,7 @@ use turbomcp::prelude::{
     ResourceResult, ServerInfo, Tool, ToolResult,
 };
 
-const MCP_USER_AGENT_CONTEXT: &str = "mcp";
+const MCP_AGENT: &str = "mcp";
 
 pub async fn run(_args: McpArgs) -> Result<()> {
     RuslMcpServer.run_stdio().await?;

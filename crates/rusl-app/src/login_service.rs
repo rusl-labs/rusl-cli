@@ -2,9 +2,7 @@ use crate::config::{self, credentials::Credentials};
 use anyhow::{Context, Result, bail};
 use base64::prelude::*;
 use rand::Rng;
-use reqwest::Client;
 use rusl_api_client::RuslApiClient;
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,17 +32,6 @@ impl LoginSession {
             message = message,
         )
     }
-}
-
-#[derive(Serialize)]
-struct TokenExchangeRequest {
-    code: String,
-    code_verifier: String,
-}
-
-#[derive(Deserialize)]
-struct TokenExchangeResponse {
-    refresh_token: String,
 }
 
 pub fn begin_login(callback_url: &str) -> Result<LoginSession> {
@@ -77,32 +64,21 @@ pub async fn complete_login(code: String, code_verifier: String) -> Result<()> {
     }
 
     let config = config::load().context("Failed to load network configuration")?;
-    let auth_endpoint = format!("{}/api/auth/cli/token", config.api_base_url);
-
-    let token_response = Client::new()
-        .post(&auth_endpoint)
-        .json(&TokenExchangeRequest {
-            code,
-            code_verifier,
-        })
-        .send()
+    let client = RuslApiClient::new(config.api_base_url);
+    let payload = client
+        .exchange_cli_token(code, code_verifier)
         .await
         .context("Failed to exchange the browser code for CLI credentials")?;
-
-    if !token_response.status().is_success() {
-        let status = token_response.status();
-        let body = token_response.text().await.unwrap_or_default();
-        bail!("Login failed ({status}): {body}");
-    }
-
-    let payload: TokenExchangeResponse = token_response
-        .json()
-        .await
-        .context("Failed to parse the login token response")?;
-    let access_token = RuslApiClient::new(config.api_base_url)
-        .exchange_refresh_token(&payload.refresh_token)
-        .await
-        .context("Failed to exchange the refresh token for an access token")?;
+    let access_token = match payload
+        .access_token
+        .filter(|token| !token.trim().is_empty())
+    {
+        Some(access_token) => access_token,
+        None => client
+            .exchange_refresh_token(&payload.refresh_token)
+            .await
+            .context("Failed to exchange the refresh token for an access token")?,
+    };
 
     Credentials {
         access_token,
