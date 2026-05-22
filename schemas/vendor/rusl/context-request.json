@@ -1,0 +1,26 @@
+{
+  "$id": "https://resources.rusl.app/schemas/rusl/context-request",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A request for better explanation when a subject is ambiguous enough to block a task.",
+  "properties": {
+    "error_received": {
+      "description": "Optional exact validation, tool, or runtime error.",
+      "type": "string"
+    },
+    "failing_task": {
+      "description": "Task that was blocked or made unsafe by missing context.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "suspected_ambiguity": {
+      "description": "Question or point of confusion that should be clarified.",
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": ["failing_task", "suspected_ambiguity"],
+  "title": "Context Request",
+  "type": "object",
+  "version": "0.1.0"
+}
