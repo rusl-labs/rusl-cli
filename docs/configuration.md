@@ -113,8 +113,8 @@ The bundle manifest itself is not searched upward. Run bundle commands from the 
 
 | Option | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `api_base_url` | string | `https://resources.rusl.app` | Rusl API server. |
-| `website_url` | string | `https://rusl.app` | Rusl website used for browser-based flows. |
+| `api_base_url` | string | `https://resources.rusl.com` | Rusl API server. |
+| `website_url` | string | `https://rusl.com` | Rusl website used for browser-based flows. |
 | `schema_dir` | string | `.rusl/schemas` | Directory where resolved schema files are written, using `<schema_dir>/<account>/<slug>.json`. Relative paths are resolved from the command's current working directory. |
 
 When `schema_dir` is the default `.rusl/schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.

@@ -11,6 +11,8 @@ use std::fs;
 
 const LOCAL_BUNDLE_NAME: &str = "local bundle";
 const LOCAL_BUNDLE_VERSION: &str = "unversioned";
+const FIRST_PARTY_SOURCE_MARKERS: [&str; 3] =
+    ["resources.rusl.com", "resources.rusl.app", "localhost"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ListOutput {
@@ -169,7 +171,9 @@ fn build_tree_node(key: &str, lock: &LockManifest, seen: &mut HashSet<String>) -
 }
 
 fn is_external_source(source: &str) -> bool {
-    !source.contains("rusl.app") && !source.contains("localhost")
+    !FIRST_PARTY_SOURCE_MARKERS
+        .iter()
+        .any(|marker| source.contains(marker))
 }
 
 fn display_bundle_identifier(identifier: &str) -> String {
@@ -233,6 +237,9 @@ mod tests {
         );
         assert!(is_external_source("https://example.com/schema.json"));
         assert!(!is_external_source(
+            "https://resources.rusl.com/resources/acme/common"
+        ));
+        assert!(!is_external_source(
             "https://resources.rusl.app/resources/acme/common"
         ));
     }
@@ -255,7 +262,7 @@ mod tests {
             LockDependency {
                 version: "2.0.0".to_string(),
                 integrity: "sha256-bundle".to_string(),
-                source: "https://resources.rusl.app/resources/acme/bundles/common".to_string(),
+                source: "https://resources.rusl.com/resources/acme/bundles/common".to_string(),
                 dependencies: vec!["schema:acme/shared".to_string()],
             },
         );
@@ -264,7 +271,7 @@ mod tests {
             LockDependency {
                 version: "1.0.0".to_string(),
                 integrity: "sha256-root".to_string(),
-                source: "https://resources.rusl.app/resources/acme/root".to_string(),
+                source: "https://resources.rusl.com/resources/acme/root".to_string(),
                 dependencies: vec![
                     "bundle:acme/bundles/common".to_string(),
                     "schema:acme/shared".to_string(),
@@ -347,7 +354,7 @@ version = "1"
 [dependencies."schema:acme/root"]
 version = "1.0.0"
 integrity = "root"
-source = "https://resources.rusl.app"
+source = "https://resources.rusl.com"
 dependencies = ["schema:acme/shared"]
 
 [dependencies."schema:acme/shared"]

@@ -4,6 +4,9 @@ use tracing::debug;
 
 pub mod credentials;
 
+pub const DEFAULT_API_BASE_URL: &str = "https://resources.rusl.com";
+pub const DEFAULT_WEBSITE_URL: &str = "https://rusl.com";
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(default)]
 pub struct Config {
@@ -23,9 +26,8 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        let default_api =
-            option_env!("RUSL_DEFAULT_API_URL").unwrap_or("https://resources.rusl.app");
-        let default_web = option_env!("RUSL_DEFAULT_WEBSITE_URL").unwrap_or("https://rusl.app");
+        let default_api = option_env!("RUSL_DEFAULT_API_URL").unwrap_or(DEFAULT_API_BASE_URL);
+        let default_web = option_env!("RUSL_DEFAULT_WEBSITE_URL").unwrap_or(DEFAULT_WEBSITE_URL);
 
         Self {
             api_base_url: default_api.to_string(),
@@ -107,13 +109,15 @@ fn apply_partial(config: &mut Config, partial: PartialConfig) {
 
 #[cfg(test)]
 mod tests {
-    use super::load;
+    use super::{DEFAULT_API_BASE_URL, DEFAULT_WEBSITE_URL, load};
     use serial_test::serial;
     use std::{ffi::OsString, path::PathBuf};
     use tempfile::TempDir;
 
     struct EnvGuard {
         previous_home: Option<OsString>,
+        previous_xdg_config_home: Option<OsString>,
+        previous_xdg_data_home: Option<OsString>,
         previous_api_url: Option<OsString>,
         previous_website_url: Option<OsString>,
         previous_dir: PathBuf,
@@ -122,15 +126,21 @@ mod tests {
     impl EnvGuard {
         fn new(home_dir: &std::path::Path, workspace_dir: &std::path::Path) -> Self {
             let previous_home = std::env::var_os(home_var_name());
+            let previous_xdg_config_home = std::env::var_os("XDG_CONFIG_HOME");
+            let previous_xdg_data_home = std::env::var_os("XDG_DATA_HOME");
             let previous_api_url = std::env::var_os("RUSL_API_URL");
             let previous_website_url = std::env::var_os("RUSL_WEBSITE_URL");
             let previous_dir = std::env::current_dir().expect("current dir");
 
             set_env_var(home_var_name(), home_dir.as_os_str());
+            set_env_var("XDG_CONFIG_HOME", home_dir.join(".config"));
+            set_env_var("XDG_DATA_HOME", home_dir.join(".local").join("share"));
             std::env::set_current_dir(workspace_dir).expect("set workspace dir");
 
             Self {
                 previous_home,
+                previous_xdg_config_home,
+                previous_xdg_data_home,
                 previous_api_url,
                 previous_website_url,
                 previous_dir,
@@ -141,10 +151,18 @@ mod tests {
     impl Drop for EnvGuard {
         fn drop(&mut self) {
             restore_env_var(home_var_name(), self.previous_home.as_ref());
+            restore_env_var("XDG_CONFIG_HOME", self.previous_xdg_config_home.as_ref());
+            restore_env_var("XDG_DATA_HOME", self.previous_xdg_data_home.as_ref());
             restore_env_var("RUSL_API_URL", self.previous_api_url.as_ref());
             restore_env_var("RUSL_WEBSITE_URL", self.previous_website_url.as_ref());
             std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
         }
+    }
+
+    #[test]
+    fn production_domain_defaults_use_rusl_dot_com() {
+        assert_eq!(DEFAULT_API_BASE_URL, "https://resources.rusl.com");
+        assert_eq!(DEFAULT_WEBSITE_URL, "https://rusl.com");
     }
 
     #[test]

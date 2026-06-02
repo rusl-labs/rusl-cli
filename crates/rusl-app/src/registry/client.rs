@@ -637,19 +637,31 @@ mod tests {
 
     struct HomeGuard {
         previous_home: Option<OsString>,
+        previous_xdg_config_home: Option<OsString>,
+        previous_xdg_data_home: Option<OsString>,
     }
 
     impl HomeGuard {
         fn new(home_dir: &std::path::Path) -> Self {
             let previous_home = std::env::var_os(home_var_name());
+            let previous_xdg_config_home = std::env::var_os("XDG_CONFIG_HOME");
+            let previous_xdg_data_home = std::env::var_os("XDG_DATA_HOME");
             set_env_var(home_var_name(), home_dir.as_os_str());
-            Self { previous_home }
+            set_env_var("XDG_CONFIG_HOME", home_dir.join(".config"));
+            set_env_var("XDG_DATA_HOME", home_dir.join(".local").join("share"));
+            Self {
+                previous_home,
+                previous_xdg_config_home,
+                previous_xdg_data_home,
+            }
         }
     }
 
     impl Drop for HomeGuard {
         fn drop(&mut self) {
             restore_env_var(home_var_name(), self.previous_home.as_ref());
+            restore_env_var("XDG_CONFIG_HOME", self.previous_xdg_config_home.as_ref());
+            restore_env_var("XDG_DATA_HOME", self.previous_xdg_data_home.as_ref());
         }
     }
 

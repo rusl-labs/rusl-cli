@@ -15,8 +15,8 @@ Release builds default to:
 
 | Setting | Default |
 | --- | --- |
-| API server | `https://resources.rusl.app` |
-| Website server | `https://rusl.app` |
+| API server | `https://resources.rusl.com` |
+| Website server | `https://rusl.com` |
 
 Maintainers can override these at build time with `RUSL_DEFAULT_API_URL` and
 `RUSL_DEFAULT_WEBSITE_URL`. Users can override them at runtime with `RUSL_API_URL` and
