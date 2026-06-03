@@ -1,5 +1,5 @@
 {
-  "$id": "https://resources.rusl.app/schemas/rusl/source-attestation",
+  "$id": "https://resources.rusl.com/schemas/rusl/source-attestation",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Provenance metadata describing who or what produced a payload, schema, or annotation.",

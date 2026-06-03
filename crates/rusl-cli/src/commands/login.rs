@@ -212,6 +212,8 @@ mod tests {
 
     struct TestEnvGuard {
         previous_home: Option<OsString>,
+        previous_xdg_config_home: Option<OsString>,
+        previous_xdg_data_home: Option<OsString>,
         previous_api_url: Option<OsString>,
         previous_website_url: Option<OsString>,
         previous_dir: PathBuf,
@@ -225,17 +227,23 @@ mod tests {
             website_url: &str,
         ) -> Self {
             let previous_home = std::env::var_os(home_var_name());
+            let previous_xdg_config_home = std::env::var_os("XDG_CONFIG_HOME");
+            let previous_xdg_data_home = std::env::var_os("XDG_DATA_HOME");
             let previous_api_url = std::env::var_os("RUSL_API_URL");
             let previous_website_url = std::env::var_os("RUSL_WEBSITE_URL");
             let previous_dir = std::env::current_dir().expect("current dir");
 
             set_env_var(home_var_name(), home_dir.as_os_str());
+            set_env_var("XDG_CONFIG_HOME", home_dir.join(".config"));
+            set_env_var("XDG_DATA_HOME", home_dir.join(".local").join("share"));
             set_env_var("RUSL_API_URL", api_base_url);
             set_env_var("RUSL_WEBSITE_URL", website_url);
             std::env::set_current_dir(workspace_dir).expect("set workspace dir");
 
             Self {
                 previous_home,
+                previous_xdg_config_home,
+                previous_xdg_data_home,
                 previous_api_url,
                 previous_website_url,
                 previous_dir,
@@ -246,6 +254,8 @@ mod tests {
     impl Drop for TestEnvGuard {
         fn drop(&mut self) {
             restore_env_var(home_var_name(), self.previous_home.as_ref());
+            restore_env_var("XDG_CONFIG_HOME", self.previous_xdg_config_home.as_ref());
+            restore_env_var("XDG_DATA_HOME", self.previous_xdg_data_home.as_ref());
             restore_env_var("RUSL_API_URL", self.previous_api_url.as_ref());
             restore_env_var("RUSL_WEBSITE_URL", self.previous_website_url.as_ref());
             std::env::set_current_dir(&self.previous_dir).expect("restore current dir");

@@ -1,5 +1,5 @@
 {
-  "$id": "https://resources.rusl.app/schemas/rusl/trust-signal",
+  "$id": "https://resources.rusl.com/schemas/rusl/trust-signal",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "A structured claim about confidence, verification, or lifecycle risk for a subject. This complements, but does not replace, Rusl endorsements.",

@@ -1,6 +1,6 @@
 [package]
 name = "rusl-app"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Shared application logic for the Rusl schema package manager."
 homepage = "https://github.com/rusl-labs/rusl-cli"
