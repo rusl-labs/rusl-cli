@@ -395,21 +395,21 @@ async fn root_comment_id_for_thread(
         })
 }
 
-fn to_api_create_schema_request(request: CreateSchemaRequest) -> models::OpenApiSchema5 {
-    let mut api_request = models::OpenApiSchema5::new(request.schema_slug);
+fn to_api_create_schema_request(request: CreateSchemaRequest) -> models::OpenApiSchema6 {
+    let mut api_request = models::OpenApiSchema6::new(request.schema_slug);
     api_request.description = request.description.map(Some);
-    api_request.schema_format = Some(models::open_api_schema_5::SchemaFormat::JsonSchema);
+    api_request.schema_format = Some(models::open_api_schema_6::SchemaFormat::JsonSchema);
     api_request.visibility = Some(match request.visibility {
-        SchemaVisibility::Public => models::open_api_schema_5::Visibility::Public,
-        SchemaVisibility::Private => models::open_api_schema_5::Visibility::Private,
+        SchemaVisibility::Public => models::open_api_schema_6::Visibility::Public,
+        SchemaVisibility::Private => models::open_api_schema_6::Visibility::Private,
     });
     api_request
 }
 
 fn to_api_create_schema_proposal_request(
     request: CreateSchemaProposalRequest,
-) -> models::OpenApiSchema6 {
-    let mut api_request = models::OpenApiSchema6::new(
+) -> models::OpenApiSchema3 {
+    let mut api_request = models::OpenApiSchema3::new(
         request.content,
         request.valid_data.into_iter().map(Into::into).collect(),
     );
@@ -419,8 +419,8 @@ fn to_api_create_schema_proposal_request(
 
 fn to_api_update_schema_proposal_request(
     request: UpdateSchemaProposalRequest,
-) -> models::OpenApiSchema4 {
-    let mut api_request = models::OpenApiSchema4::new(
+) -> models::OpenApiSchema1 {
+    let mut api_request = models::OpenApiSchema1::new(
         request.content,
         request.valid_data.into_iter().map(Into::into).collect(),
     );
@@ -639,7 +639,7 @@ mod tests {
         );
         assert_eq!(
             request.visibility,
-            Some(models::open_api_schema_5::Visibility::Private)
+            Some(models::open_api_schema_6::Visibility::Private)
         );
     }
 

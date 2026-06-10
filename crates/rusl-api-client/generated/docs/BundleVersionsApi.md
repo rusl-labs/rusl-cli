@@ -16,7 +16,7 @@ Method | HTTP request | Description
 
 ## rusl_web_api_bundle_version_controller_create
 
-> models::RuslWebApiBundleVersionControllerUpdateStatus200Response rusl_web_api_bundle_version_controller_create(account_slug, bundle_slug, rusl_web_api_bundle_version_controller_create_request)
+> models::RuslWebApiBundleVersionControllerPublish200Response rusl_web_api_bundle_version_controller_create(account_slug, bundle_slug, rusl_web_api_bundle_version_controller_create_request)
 Create a draft bundle version
 
 Creates a new DRAFT version with manifest content. At most one draft per bundle.
@@ -32,7 +32,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiBundleVersionControllerUpdateStatus200Response**](RuslWeb_Api_BundleVersionController_update_status_200_response.md)
+[**models::RuslWebApiBundleVersionControllerPublish200Response**](RuslWeb_Api_BundleVersionController_publish_200_response.md)
 
 ### Authorization
 
@@ -85,7 +85,7 @@ No authorization required
 
 ## rusl_web_api_bundle_version_controller_publish
 
-> models::RuslWebApiBundleVersionControllerUpdateStatus200Response rusl_web_api_bundle_version_controller_publish(account_slug, bundle_slug, version)
+> models::RuslWebApiBundleVersionControllerPublish200Response rusl_web_api_bundle_version_controller_publish(account_slug, bundle_slug, version)
 Publish a draft bundle version
 
 Parses the manifest, validates entries, materializes them, and transitions the version from DRAFT to ACTIVE.
@@ -101,7 +101,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiBundleVersionControllerUpdateStatus200Response**](RuslWeb_Api_BundleVersionController_update_status_200_response.md)
+[**models::RuslWebApiBundleVersionControllerPublish200Response**](RuslWeb_Api_BundleVersionController_publish_200_response.md)
 
 ### Authorization
 
@@ -117,7 +117,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_bundle_version_controller_show
 
-> models::RuslWebApiBundleVersionControllerUpdateStatus200Response rusl_web_api_bundle_version_controller_show(account_slug, bundle_slug, version)
+> models::RuslWebApiBundleVersionControllerPublish200Response rusl_web_api_bundle_version_controller_show(account_slug, bundle_slug, version)
 Fetch a bundle version
 
 ### Parameters
@@ -131,7 +131,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiBundleVersionControllerUpdateStatus200Response**](RuslWeb_Api_BundleVersionController_update_status_200_response.md)
+[**models::RuslWebApiBundleVersionControllerPublish200Response**](RuslWeb_Api_BundleVersionController_publish_200_response.md)
 
 ### Authorization
 
@@ -147,7 +147,7 @@ No authorization required
 
 ## rusl_web_api_bundle_version_controller_update
 
-> models::RuslWebApiBundleVersionControllerUpdateStatus200Response rusl_web_api_bundle_version_controller_update(account_slug, bundle_slug, version, rusl_web_api_bundle_version_controller_update_request)
+> models::RuslWebApiBundleVersionControllerPublish200Response rusl_web_api_bundle_version_controller_update(account_slug, bundle_slug, version, rusl_web_api_bundle_version_controller_update_request)
 Update draft version manifest
 
 Replace the manifest content on a DRAFT version.
@@ -164,7 +164,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiBundleVersionControllerUpdateStatus200Response**](RuslWeb_Api_BundleVersionController_update_status_200_response.md)
+[**models::RuslWebApiBundleVersionControllerPublish200Response**](RuslWeb_Api_BundleVersionController_publish_200_response.md)
 
 ### Authorization
 
@@ -180,7 +180,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_bundle_version_controller_update_status
 
-> models::RuslWebApiBundleVersionControllerUpdateStatus200Response rusl_web_api_bundle_version_controller_update_status(account_slug, bundle_slug, version, rusl_web_api_bundle_version_controller_update_status_request)
+> models::RuslWebApiBundleVersionControllerPublish200Response rusl_web_api_bundle_version_controller_update_status(account_slug, bundle_slug, version, rusl_web_api_bundle_version_controller_update_status_request)
 Update bundle version status
 
 Transition a published version's status (ACTIVE → DEPRECATED, YANKED, etc.)
@@ -197,7 +197,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiBundleVersionControllerUpdateStatus200Response**](RuslWeb_Api_BundleVersionController_update_status_200_response.md)
+[**models::RuslWebApiBundleVersionControllerPublish200Response**](RuslWeb_Api_BundleVersionController_publish_200_response.md)
 
 ### Authorization
 

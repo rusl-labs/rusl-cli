@@ -17,10 +17,10 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiVersionDependencyControllerDependentsError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -28,10 +28,10 @@ pub enum RuslWebApiVersionDependencyControllerDependentsError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiVersionDependencyControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -39,10 +39,10 @@ pub enum RuslWebApiVersionDependencyControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiVersionDependencyControllerLookupError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -52,7 +52,7 @@ pub async fn rusl_web_api_version_dependency_controller_dependents(
     account_slug: &str,
     schema_slug: &str,
 ) -> Result<
-    models::RuslWebApiVersionDependencyControllerLookup200Response,
+    models::RuslWebApiVersionDependencyControllerIndex200Response,
     Error<RuslWebApiVersionDependencyControllerDependentsError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -89,8 +89,8 @@ pub async fn rusl_web_api_version_dependency_controller_dependents(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerLookup200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerLookup200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerIndex200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerIndex200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -111,7 +111,7 @@ pub async fn rusl_web_api_version_dependency_controller_index(
     account_slug: &str,
     schema_slug: &str,
 ) -> Result<
-    models::RuslWebApiVersionDependencyControllerLookup200Response,
+    models::RuslWebApiVersionDependencyControllerIndex200Response,
     Error<RuslWebApiVersionDependencyControllerIndexError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -150,8 +150,8 @@ pub async fn rusl_web_api_version_dependency_controller_index(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerLookup200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerLookup200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerIndex200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerIndex200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -170,7 +170,7 @@ pub async fn rusl_web_api_version_dependency_controller_lookup(
     configuration: &configuration::Configuration,
     ids: &str,
 ) -> Result<
-    models::RuslWebApiVersionDependencyControllerLookup200Response,
+    models::RuslWebApiVersionDependencyControllerIndex200Response,
     Error<RuslWebApiVersionDependencyControllerLookupError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -205,8 +205,8 @@ pub async fn rusl_web_api_version_dependency_controller_lookup(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerLookup200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerLookup200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerIndex200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiVersionDependencyControllerIndex200Response`")))),
         }
     } else {
         let content = resp.text().await?;

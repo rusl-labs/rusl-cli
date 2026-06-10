@@ -11,27 +11,30 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// OpenApiSchema1 : Register User Request
+/// OpenApiSchema1 : Update Schema Proposal Request
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema1 {
-    /// User Email
-    #[serde(rename = "email")]
-    pub email: String,
-    /// Password
-    #[serde(rename = "password")]
-    pub password: String,
-    /// Username
-    #[serde(rename = "username")]
-    pub username: String,
+    /// JSON Schema proposal
+    #[serde(rename = "content")]
+    pub content: serde_json::Value,
+    /// Description
+    #[serde(rename = "description", skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Valid Data
+    #[serde(rename = "valid_data")]
+    pub valid_data: Vec<models::ExampleData1>,
 }
 
 impl OpenApiSchema1 {
-    /// Register User Request
-    pub fn new(email: String, password: String, username: String) -> OpenApiSchema1 {
+    /// Update Schema Proposal Request
+    pub fn new(
+        content: serde_json::Value,
+        valid_data: Vec<models::ExampleData1>,
+    ) -> OpenApiSchema1 {
         OpenApiSchema1 {
-            email,
-            password,
-            username,
+            content,
+            description: None,
+            valid_data,
         }
     }
 }

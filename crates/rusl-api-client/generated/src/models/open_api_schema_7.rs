@@ -11,7 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// OpenApiSchema7 : Create Organization Account Request
+/// OpenApiSchema7 : Update Account Request
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema7 {
     /// Asset ID for the account avatar
@@ -22,47 +22,25 @@ pub struct OpenApiSchema7 {
         skip_serializing_if = "Option::is_none"
     )]
     pub avatar_asset_id: Option<Option<uuid::Uuid>>,
-    /// Organization bio
+    /// Account bio
     #[serde(rename = "bio", skip_serializing_if = "Option::is_none")]
     pub bio: Option<String>,
-    /// Organization display name
+    /// Account display name
     #[serde(rename = "display_name", skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
-    /// Organization slug (URL identifier)
-    #[serde(rename = "slug")]
-    pub slug: String,
-    /// Whether team members are publicly visible
-    #[serde(rename = "team_visibility")]
-    pub team_visibility: TeamVisibility,
-    /// Organization website URL
+    /// Account website URL
     #[serde(rename = "website", skip_serializing_if = "Option::is_none")]
     pub website: Option<String>,
 }
 
 impl OpenApiSchema7 {
-    /// Create Organization Account Request
-    pub fn new(slug: String, team_visibility: TeamVisibility) -> OpenApiSchema7 {
+    /// Update Account Request
+    pub fn new() -> OpenApiSchema7 {
         OpenApiSchema7 {
             avatar_asset_id: None,
             bio: None,
             display_name: None,
-            slug,
-            team_visibility,
             website: None,
         }
-    }
-}
-/// Whether team members are publicly visible
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum TeamVisibility {
-    #[serde(rename = "public")]
-    Public,
-    #[serde(rename = "private")]
-    Private,
-}
-
-impl Default for TeamVisibility {
-    fn default() -> TeamVisibility {
-        Self::Public
     }
 }

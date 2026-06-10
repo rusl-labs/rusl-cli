@@ -45,7 +45,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_reaction_controller_favourite
 
-> models::RuslWebApiReactionControllerFavourite201Response rusl_web_api_reaction_controller_favourite(subject_guid)
+> models::RuslWebApiAnnotationControllerEndorse200Response rusl_web_api_reaction_controller_favourite(subject_guid)
 Favourite an entity
 
 Add a favourite reaction to the entity identified by subject_guid.
@@ -59,7 +59,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiReactionControllerFavourite201Response**](RuslWeb_Api_ReactionController_favourite_201_response.md)
+[**models::RuslWebApiAnnotationControllerEndorse200Response**](RuslWeb_Api_AnnotationController_endorse_200_response.md)
 
 ### Authorization
 

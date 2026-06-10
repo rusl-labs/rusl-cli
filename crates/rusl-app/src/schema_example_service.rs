@@ -93,7 +93,7 @@ fn map_schema_example(example: models::SchemaExampleData1) -> SchemaExampleOutpu
 }
 
 fn map_page_info(
-    page_info: models::RuslWebApiBundleVersionControllerIndex200ResponsePageInfo,
+    page_info: models::RuslWebApiReactionControllerIndex200ResponsePageInfo,
 ) -> SchemaExamplesPageInfo {
     SchemaExamplesPageInfo {
         current_page: page_info.current_page.flatten(),
@@ -127,7 +127,7 @@ mod tests {
         example.title = Some(Some("Minimal object".to_string()));
 
         let mut page_info =
-            models::RuslWebApiBundleVersionControllerIndex200ResponsePageInfo::new(true, false);
+            models::RuslWebApiReactionControllerIndex200ResponsePageInfo::new(true, false);
         page_info.current_page = Some(Some(1));
         page_info.page_size = Some(Some(20));
         page_info.total_count = Some(Some(21));

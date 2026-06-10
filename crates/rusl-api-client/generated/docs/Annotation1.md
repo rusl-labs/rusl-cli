@@ -15,7 +15,7 @@ Name | Type | Description | Notes
 **set_by_user_id** | Option<**String**> | User who last created/updated this annotation | [optional]
 **status** | **Status** | Annotation lifecycle status (enum: ACTIVE, DEPRECATED, REVOKED) |
 **subject_account_slug** | Option<**String**> | Account slug that owns the annotated subject | [optional]
-**subject_description** | Option<[**models::Annotation1SubjectDescription**](Annotation1SubjectDescription.md)> |  | [optional]
+**subject_description** | Option<[**models::AnnotationType1SubjectDescription**](AnnotationType1SubjectDescription.md)> |  | [optional]
 **subject_guid** | **String** | GUID of the annotated subject |
 **subject_type** | Option<**String**> | Type of the annotated subject (e.g. schemas, bundles) | [optional]
 **r#type** | **String** | Registered annotation type identifier |

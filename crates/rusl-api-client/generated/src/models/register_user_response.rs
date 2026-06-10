@@ -21,7 +21,7 @@ pub struct RegisterUserResponse {
     #[serde(rename = "refresh_token")]
     pub refresh_token: String,
     #[serde(rename = "user")]
-    pub user: Box<models::User1>,
+    pub user: Box<models::User4>,
 }
 
 impl RegisterUserResponse {
@@ -29,7 +29,7 @@ impl RegisterUserResponse {
     pub fn new(
         access_token: String,
         refresh_token: String,
-        user: models::User1,
+        user: models::User4,
     ) -> RegisterUserResponse {
         RegisterUserResponse {
             access_token,

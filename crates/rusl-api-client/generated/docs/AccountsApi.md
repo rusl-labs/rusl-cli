@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 ## rusl_web_api_account_controller_create
 
-> models::RuslWebApiAccountControllerCreate201Response rusl_web_api_account_controller_create(open_api_schema7)
+> models::RuslWebApiAccountControllerCreate201Response rusl_web_api_account_controller_create(open_api_schema5)
 Create an Organization Account
 
 Create a new organization account. Requires authentication.  The authenticated user becomes the owner of the organization.
@@ -24,7 +24,7 @@ Create a new organization account. Requires authentication.  The authenticated u
 
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
-**open_api_schema7** | Option<[**OpenApiSchema7**](OpenApiSchema7.md)> | Create Organization Account Request |  |
+**open_api_schema5** | Option<[**OpenApiSchema5**](OpenApiSchema5.md)> | Create Organization Account Request |  |
 
 ### Return type
 
@@ -144,7 +144,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_account_controller_update
 
-> models::RuslWebApiAccountControllerShow200Response rusl_web_api_account_controller_update(slug, open_api_schema3)
+> models::RuslWebApiAccountControllerShow200Response rusl_web_api_account_controller_update(slug, open_api_schema7)
 Update an Account
 
 Update account details. Requires account manage access (`account.manage` permission).  Updatable fields: - display_name - bio - website
@@ -155,7 +155,7 @@ Update account details. Requires account manage access (`account.manage` permiss
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **slug** | **String** | Account slug | [required] |
-**open_api_schema3** | Option<[**OpenApiSchema3**](OpenApiSchema3.md)> | Update Account Request |  |
+**open_api_schema7** | Option<[**OpenApiSchema7**](OpenApiSchema7.md)> | Update Account Request |  |
 
 ### Return type
 

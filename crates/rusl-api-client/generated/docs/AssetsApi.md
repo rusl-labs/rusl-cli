@@ -77,7 +77,7 @@ Name | Type | Description  | Required | Notes
 > rusl_web_api_asset_controller_resolve(id)
 Resolve an Asset URL
 
-Redirects to the asset's resolved URL (Imgix/storage for managed, external URL for reference).
+Redirects to the asset's resolved URL (storage URL for managed, external URL for reference).
 
 ### Parameters
 

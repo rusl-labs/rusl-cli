@@ -17,10 +17,10 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiUserControllerBulkLookupError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -35,10 +35,24 @@ pub enum RuslWebApiUserControllerMeError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiUserControllerShowError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_user_controller_update`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiUserControllerUpdateError {
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -46,13 +60,13 @@ pub enum RuslWebApiUserControllerShowError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiUserRegistrationControllerRegisterError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -147,8 +161,10 @@ pub async fn rusl_web_api_user_controller_me(
 pub async fn rusl_web_api_user_controller_show(
     configuration: &configuration::Configuration,
     id: &str,
-) -> Result<models::RuslWebApiUserControllerShow200Response, Error<RuslWebApiUserControllerShowError>>
-{
+) -> Result<
+    models::RuslWebApiUserControllerUpdate200Response,
+    Error<RuslWebApiUserControllerShowError>,
+> {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_id = id;
 
@@ -178,8 +194,8 @@ pub async fn rusl_web_api_user_controller_show(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiUserControllerShow200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiUserControllerShow200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiUserControllerUpdate200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiUserControllerUpdate200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -192,13 +208,67 @@ pub async fn rusl_web_api_user_controller_show(
     }
 }
 
+/// Updates self-reportable fields on the authenticated user. Changing `user_type` is mirrored onto the user's account.
+pub async fn rusl_web_api_user_controller_update(
+    configuration: &configuration::Configuration,
+    update_user_request: Option<models::UpdateUserRequest>,
+) -> Result<
+    models::RuslWebApiUserControllerUpdate200Response,
+    Error<RuslWebApiUserControllerUpdateError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_update_user_request = update_user_request;
+
+    let uri_str = format!("{}/api/users/me", configuration.base_path);
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::PATCH, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+    req_builder = req_builder.json(&p_body_update_user_request);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiUserControllerUpdate200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiUserControllerUpdate200Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiUserControllerUpdateError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
 pub async fn rusl_web_api_user_registration_controller_register(
     configuration: &configuration::Configuration,
-    open_api_schema1: Option<models::OpenApiSchema1>,
+    open_api_schema4: Option<models::OpenApiSchema4>,
 ) -> Result<models::RegisterUserResponse1, Error<RuslWebApiUserRegistrationControllerRegisterError>>
 {
     // add a prefix to parameters to efficiently prevent name collisions
-    let p_body_open_api_schema1 = open_api_schema1;
+    let p_body_open_api_schema4 = open_api_schema4;
 
     let uri_str = format!("{}/api/users/register", configuration.base_path);
     let mut req_builder = configuration
@@ -208,7 +278,7 @@ pub async fn rusl_web_api_user_registration_controller_register(
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
-    req_builder = req_builder.json(&p_body_open_api_schema1);
+    req_builder = req_builder.json(&p_body_open_api_schema4);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;

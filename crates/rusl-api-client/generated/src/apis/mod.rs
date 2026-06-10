@@ -127,6 +127,7 @@ pub mod discoverability_api;
 pub mod discovery_api;
 pub mod event_subscriptions_api;
 pub mod favourites_api;
+pub mod feeds_api;
 pub mod groups_api;
 pub mod notifications_api;
 pub mod proposal_reviews_api;

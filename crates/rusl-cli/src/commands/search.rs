@@ -203,7 +203,7 @@ mod tests {
             "--type",
             "schema,annotation_type",
             "--identifier",
-            "hassox/common",
+            "hassox/schemas/common",
             "--account",
             "hassox",
             "--page",
@@ -232,7 +232,10 @@ mod tests {
                 SearchDocumentType::AnnotationType
             ]
         );
-        assert_eq!(request.identifiers, vec!["hassox/common".to_string()]);
+        assert_eq!(
+            request.identifiers,
+            vec!["hassox/schemas/common".to_string()]
+        );
         assert_eq!(request.account_slugs, vec!["hassox".to_string()]);
         assert_eq!(request.page, Some(2));
         assert_eq!(request.per_page, Some(25));
@@ -265,11 +268,11 @@ mod tests {
             "--subject-guid",
             "subject-guid",
             "--subject-identifier-prefix",
-            "hassox/common",
+            "hassox/schemas/common",
             "--subject-type",
             "schemas",
             "--type-identifier",
-            "hassox/review",
+            "hassox/annotation-types/review",
         ]);
 
         let Commands::Search(args) = cli.command else {
@@ -286,10 +289,13 @@ mod tests {
         assert_eq!(request.subject_guids, vec!["subject-guid".to_string()]);
         assert_eq!(
             request.subject_identifier_prefix.as_deref(),
-            Some("hassox/common")
+            Some("hassox/schemas/common")
         );
         assert_eq!(request.subject_types, vec![AnnotationSubjectType::Schemas]);
-        assert_eq!(request.type_identifiers, vec!["hassox/review".to_string()]);
+        assert_eq!(
+            request.type_identifiers,
+            vec!["hassox/annotation-types/review".to_string()]
+        );
     }
 
     #[test]
@@ -337,7 +343,7 @@ mod tests {
         let output = SearchOutput {
             data: vec![SearchResult {
                 guid: "schema-guid".to_string(),
-                identifier: "hassox/common".to_string(),
+                identifier: "hassox/schemas/common".to_string(),
                 document_type: "schema".to_string(),
                 document_type_label: "Schema".to_string(),
                 description: Some("Shared schema".to_string()),
@@ -364,7 +370,7 @@ mod tests {
         let json = search_data_json(&output).expect("serialize search data");
 
         assert!(json.trim_start().starts_with('['));
-        assert!(json.contains("\"identifier\": \"hassox/common\""));
+        assert!(json.contains("\"identifier\": \"hassox/schemas/common\""));
         assert!(!json.contains("page_info"));
         assert!(!json.contains("facets"));
     }

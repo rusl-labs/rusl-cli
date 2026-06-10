@@ -21,7 +21,7 @@ pub struct LoginResponse {
     #[serde(rename = "refresh_token", skip_serializing_if = "Option::is_none")]
     pub refresh_token: Option<String>,
     #[serde(rename = "user", skip_serializing_if = "Option::is_none")]
-    pub user: Option<Box<models::User1>>,
+    pub user: Option<Box<models::User4>>,
 }
 
 impl LoginResponse {

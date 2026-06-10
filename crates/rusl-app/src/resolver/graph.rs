@@ -262,7 +262,7 @@ mod tests {
         async fn start() -> Self {
             let app = Router::new()
                 .route(
-                    "/resources/{account}/{slug}/metadata",
+                    "/resources/{account}/schemas/{slug}/metadata",
                     get(schema_metadata_handler),
                 )
                 .route(
@@ -318,7 +318,7 @@ name = "hassox/demo"
 version = "0.1.0"
 
 [rusl.resources]
-"hassox/root" = ">=1.0.0"
+"hassox/schemas/root" = ">=1.0.0"
 "#,
         )
         .expect("parse manifest");
@@ -328,11 +328,17 @@ version = "0.1.0"
             .await
             .expect("resolve graph");
 
-        assert_eq!(resolved.versions["schema:hassox/root"].to_string(), "1.0.0");
-        assert_eq!(resolved.versions["schema:hassox/dep"].to_string(), "1.0.0");
         assert_eq!(
-            resolved.edges["schema:hassox/root"],
-            vec!["schema:hassox/dep".to_string()]
+            resolved.versions["schema:hassox/schemas/root"].to_string(),
+            "1.0.0"
+        );
+        assert_eq!(
+            resolved.versions["schema:hassox/schemas/dep"].to_string(),
+            "1.0.0"
+        );
+        assert_eq!(
+            resolved.edges["schema:hassox/schemas/root"],
+            vec!["schema:hassox/schemas/dep".to_string()]
         );
     }
 
@@ -352,7 +358,7 @@ name = "hassox/demo"
 version = "0.1.0"
 
 [rusl.resources]
-"hassox/root" = ">=1.0.0"
+"hassox/schemas/root" = ">=1.0.0"
 "hassox/bundles/consumer" = ">=1.0.0"
 "#,
         )
@@ -376,7 +382,7 @@ version = "0.1.0"
                 "name": "root",
                 "versions": [{
                     "version": "1.0.0",
-                    "schemas": { "hassox/dep": ">=1.0.0" },
+                    "schemas": { "hassox/schemas/dep": ">=1.0.0" },
                     "bundles": {}
                 }]
             }),
@@ -406,7 +412,7 @@ version = "0.1.0"
                 "name": "consumer",
                 "versions": [{
                     "version": "1.0.0",
-                    "schemas": { "hassox/dep": ">=2.0.0" },
+                    "schemas": { "hassox/schemas/dep": ">=2.0.0" },
                     "bundles": {}
                 }]
             }),

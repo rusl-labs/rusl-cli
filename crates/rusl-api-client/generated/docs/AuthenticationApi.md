@@ -6,6 +6,10 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**rusl_web_api_cli_auth_controller_create**](AuthenticationApi.md#rusl_web_api_cli_auth_controller_create) | **POST** /api/auth/cli/authorizations | Create CLI authorization code
 [**rusl_web_api_cli_auth_controller_exchange**](AuthenticationApi.md#rusl_web_api_cli_auth_controller_exchange) | **POST** /api/auth/cli/token | Exchange CLI authorization code
+[**rusl_web_api_magic_link_controller_confirm**](AuthenticationApi.md#rusl_web_api_magic_link_controller_confirm) | **POST** /api/auth/magic-link/confirm | Confirm a magic-link login
+[**rusl_web_api_magic_link_controller_create**](AuthenticationApi.md#rusl_web_api_magic_link_controller_create) | **POST** /api/auth/magic-link | Request a magic-link login email
+[**rusl_web_api_password_reset_controller_confirm**](AuthenticationApi.md#rusl_web_api_password_reset_controller_confirm) | **POST** /api/auth/forgot-password/confirm | Confirm a password reset
+[**rusl_web_api_password_reset_controller_create**](AuthenticationApi.md#rusl_web_api_password_reset_controller_create) | **POST** /api/auth/forgot-password | Request a password reset email
 [**rusl_web_api_session_controller_create**](AuthenticationApi.md#rusl_web_api_session_controller_create) | **POST** /api/login | Login
 [**rusl_web_api_session_controller_delete**](AuthenticationApi.md#rusl_web_api_session_controller_delete) | **DELETE** /api/logout | Logout
 [**rusl_web_api_session_controller_me**](AuthenticationApi.md#rusl_web_api_session_controller_me) | **GET** /api/auth/sessions/me | Get current session info
@@ -64,6 +68,126 @@ Name | Type | Description  | Required | Notes
 ### Return type
 
 [**models::CliTokenExchangeResponse1**](CliTokenExchangeResponse_1.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_magic_link_controller_confirm
+
+> models::LoginResponse rusl_web_api_magic_link_controller_confirm(magic_link_confirm_request)
+Confirm a magic-link login
+
+Logs the user in using the emailed token (confirms unconfirmed accounts).
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**magic_link_confirm_request** | Option<[**MagicLinkConfirmRequest**](MagicLinkConfirmRequest.md)> | Magic-link confirmation |  |
+
+### Return type
+
+[**models::LoginResponse**](LoginResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_magic_link_controller_create
+
+> models::AcceptedResponse rusl_web_api_magic_link_controller_create(email_request)
+Request a magic-link login email
+
+Always returns `{ok: true}` regardless of whether the email belongs to an account.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**email_request** | Option<[**EmailRequest**](EmailRequest.md)> | Email |  |
+
+### Return type
+
+[**models::AcceptedResponse**](AcceptedResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_password_reset_controller_confirm
+
+> models::LoginResponse rusl_web_api_password_reset_controller_confirm(forgot_password_confirm_request)
+Confirm a password reset
+
+Sets the new password using the emailed token and logs the user in.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**forgot_password_confirm_request** | Option<[**ForgotPasswordConfirmRequest**](ForgotPasswordConfirmRequest.md)> | Reset confirmation |  |
+
+### Return type
+
+[**models::LoginResponse**](LoginResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_password_reset_controller_create
+
+> models::AcceptedResponse rusl_web_api_password_reset_controller_create(email_request)
+Request a password reset email
+
+Always returns `{ok: true}` regardless of whether the email belongs to an account.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**email_request** | Option<[**EmailRequest**](EmailRequest.md)> | Email |  |
+
+### Return type
+
+[**models::AcceptedResponse**](AcceptedResponse.md)
 
 ### Authorization
 

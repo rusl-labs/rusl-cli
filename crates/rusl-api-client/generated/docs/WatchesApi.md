@@ -133,7 +133,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_watch_controller_watch_account
 
-> models::RuslWebApiEventSubscriptionControllerDelete200Response rusl_web_api_watch_controller_watch_account(slug, watch_account_request1)
+> models::RuslWebApiWatchControllerWatchBundle201Response rusl_web_api_watch_controller_watch_account(slug, watch_account_request1)
 Watch an account
 
 ### Parameters
@@ -146,7 +146,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiEventSubscriptionControllerDelete200Response**](RuslWeb_Api_EventSubscriptionController_delete_200_response.md)
+[**models::RuslWebApiWatchControllerWatchBundle201Response**](RuslWeb_Api_WatchController_watch_bundle_201_response.md)
 
 ### Authorization
 
@@ -162,7 +162,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_watch_controller_watch_bundle
 
-> models::RuslWebApiEventSubscriptionControllerDelete200Response rusl_web_api_watch_controller_watch_bundle(account_slug, bundle_slug, watch_bundle_request1)
+> models::RuslWebApiWatchControllerWatchBundle201Response rusl_web_api_watch_controller_watch_bundle(account_slug, bundle_slug, watch_bundle_request1)
 Watch a bundle
 
 ### Parameters
@@ -176,7 +176,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiEventSubscriptionControllerDelete200Response**](RuslWeb_Api_EventSubscriptionController_delete_200_response.md)
+[**models::RuslWebApiWatchControllerWatchBundle201Response**](RuslWeb_Api_WatchController_watch_bundle_201_response.md)
 
 ### Authorization
 
@@ -192,7 +192,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_watch_controller_watch_proposal
 
-> models::RuslWebApiEventSubscriptionControllerDelete200Response rusl_web_api_watch_controller_watch_proposal(proposal_number, account_slug, schema_slug, watch_proposal_request1)
+> models::RuslWebApiWatchControllerWatchBundle201Response rusl_web_api_watch_controller_watch_proposal(proposal_number, account_slug, schema_slug, watch_proposal_request1)
 Watch a proposal
 
 ### Parameters
@@ -207,7 +207,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiEventSubscriptionControllerDelete200Response**](RuslWeb_Api_EventSubscriptionController_delete_200_response.md)
+[**models::RuslWebApiWatchControllerWatchBundle201Response**](RuslWeb_Api_WatchController_watch_bundle_201_response.md)
 
 ### Authorization
 
@@ -223,7 +223,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_watch_controller_watch_schema
 
-> models::RuslWebApiEventSubscriptionControllerDelete200Response rusl_web_api_watch_controller_watch_schema(account_slug, schema_slug, watch_schema_request1)
+> models::RuslWebApiWatchControllerWatchBundle201Response rusl_web_api_watch_controller_watch_schema(account_slug, schema_slug, watch_schema_request1)
 Watch a schema
 
 ### Parameters
@@ -237,7 +237,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiEventSubscriptionControllerDelete200Response**](RuslWeb_Api_EventSubscriptionController_delete_200_response.md)
+[**models::RuslWebApiWatchControllerWatchBundle201Response**](RuslWeb_Api_WatchController_watch_bundle_201_response.md)
 
 ### Authorization
 

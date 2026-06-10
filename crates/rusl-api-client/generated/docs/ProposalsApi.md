@@ -84,7 +84,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_proposal_controller_create
 
-> models::RuslWebApiProposalControllerShow200Response rusl_web_api_proposal_controller_create(account_slug, schema_slug, open_api_schema6)
+> models::RuslWebApiProposalControllerShow200Response rusl_web_api_proposal_controller_create(account_slug, schema_slug, open_api_schema3)
 Create proposals
 
 ### Parameters
@@ -94,7 +94,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **schema_slug** | **String** | Schema slug | [required] |
-**open_api_schema6** | Option<[**OpenApiSchema6**](OpenApiSchema6.md)> | Create Schema Proposal Request |  |
+**open_api_schema3** | Option<[**OpenApiSchema3**](OpenApiSchema3.md)> | Create Schema Proposal Request |  |
 
 ### Return type
 
@@ -279,7 +279,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_proposal_controller_update
 
-> models::RuslWebApiProposalControllerShow200Response rusl_web_api_proposal_controller_update(proposal_number, account_slug, schema_slug, open_api_schema4)
+> models::RuslWebApiProposalControllerShow200Response rusl_web_api_proposal_controller_update(proposal_number, account_slug, schema_slug, open_api_schema1)
 Update a proposal
 
 Update a proposal's content, description, and/or valid_data. Recalculates version bump type automatically based on schema changes.
@@ -292,7 +292,7 @@ Name | Type | Description  | Required | Notes
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
 **schema_slug** | **String** | Schema slug | [required] |
-**open_api_schema4** | Option<[**OpenApiSchema4**](OpenApiSchema4.md)> | Update Schema Proposal Request |  |
+**open_api_schema1** | Option<[**OpenApiSchema1**](OpenApiSchema1.md)> | Update Schema Proposal Request |  |
 
 ### Return type
 

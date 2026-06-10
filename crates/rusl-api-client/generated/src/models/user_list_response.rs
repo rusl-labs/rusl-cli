@@ -16,12 +16,12 @@ use serde::{Deserialize, Serialize};
 pub struct UserListResponse {
     /// List of users
     #[serde(rename = "data")]
-    pub data: Vec<models::User1>,
+    pub data: Vec<models::User4>,
 }
 
 impl UserListResponse {
     /// Response containing a list of users
-    pub fn new(data: Vec<models::User1>) -> UserListResponse {
+    pub fn new(data: Vec<models::User4>) -> UserListResponse {
         UserListResponse { data }
     }
 }

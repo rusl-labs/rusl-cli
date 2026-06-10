@@ -115,7 +115,7 @@ No authorization required
 
 ## rusl_web_api_annotation_controller_endorse
 
-> models::RuslWebApiReactionControllerFavourite201Response rusl_web_api_annotation_controller_endorse(id)
+> models::RuslWebApiAnnotationControllerEndorse200Response rusl_web_api_annotation_controller_endorse(id)
 Endorse an annotation
 
 Add a positive endorsement interaction to the annotation identified by ID. Endorsements are user-level signal boosts backed by resource interactions.
@@ -129,7 +129,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiReactionControllerFavourite201Response**](RuslWeb_Api_ReactionController_favourite_201_response.md)
+[**models::RuslWebApiAnnotationControllerEndorse200Response**](RuslWeb_Api_AnnotationController_endorse_200_response.md)
 
 ### Authorization
 

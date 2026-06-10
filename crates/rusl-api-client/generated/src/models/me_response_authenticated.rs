@@ -23,7 +23,7 @@ pub struct MeResponseAuthenticated {
     #[serde(rename = "invitations")]
     pub invitations: Vec<models::AccountInvitation1>,
     #[serde(rename = "user")]
-    pub user: Box<models::User1>,
+    pub user: Box<models::User4>,
 }
 
 impl MeResponseAuthenticated {
@@ -32,7 +32,7 @@ impl MeResponseAuthenticated {
         accounts: std::collections::HashMap<String, models::SessionAccount1>,
         authenticated: bool,
         invitations: Vec<models::AccountInvitation1>,
-        user: models::User1,
+        user: models::User4,
     ) -> MeResponseAuthenticated {
         MeResponseAuthenticated {
             accounts,

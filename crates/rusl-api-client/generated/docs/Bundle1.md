@@ -13,9 +13,10 @@ Name | Type | Description | Notes
 **guid** | Option<**String**> | Global ID | [optional]
 **id** | **String** | Bundle ID |
 **inserted_at** | **String** | Inserted At |
+**resource_origins** | Option<[**Vec<models::ResourceOrigin1>**](ResourceOrigin1.md)> | Durable provenance edges for this bundle | [optional]
 **slug** | **String** | Bundle Slug |
 **status** | **Status** | Bundle Lifecycle Status (enum: ACTIVE, ARCHIVED) | [default to Active]
-**subject_description** | Option<[**models::Annotation1SubjectDescription**](Annotation1SubjectDescription.md)> |  | [optional]
+**subject_description** | Option<[**models::AnnotationType1SubjectDescription**](AnnotationType1SubjectDescription.md)> |  | [optional]
 **updated_at** | **String** | Updated At |
 **visibility** | Option<**Visibility**> | Bundle Visibility (enum: PUBLIC, PRIVATE) | [optional][default to Public]
 

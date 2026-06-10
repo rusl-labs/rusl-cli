@@ -1,7 +1,7 @@
 use crate::cli::LoginArgs;
 use anyhow::{Context, Result};
 use colored::Colorize;
-use rusl_app::login_service;
+use rusl_app::login_service::{self, LoginCallbackOutcome};
 use tokio::net::TcpListener;
 
 pub async fn run(_args: LoginArgs) -> Result<()> {
@@ -71,17 +71,25 @@ where
         )),
     }
 
+    pb.set_message("Verifying credentials...");
+    let received_code = !code.is_empty();
+    let login_result = login_service::complete_login(code, session.code_verifier.clone()).await;
+    let callback_outcome = match (&login_result, received_code) {
+        (Ok(_), _) => LoginCallbackOutcome::Success,
+        (Err(_), false) => LoginCallbackOutcome::MissingCode,
+        (Err(_), true) => LoginCallbackOutcome::ExchangeFailed,
+    };
+
     let response = format!(
         "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n{}",
-        session.callback_page_html(!code.is_empty())
+        session.callback_page_html(callback_outcome)
     );
     let _ = stream.try_write(response.as_bytes());
 
     drop(stream);
     drop(listener);
 
-    pb.set_message("Verifying credentials...");
-    login_service::complete_login(code, session.code_verifier).await?;
+    login_result?;
 
     pb.finish_with_message(format!(
         "{} Logged in successfully!",
@@ -140,6 +148,10 @@ mod tests {
                 status: StatusCode::OK,
                 body,
             }
+        }
+
+        fn with_status(status: StatusCode, body: &'static str) -> Self {
+            Self { status, body }
         }
     }
 
@@ -303,9 +315,11 @@ mod tests {
         assert!(browser_url.contains("code_challenge="));
 
         let callback_url = extract_callback_url(&browser_url);
-        reqwest::get(format!("{callback_url}?code=browser-code"))
+        let callback_response = reqwest::get(format!("{callback_url}?code=browser-code"))
             .await
             .expect("deliver callback");
+        let callback_html = callback_response.text().await.expect("read callback page");
+        assert!(callback_html.contains("Login successful"));
 
         task.await
             .expect("join login task")
@@ -363,13 +377,16 @@ mod tests {
         });
 
         let callback_url = extract_callback_url(&wait_for_browser_url(&opened_url).await);
-        reqwest::get(callback_url).await.expect("deliver callback");
+        let callback_response = reqwest::get(callback_url).await.expect("deliver callback");
+        let callback_html = callback_response.text().await.expect("read callback page");
 
         let error = task
             .await
             .expect("join login task")
             .expect_err("login should fail");
 
+        assert!(callback_html.contains("Login failed"));
+        assert!(callback_html.contains("could not read the authorization code"));
         assert!(
             error
                 .to_string()
@@ -377,6 +394,70 @@ mod tests {
         );
         assert!(Credentials::load().is_none());
         assert!(server.recorded_requests().await.is_empty());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn callback_page_reports_failure_when_token_exchange_fails() {
+        let server = TestApiServer::start(
+            vec![ResponseSpec::with_status(
+                StatusCode::NOT_FOUND,
+                r#"{"error":"not found"}"#,
+            )],
+            Vec::new(),
+        )
+        .await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        fs::create_dir_all(&home_dir)
+            .await
+            .expect("create home dir");
+        fs::create_dir_all(&workspace_dir)
+            .await
+            .expect("create workspace dir");
+        let _env = TestEnvGuard::new(
+            &home_dir,
+            &workspace_dir,
+            &server.base_url,
+            &server.base_url,
+        );
+        let opened_url = Arc::new(Mutex::new(None::<String>));
+
+        let task = tokio::spawn({
+            let opened_url = opened_url.clone();
+            async move {
+                run_with_browser_opener(LoginArgs {}, move |url| {
+                    *opened_url.lock().expect("lock opened url") = Some(url.to_string());
+                    Ok(())
+                })
+                .await
+            }
+        });
+
+        let callback_url = extract_callback_url(&wait_for_browser_url(&opened_url).await);
+        let callback_response = reqwest::get(format!("{callback_url}?code=browser-code"))
+            .await
+            .expect("deliver callback");
+        let callback_html = callback_response.text().await.expect("read callback page");
+
+        let error = task
+            .await
+            .expect("join login task")
+            .expect_err("login should fail");
+
+        assert!(callback_html.contains("Login failed"));
+        assert!(callback_html.contains("could not verify your credentials"));
+        assert!(
+            error
+                .to_string()
+                .contains("Failed to exchange the browser code")
+        );
+        assert!(Credentials::load().is_none());
+
+        let requests = server.recorded_requests().await;
+        assert_eq!(requests.len(), 1);
+        assert_eq!(requests[0].path, "/api/auth/cli/token");
     }
 
     async fn token_handler(

@@ -1,5 +1,5 @@
 {
-  "$id": "https://resources.rusl.com/schemas/rusl/usage-report",
+  "$id": "https://resources.rusl.com/resources/rusl/schemas/usage-report",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Observed evidence about whether a schema, bundle, or annotation helped complete a real task.",

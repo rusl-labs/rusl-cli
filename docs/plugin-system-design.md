@@ -201,18 +201,18 @@ rusl generate typescript --print-request | ./my-plugin
 
 ```json
 {
-  "name": "rusl/common",
+  "name": "rusl/schemas/common",
   "version": "1.2.0",
   "kind": "schema",
   "target": true,
   "content": {},
-  "dependencies": ["rusl/base"]
+  "dependencies": ["rusl/schemas/base"]
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | `string` | Fully qualified schema name (`account/slug`) |
+| `name` | `string` | Fully qualified schema identifier (`account/schemas/slug`) |
 | `version` | `string` | Exact resolved version |
 | `kind` | `"schema"` \| `"bundle"` \| `"external"` | Source type of the dependency |
 | `target` | `bool` | `true` if this schema matched the filter, `false` if included as a transitive dependency |
@@ -400,12 +400,12 @@ This means a failed generation **preserves the previous generated output** rathe
 
 ### Filter Syntax
 
-Filters are glob patterns matched against schema names (`account/slug`):
+Filters are glob patterns matched against schema identifiers (`account/schemas/slug`):
 
 ```toml
-filter = ["forms/*"]                    # all schemas in the forms account
-filter = ["rusl/common", "rusl/base"]   # specific schemas
-filter = ["forms/*", "shared/contact-*"] # multiple patterns
+filter = ["forms/schemas/*"]                         # all schemas in the forms account
+filter = ["rusl/schemas/common", "rusl/schemas/base"] # specific schemas
+filter = ["forms/schemas/*", "shared/schemas/contact-*"] # multiple patterns
 filter = []                             # no filter = all schemas (default)
 ```
 

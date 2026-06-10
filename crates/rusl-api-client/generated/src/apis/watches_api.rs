@@ -17,13 +17,13 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerUnwatchAccountError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -31,13 +31,13 @@ pub enum RuslWebApiWatchControllerUnwatchAccountError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerUnwatchBundleError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -45,13 +45,13 @@ pub enum RuslWebApiWatchControllerUnwatchBundleError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerUnwatchProposalError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -59,13 +59,13 @@ pub enum RuslWebApiWatchControllerUnwatchProposalError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerUnwatchSchemaError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -73,13 +73,13 @@ pub enum RuslWebApiWatchControllerUnwatchSchemaError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerWatchAccountError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -87,13 +87,13 @@ pub enum RuslWebApiWatchControllerWatchAccountError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerWatchBundleError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -101,13 +101,13 @@ pub enum RuslWebApiWatchControllerWatchBundleError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerWatchProposalError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -115,13 +115,13 @@ pub enum RuslWebApiWatchControllerWatchProposalError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWatchControllerWatchSchemaError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -366,7 +366,7 @@ pub async fn rusl_web_api_watch_controller_watch_account(
     slug: &str,
     watch_account_request1: Option<models::WatchAccountRequest1>,
 ) -> Result<
-    models::RuslWebApiEventSubscriptionControllerDelete200Response,
+    models::RuslWebApiWatchControllerWatchBundle201Response,
     Error<RuslWebApiWatchControllerWatchAccountError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -405,8 +405,8 @@ pub async fn rusl_web_api_watch_controller_watch_account(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -426,7 +426,7 @@ pub async fn rusl_web_api_watch_controller_watch_bundle(
     bundle_slug: &str,
     watch_bundle_request1: Option<models::WatchBundleRequest1>,
 ) -> Result<
-    models::RuslWebApiEventSubscriptionControllerDelete200Response,
+    models::RuslWebApiWatchControllerWatchBundle201Response,
     Error<RuslWebApiWatchControllerWatchBundleError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -467,8 +467,8 @@ pub async fn rusl_web_api_watch_controller_watch_bundle(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -489,7 +489,7 @@ pub async fn rusl_web_api_watch_controller_watch_proposal(
     schema_slug: &str,
     watch_proposal_request1: Option<models::WatchProposalRequest1>,
 ) -> Result<
-    models::RuslWebApiEventSubscriptionControllerDelete200Response,
+    models::RuslWebApiWatchControllerWatchBundle201Response,
     Error<RuslWebApiWatchControllerWatchProposalError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -532,8 +532,8 @@ pub async fn rusl_web_api_watch_controller_watch_proposal(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -553,7 +553,7 @@ pub async fn rusl_web_api_watch_controller_watch_schema(
     schema_slug: &str,
     watch_schema_request1: Option<models::WatchSchemaRequest1>,
 ) -> Result<
-    models::RuslWebApiEventSubscriptionControllerDelete200Response,
+    models::RuslWebApiWatchControllerWatchBundle201Response,
     Error<RuslWebApiWatchControllerWatchSchemaError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -594,8 +594,8 @@ pub async fn rusl_web_api_watch_controller_watch_schema(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiEventSubscriptionControllerDelete200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiWatchControllerWatchBundle201Response`")))),
         }
     } else {
         let content = resp.text().await?;

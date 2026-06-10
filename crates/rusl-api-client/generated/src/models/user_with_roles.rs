@@ -11,23 +11,94 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+/// UserWithRoles : A group member: the user (serialized via the standard User schema, whose email is only present when the viewer is that user) plus their roles in the group
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UserWithRoles {
+    /// Type discriminator
+    #[serde(rename = "__typename")]
+    pub __typename: Typename,
+    /// Confirmed At
+    #[serde(rename = "confirmed_at", skip_serializing_if = "Option::is_none")]
+    pub confirmed_at: Option<String>,
+    /// User Email
     #[serde(rename = "email", skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<uuid::Uuid>,
+    /// Global ID
+    #[serde(rename = "guid")]
+    pub guid: String,
+    /// User ID
+    #[serde(rename = "id")]
+    pub id: String,
+    /// Inserted At
+    #[serde(rename = "inserted_at")]
+    pub inserted_at: String,
+    /// The user's account slug — set when the user account is created
+    #[serde(rename = "slug")]
+    pub slug: String,
+    /// Updated At
+    #[serde(rename = "updated_at")]
+    pub updated_at: String,
+    #[serde(rename = "user_account", skip_serializing_if = "Option::is_none")]
+    pub user_account: Option<Box<models::UserAccount2>>,
+    /// Self-reported principal type. Defaults to \"human\".
+    #[serde(rename = "user_type")]
+    pub user_type: UserType,
     /// Roles this user has in the group
     #[serde(rename = "roles", skip_serializing_if = "Option::is_none")]
     pub roles: Option<Vec<models::MemberRole>>,
 }
 
 impl UserWithRoles {
-    pub fn new() -> UserWithRoles {
+    /// A group member: the user (serialized via the standard User schema, whose email is only present when the viewer is that user) plus their roles in the group
+    pub fn new(
+        __typename: Typename,
+        guid: String,
+        id: String,
+        inserted_at: String,
+        slug: String,
+        updated_at: String,
+        user_type: UserType,
+    ) -> UserWithRoles {
         UserWithRoles {
+            __typename,
+            confirmed_at: None,
             email: None,
-            id: None,
+            guid,
+            id,
+            inserted_at,
+            slug,
+            updated_at,
+            user_account: None,
+            user_type,
             roles: None,
         }
+    }
+}
+/// Type discriminator
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Typename {
+    #[serde(rename = "users")]
+    Users,
+}
+
+impl Default for Typename {
+    fn default() -> Typename {
+        Self::Users
+    }
+}
+/// Self-reported principal type. Defaults to \"human\".
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum UserType {
+    #[serde(rename = "agent")]
+    Agent,
+    #[serde(rename = "human")]
+    Human,
+    #[serde(rename = "unknown")]
+    Unknown,
+}
+
+impl Default for UserType {
+    fn default() -> UserType {
+        Self::Agent
     }
 }

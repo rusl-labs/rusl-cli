@@ -85,7 +85,7 @@ pub struct AnnotationType1 {
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
+    pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
     /// Full identifier in account_slug/annotation-types/slug form
     #[serde(rename = "type_identifier")]
     pub type_identifier: String,

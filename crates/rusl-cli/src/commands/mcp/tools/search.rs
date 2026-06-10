@@ -6,7 +6,7 @@ use serde_json::Value;
 use turbomcp::prelude::{McpError, McpResult, Tool, ToolInputSchema, ToolResult};
 
 const MAX_PER_PAGE: i32 = 100;
-const SEARCH_TOOL_DESCRIPTION: &str = "Search visible Rusl resources, including schemas, bundles, annotation types, and annotations, using compact responses by default. Set identifiers to exact canonical resource identifiers when resolving known resources. Set view to full only when the user explicitly asks for full search data or large embedded fields are truly needed. Set include_metrics when popularity or discoverability signals are needed.";
+const SEARCH_TOOL_DESCRIPTION: &str = "Search visible Rusl resources, including schemas, bundles, annotation types, and annotations, using compact responses by default. Set identifiers to exact canonical resource identifiers when resolving known schemas, bundles, or annotation types. To page through annotations for a known schema, bundle, annotation type, or other subject, set types to annotation and use subject_identifier_prefix with page/per_page. Search is for discovery and ranking; it does not return complete schema, bundle, annotation type, or annotation content. When a task needs the full content for a specific resource, use get_schema, get_bundle, get_annotation_type, or get_annotation instead of search. Set view to full only when the user explicitly asks for full search data or large embedded search fields are truly needed. Set include_metrics when popularity or discoverability signals are needed.";
 
 pub(in crate::commands::mcp) fn definition() -> Tool {
     Tool::new("search", SEARCH_TOOL_DESCRIPTION).with_schema(input_schema())
@@ -35,7 +35,7 @@ pub(in crate::commands::mcp) struct SearchToolRequest {
     #[schemars(description = "Results per page. Must be between 1 and 100.")]
     per_page: Option<i32>,
     #[schemars(
-        description = "Response shape. Defaults to compact to conserve context; use full only when explicitly needed."
+        description = "Response shape. Defaults to compact to conserve context. Full still returns search projection data, not complete resource content; use get_schema, get_bundle, get_annotation_type, or get_annotation when complete content is needed."
     )]
     view: Option<SearchToolView>,
     #[schemars(
@@ -80,7 +80,9 @@ pub(in crate::commands::mcp) struct SearchToolRequest {
     subject_account_slugs: Option<Vec<String>>,
     #[schemars(description = "Restrict annotation search to annotated subject GUIDs.")]
     subject_guids: Option<Vec<String>>,
-    #[schemars(description = "Restrict annotation search by annotated subject identifier prefix.")]
+    #[schemars(
+        description = "Restrict annotation search by annotated subject identifier prefix. Use with types containing only annotation plus page/per_page to fetch paged annotations for a known schema, bundle, annotation type, or other subject identifier."
+    )]
     subject_identifier_prefix: Option<String>,
     #[schemars(description = "Restrict annotation search by annotated subject types.")]
     subject_types: Option<Vec<SearchToolAnnotationSubjectType>>,
@@ -526,7 +528,7 @@ mod tests {
             "include_metrics": true,
             "discovery_profile_status": "ready",
             "metric_names": ["watchers"],
-            "identifier_prefix": "hassox/",
+            "identifier_prefix": "hassox/schemas/",
             "status": "active",
             "current_version_status": "deprecated",
             "current_version_root_instance_types": ["object"]
@@ -544,7 +546,10 @@ mod tests {
             Some(DiscoveryProfileStatus::Ready)
         );
         assert_eq!(request.metric_names, vec!["watchers".to_string()]);
-        assert_eq!(request.identifier_prefix.as_deref(), Some("hassox/"));
+        assert_eq!(
+            request.identifier_prefix.as_deref(),
+            Some("hassox/schemas/")
+        );
         assert_eq!(request.status, Some(ResourceStatus::Active));
         assert_eq!(
             request.current_version_status,
@@ -566,9 +571,9 @@ mod tests {
             "set_by_user_guids": ["user-guid"],
             "subject_account_slugs": ["hassox"],
             "subject_guids": ["subject-guid"],
-            "subject_identifier_prefix": "hassox/common",
+            "subject_identifier_prefix": "hassox/schemas/common",
             "subject_types": ["schemas"],
-            "type_identifiers": ["hassox/review"]
+            "type_identifiers": ["hassox/annotation-types/review"]
         }))
         .expect("deserialize search tool arguments")
         .into_search_request()
@@ -582,10 +587,13 @@ mod tests {
         assert_eq!(request.subject_guids, vec!["subject-guid".to_string()]);
         assert_eq!(
             request.subject_identifier_prefix.as_deref(),
-            Some("hassox/common")
+            Some("hassox/schemas/common")
         );
         assert_eq!(request.subject_types, vec![AnnotationSubjectType::Schemas]);
-        assert_eq!(request.type_identifiers, vec!["hassox/review".to_string()]);
+        assert_eq!(
+            request.type_identifiers,
+            vec!["hassox/annotation-types/review".to_string()]
+        );
     }
 
     #[test]

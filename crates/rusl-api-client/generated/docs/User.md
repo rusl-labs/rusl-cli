@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **inserted_at** | **String** | Inserted At |
 **slug** | **String** | The user's account slug — set when the user account is created |
 **updated_at** | **String** | Updated At |
-**user_account** | Option<[**models::UserAccount1**](UserAccount1.md)> |  | [optional]
+**user_account** | Option<[**models::UserAccount2**](UserAccount2.md)> |  | [optional]
+**user_type** | **UserType** | Self-reported principal type. Defaults to \"human\". (enum: agent, human, unknown) |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

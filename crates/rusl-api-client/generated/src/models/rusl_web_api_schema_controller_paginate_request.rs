@@ -37,7 +37,7 @@ pub struct RuslWebApiSchemaControllerPaginateRequest {
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub filters: Option<Option<Vec<models::RuslWebApiSchemaControllerIndexFiltersParameterValue>>>,
+    pub filters: Option<Option<Vec<models::RuslWebApiSchemaControllerPaginateRequestFiltersInner>>>,
     /// Cursor pagination: number of items to return from the start.
     #[serde(
         rename = "first",

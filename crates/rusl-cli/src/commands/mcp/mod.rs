@@ -23,11 +23,12 @@ struct RuslMcpServer;
 impl McpHandler for RuslMcpServer {
     fn server_info(&self) -> ServerInfo {
         ServerInfo::new("rusl", env!("CARGO_PKG_VERSION"))
-            .with_description("Search visible Rusl resources and create feedback annotations.")
+            .with_description("Search visible Rusl resources, fetch full resource records, inspect examples, manage proposals, and create feedback annotations. Search is a discovery surface; use get_schema, get_bundle, get_annotation_type, or get_annotation when full content is needed.")
     }
 
     fn list_tools(&self) -> Vec<Tool> {
         let mut tools = vec![tools::search::definition(), tools::endorse::definition()];
+        tools.extend(tools::resource::definitions());
         tools.extend(tools::feedback::definitions());
         tools.extend(tools::proposal::definitions());
         tools.push(tools::schema_examples::definition());
@@ -55,10 +56,16 @@ impl McpHandler for RuslMcpServer {
                 "search" => tools::search::call(args).await,
                 "endorse" => tools::endorse::call(args).await,
                 "list_schema_examples" => tools::schema_examples::call(args).await,
-                proposal_tool => {
-                    if let Some(kind) = tools::proposal::kind_for_tool(proposal_tool) {
+                resource_or_proposal_tool => {
+                    if let Some(kind) = tools::resource::kind_for_tool(resource_or_proposal_tool) {
+                        tools::resource::call(kind, args).await
+                    } else if let Some(kind) =
+                        tools::proposal::kind_for_tool(resource_or_proposal_tool)
+                    {
                         tools::proposal::call(kind, args).await
-                    } else if let Some(kind) = tools::feedback::kind_for_tool(proposal_tool) {
+                    } else if let Some(kind) =
+                        tools::feedback::kind_for_tool(resource_or_proposal_tool)
+                    {
                         tools::feedback::call(kind, args).await
                     } else {
                         Err(McpError::tool_not_found(&name))
@@ -108,7 +115,7 @@ mod tests {
             search
                 .description
                 .as_deref()
-                .is_some_and(|description| description.contains("compact responses by default"))
+                .is_some_and(|description| description.contains("does not return complete"))
         );
         assert!(
             search
@@ -129,6 +136,10 @@ mod tests {
         );
 
         assert!(tools.iter().any(|tool| tool.name == "endorse"));
+        assert!(tools.iter().any(|tool| tool.name == "get_schema"));
+        assert!(tools.iter().any(|tool| tool.name == "get_bundle"));
+        assert!(tools.iter().any(|tool| tool.name == "get_annotation_type"));
+        assert!(tools.iter().any(|tool| tool.name == "get_annotation"));
         assert!(
             tools
                 .iter()

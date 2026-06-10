@@ -16,7 +16,7 @@ pub struct RuslWebApiProposalControllerIndex200Response {
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
     pub data: Option<Box<models::Proposal1>>,
     #[serde(rename = "page_info", skip_serializing_if = "Option::is_none")]
-    pub page_info: Option<Box<models::RuslWebApiBundleVersionControllerIndex200ResponsePageInfo>>,
+    pub page_info: Option<Box<models::RuslWebApiReactionControllerIndex200ResponsePageInfo>>,
 }
 
 impl RuslWebApiProposalControllerIndex200Response {

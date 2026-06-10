@@ -60,7 +60,9 @@ impl RegistryClient {
             .fetch_schema_metadata(&mut session, account, slug)
             .await
             .map_err(map_api_error)
-            .with_context(|| format!("Failed to fetch schema metadata for {account}/{slug}"))?;
+            .with_context(|| {
+                format!("Failed to fetch schema metadata for {account}/schemas/{slug}")
+            })?;
 
         self.persist_session(&mut credentials, &session)?;
         Ok(map_metadata_response(metadata.name, metadata.versions))
@@ -96,7 +98,9 @@ impl RegistryClient {
             .fetch_schema_document(&mut session, account, &schema_slug_and_version)
             .await
             .map_err(map_api_error)
-            .with_context(|| format!("Failed to download schema {account}/{slug}@v{version}"))?;
+            .with_context(|| {
+                format!("Failed to download schema {account}/schemas/{slug}@v{version}")
+            })?;
 
         self.persist_session(&mut credentials, &session)?;
         serde_json::to_vec(&document).context("Failed to serialize raw schema document")
@@ -195,6 +199,122 @@ impl RegistryClient {
         Ok(response)
     }
 
+    pub async fn fetch_schema_record(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+    ) -> Result<serde_json::Value> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .fetch_schema_record(&mut session, account_slug, schema_slug)
+            .await
+            .map_err(map_api_error)
+            .with_context(|| {
+                format!("Failed to fetch schema record for {account_slug}/schemas/{schema_slug}")
+            })?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn fetch_schema_version_record(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        version: &str,
+    ) -> Result<serde_json::Value> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .fetch_schema_version_record(&mut session, account_slug, schema_slug, version)
+            .await
+            .map_err(map_api_error)
+            .with_context(|| {
+                format!(
+                    "Failed to fetch schema version record for {account_slug}/schemas/{schema_slug}@v{version}"
+                )
+            })?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn fetch_bundle_record(
+        &self,
+        account_slug: &str,
+        bundle_slug: &str,
+    ) -> Result<serde_json::Value> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .fetch_bundle_record(&mut session, account_slug, bundle_slug)
+            .await
+            .map_err(map_api_error)
+            .with_context(|| {
+                format!("Failed to fetch bundle record for {account_slug}/bundles/{bundle_slug}")
+            })?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn fetch_bundle_version_record(
+        &self,
+        account_slug: &str,
+        bundle_slug: &str,
+        version: &str,
+    ) -> Result<serde_json::Value> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .fetch_bundle_version_record(&mut session, account_slug, bundle_slug, version)
+            .await
+            .map_err(map_api_error)
+            .with_context(|| {
+                format!(
+                    "Failed to fetch bundle version record for {account_slug}/bundles/{bundle_slug}@v{version}"
+                )
+            })?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn fetch_annotation_type_record(
+        &self,
+        account_slug: &str,
+        annotation_type_slug: &str,
+    ) -> Result<serde_json::Value> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .fetch_annotation_type_record(&mut session, account_slug, annotation_type_slug)
+            .await
+            .map_err(map_api_error)
+            .with_context(|| {
+                format!(
+                    "Failed to fetch annotation type record for {account_slug}/annotation-types/{annotation_type_slug}"
+                )
+            })?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn fetch_annotation_record(&self, annotation_id: &str) -> Result<serde_json::Value> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .fetch_annotation_record(&mut session, annotation_id)
+            .await
+            .map_err(map_api_error)
+            .with_context(|| format!("Failed to fetch annotation record for {annotation_id}"))?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
     pub async fn create_annotation(
         &self,
         account_slug: &str,
@@ -215,7 +335,7 @@ impl RegistryClient {
     pub async fn endorse_annotation(
         &self,
         annotation_id: &str,
-    ) -> Result<models::RuslWebApiReactionControllerFavourite201Response> {
+    ) -> Result<models::RuslWebApiAnnotationControllerEndorse200Response> {
         let (mut credentials, mut session) = self.load_session()?;
         let response = self
             .api
@@ -231,7 +351,7 @@ impl RegistryClient {
     pub async fn create_schema(
         &self,
         account_slug: &str,
-        request: models::OpenApiSchema5,
+        request: models::OpenApiSchema6,
     ) -> Result<models::RuslWebApiSchemaControllerShow200Response> {
         let (mut credentials, mut session) = self.load_session()?;
         let response = self
@@ -249,7 +369,7 @@ impl RegistryClient {
         &self,
         account_slug: &str,
         schema_slug: &str,
-        request: models::OpenApiSchema6,
+        request: models::OpenApiSchema3,
     ) -> Result<models::RuslWebApiProposalControllerShow200Response> {
         let (mut credentials, mut session) = self.load_session()?;
         let response = self
@@ -286,7 +406,7 @@ impl RegistryClient {
         account_slug: &str,
         schema_slug: &str,
         proposal_number: i32,
-        request: models::OpenApiSchema4,
+        request: models::OpenApiSchema1,
     ) -> Result<models::RuslWebApiProposalControllerShow200Response> {
         let (mut credentials, mut session) = self.load_session()?;
         let response = self
@@ -330,7 +450,7 @@ impl RegistryClient {
         schema_slug: &str,
         proposal_number: i32,
         request: models::CreateReviewThreadRequest1,
-    ) -> Result<models::RuslWebApiProposalReviewControllerReopenThread200Response> {
+    ) -> Result<models::RuslWebApiProposalReviewControllerCreateThread201Response> {
         let (mut credentials, mut session) = self.load_session()?;
         let response = self
             .api
@@ -783,7 +903,7 @@ mod tests {
                     "document_type_label": "Schema",
                     "guid": "schema_guid",
                     "highlights": [],
-                    "identifier": "hassox/common"
+                    "identifier": "hassox/schemas/common"
                 }],
                 "facets": [],
                 "page_info": {
@@ -826,7 +946,7 @@ mod tests {
             .await
             .expect("search registry");
 
-        assert_eq!(response.data[0].identifier, "hassox/common");
+        assert_eq!(response.data[0].identifier, "hassox/schemas/common");
         assert_eq!(
             server.recorded_search_requests().await,
             vec![RecordedSearchRequest {

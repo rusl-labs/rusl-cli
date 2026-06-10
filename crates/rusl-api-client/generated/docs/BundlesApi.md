@@ -6,6 +6,8 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**rusl_web_api_bundle_controller_archive**](BundlesApi.md#rusl_web_api_bundle_controller_archive) | **POST** /api/{account_slug}/bundles/{bundle_slug}/archive | Archive a bundle
 [**rusl_web_api_bundle_controller_create**](BundlesApi.md#rusl_web_api_bundle_controller_create) | **POST** /api/{account_slug}/bundles | Create a new bundle
+[**rusl_web_api_bundle_controller_create_provenance**](BundlesApi.md#rusl_web_api_bundle_controller_create_provenance) | **POST** /api/{account_slug}/bundles/{bundle_slug}/provenance | Create bundle provenance
+[**rusl_web_api_bundle_controller_fork**](BundlesApi.md#rusl_web_api_bundle_controller_fork) | **POST** /api/{account_slug}/bundles/forks | Fork a bundle
 [**rusl_web_api_bundle_controller_index**](BundlesApi.md#rusl_web_api_bundle_controller_index) | **GET** /api/bundles | Search bundles across accounts
 [**rusl_web_api_bundle_controller_lookup**](BundlesApi.md#rusl_web_api_bundle_controller_lookup) | **GET** /api/bundles/lookup | Lookup bundles by IDs
 [**rusl_web_api_bundle_controller_paginate**](BundlesApi.md#rusl_web_api_bundle_controller_paginate) | **POST** /api/{account_slug}/bundles/filter | Paginate bundles
@@ -56,6 +58,69 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
 **rusl_web_api_bundle_controller_create_request** | Option<[**RuslWebApiBundleControllerCreateRequest**](RuslWebApiBundleControllerCreateRequest.md)> | Create Bundle |  |
+
+### Return type
+
+[**models::RuslWebApiBundleControllerCreate201Response**](RuslWeb_Api_BundleController_create_201_response.md)
+
+### Authorization
+
+[authorization](../README.md#authorization)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_bundle_controller_create_provenance
+
+> models::RuslWebApiBundleControllerCreateProvenance201Response rusl_web_api_bundle_controller_create_provenance(account_slug, bundle_slug, create_resource_origin_request1)
+Create bundle provenance
+
+Create ADAPTED_FROM or IMPORTED_FROM provenance for a bundle.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**account_slug** | **String** | Account slug | [required] |
+**bundle_slug** | **String** | Bundle slug | [required] |
+**create_resource_origin_request1** | Option<[**CreateResourceOriginRequest1**](CreateResourceOriginRequest1.md)> | Create Bundle Provenance |  |
+
+### Return type
+
+[**models::RuslWebApiBundleControllerCreateProvenance201Response**](RuslWeb_Api_BundleController_create_provenance_201_response.md)
+
+### Authorization
+
+[authorization](../README.md#authorization)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_bundle_controller_fork
+
+> models::RuslWebApiBundleControllerCreate201Response rusl_web_api_bundle_controller_fork(account_slug, fork_bundle_request1)
+Fork a bundle
+
+Create a new bundle by copying one readable immutable source bundle version. Upstream history is not copied.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**account_slug** | **String** | Account slug | [required] |
+**fork_bundle_request1** | Option<[**ForkBundleRequest1**](ForkBundleRequest1.md)> | Fork Bundle |  |
 
 ### Return type
 

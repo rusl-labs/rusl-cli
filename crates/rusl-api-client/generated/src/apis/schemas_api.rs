@@ -17,13 +17,13 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerArchiveError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -31,14 +31,43 @@ pub enum RuslWebApiSchemaControllerArchiveError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerCreateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
     Status402(models::EntitlementDenied1),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_schema_controller_create_provenance`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiSchemaControllerCreateProvenanceError {
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_schema_controller_fork`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiSchemaControllerForkError {
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status402(models::EntitlementDenied1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -46,10 +75,10 @@ pub enum RuslWebApiSchemaControllerCreateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -57,10 +86,10 @@ pub enum RuslWebApiSchemaControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerLookupError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -68,10 +97,10 @@ pub enum RuslWebApiSchemaControllerLookupError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerPaginateError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -79,10 +108,10 @@ pub enum RuslWebApiSchemaControllerPaginateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerSchemaIdentifierTypeaheadError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -90,10 +119,10 @@ pub enum RuslWebApiSchemaControllerSchemaIdentifierTypeaheadError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerShowError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -101,13 +130,13 @@ pub enum RuslWebApiSchemaControllerShowError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerUnarchiveError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -115,14 +144,14 @@ pub enum RuslWebApiSchemaControllerUnarchiveError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaControllerUpdateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
     Status402(models::EntitlementDenied1),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -189,14 +218,14 @@ pub async fn rusl_web_api_schema_controller_archive(
 pub async fn rusl_web_api_schema_controller_create(
     configuration: &configuration::Configuration,
     account_slug: &str,
-    open_api_schema5: Option<models::OpenApiSchema5>,
+    open_api_schema6: Option<models::OpenApiSchema6>,
 ) -> Result<
     models::RuslWebApiSchemaControllerShow200Response,
     Error<RuslWebApiSchemaControllerCreateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
-    let p_body_open_api_schema5 = open_api_schema5;
+    let p_body_open_api_schema6 = open_api_schema6;
 
     let uri_str = format!(
         "{}/api/{account_slug}/schemas",
@@ -213,7 +242,7 @@ pub async fn rusl_web_api_schema_controller_create(
     if let Some(ref token) = configuration.bearer_access_token {
         req_builder = req_builder.bearer_auth(token.to_owned());
     };
-    req_builder = req_builder.json(&p_body_open_api_schema5);
+    req_builder = req_builder.json(&p_body_open_api_schema6);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;
@@ -245,13 +274,136 @@ pub async fn rusl_web_api_schema_controller_create(
     }
 }
 
+/// Create ADAPTED_FROM or IMPORTED_FROM provenance for a schema.
+pub async fn rusl_web_api_schema_controller_create_provenance(
+    configuration: &configuration::Configuration,
+    account_slug: &str,
+    schema_slug: &str,
+    create_resource_origin_request1: Option<models::CreateResourceOriginRequest1>,
+) -> Result<
+    models::RuslWebApiBundleControllerCreateProvenance201Response,
+    Error<RuslWebApiSchemaControllerCreateProvenanceError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_account_slug = account_slug;
+    let p_path_schema_slug = schema_slug;
+    let p_body_create_resource_origin_request1 = create_resource_origin_request1;
+
+    let uri_str = format!(
+        "{}/api/{account_slug}/schemas/{schema_slug}/provenance",
+        configuration.base_path,
+        account_slug = crate::apis::urlencode(p_path_account_slug),
+        schema_slug = crate::apis::urlencode(p_path_schema_slug)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+    req_builder = req_builder.json(&p_body_create_resource_origin_request1);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleControllerCreateProvenance201Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleControllerCreateProvenance201Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiSchemaControllerCreateProvenanceError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Create a new schema by copying one readable immutable source schema version. Upstream history is not copied.
+pub async fn rusl_web_api_schema_controller_fork(
+    configuration: &configuration::Configuration,
+    account_slug: &str,
+    fork_schema_request1: Option<models::ForkSchemaRequest1>,
+) -> Result<
+    models::RuslWebApiSchemaControllerShow200Response,
+    Error<RuslWebApiSchemaControllerForkError>,
+> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_path_account_slug = account_slug;
+    let p_body_fork_schema_request1 = fork_schema_request1;
+
+    let uri_str = format!(
+        "{}/api/{account_slug}/schemas/forks",
+        configuration.base_path,
+        account_slug = crate::apis::urlencode(p_path_account_slug)
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+    req_builder = req_builder.json(&p_body_fork_schema_request1);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiSchemaControllerShow200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiSchemaControllerShow200Response`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiSchemaControllerForkError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
 /// Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, schema slug, schema identifier, and description) - identifier (canonical schema identifier, supports exact and in filters) - schema_identifier (resource-specific storage field) - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to.
 pub async fn rusl_web_api_schema_controller_index(
     configuration: &configuration::Configuration,
     filters: Option<
         std::collections::HashMap<
             String,
-            models::RuslWebApiSchemaControllerIndexFiltersParameterValue,
+            models::RuslWebApiSchemaControllerPaginateRequestFiltersInner,
         >,
     >,
     order_by: Option<Vec<String>>,
@@ -265,7 +417,7 @@ pub async fn rusl_web_api_schema_controller_index(
     page: Option<i32>,
     page_size: Option<i32>,
 ) -> Result<
-    models::RuslWebApiSchemaControllerIndex200Response,
+    models::RuslWebApiSchemaControllerPaginate200Response,
     Error<RuslWebApiSchemaControllerIndexError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -368,8 +520,8 @@ pub async fn rusl_web_api_schema_controller_index(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiSchemaControllerIndex200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiSchemaControllerIndex200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiSchemaControllerPaginate200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiSchemaControllerPaginate200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -442,7 +594,7 @@ pub async fn rusl_web_api_schema_controller_paginate(
         models::RuslWebApiSchemaControllerPaginateRequest,
     >,
 ) -> Result<
-    models::RuslWebApiSchemaControllerIndex200Response,
+    models::RuslWebApiSchemaControllerPaginate200Response,
     Error<RuslWebApiSchemaControllerPaginateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -479,8 +631,8 @@ pub async fn rusl_web_api_schema_controller_paginate(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiSchemaControllerIndex200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiSchemaControllerIndex200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiSchemaControllerPaginate200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiSchemaControllerPaginate200Response`")))),
         }
     } else {
         let content = resp.text().await?;

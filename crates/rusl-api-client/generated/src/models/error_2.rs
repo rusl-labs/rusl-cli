@@ -11,24 +11,30 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// Error2 : Generic error response
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Error2 {
-    #[serde(rename = "code", skip_serializing_if = "Option::is_none")]
-    pub code: Option<String>,
-    #[serde(rename = "error")]
-    pub error: String,
-    #[serde(rename = "errors", skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<String>>,
+    /// Stable error code
+    #[serde(rename = "code")]
+    pub code: String,
+    /// Field path (optional)
+    #[serde(
+        rename = "field",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub field: Option<Option<String>>,
+    /// Human-readable message
+    #[serde(rename = "message")]
+    pub message: String,
 }
 
 impl Error2 {
-    /// Generic error response
-    pub fn new(error: String) -> Error2 {
+    pub fn new(code: String, message: String) -> Error2 {
         Error2 {
-            code: None,
-            error,
-            errors: None,
+            code,
+            field: None,
+            message,
         }
     }
 }

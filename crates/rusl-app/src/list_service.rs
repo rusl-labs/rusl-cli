@@ -209,7 +209,10 @@ mod tests {
             display_package_key("bundle:acme/common"),
             "acme/bundles/common"
         );
-        assert_eq!(display_package_key("schema:acme/types"), "acme/types");
+        assert_eq!(
+            display_package_key("schema:acme/schemas/types"),
+            "acme/schemas/types"
+        );
     }
 
     #[test]
@@ -227,7 +230,7 @@ mod tests {
         let external = flat
             .items
             .iter()
-            .find(|item| item.display_name == "acme/shared")
+            .find(|item| item.display_name == "acme/schemas/shared")
             .expect("external item should exist");
 
         assert_eq!(bundle.source, None);
@@ -237,10 +240,10 @@ mod tests {
         );
         assert!(is_external_source("https://example.com/schema.json"));
         assert!(!is_external_source(
-            "https://resources.rusl.com/resources/acme/common"
+            "https://resources.rusl.com/resources/acme/schemas/common"
         ));
         assert!(!is_external_source(
-            "https://resources.rusl.app/resources/acme/common"
+            "https://resources.rusl.app/resources/acme/schemas/common"
         ));
     }
 
@@ -248,7 +251,7 @@ mod tests {
     fn collapses_repeated_nodes_in_tree_view() {
         let lock = sample_lock();
         let mut seen = HashSet::new();
-        let tree = build_tree_node("schema:acme/root", &lock, &mut seen);
+        let tree = build_tree_node("schema:acme/schemas/root", &lock, &mut seen);
 
         assert_eq!(tree.children.len(), 2);
         assert!(!tree.children[0].repeated);
@@ -263,23 +266,23 @@ mod tests {
                 version: "2.0.0".to_string(),
                 integrity: "sha256-bundle".to_string(),
                 source: "https://resources.rusl.com/resources/acme/bundles/common".to_string(),
-                dependencies: vec!["schema:acme/shared".to_string()],
+                dependencies: vec!["schema:acme/schemas/shared".to_string()],
             },
         );
         dependencies.insert(
-            "schema:acme/root".to_string(),
+            "schema:acme/schemas/root".to_string(),
             LockDependency {
                 version: "1.0.0".to_string(),
                 integrity: "sha256-root".to_string(),
-                source: "https://resources.rusl.com/resources/acme/root".to_string(),
+                source: "https://resources.rusl.com/resources/acme/schemas/root".to_string(),
                 dependencies: vec![
                     "bundle:acme/bundles/common".to_string(),
-                    "schema:acme/shared".to_string(),
+                    "schema:acme/schemas/shared".to_string(),
                 ],
             },
         );
         dependencies.insert(
-            "schema:acme/shared".to_string(),
+            "schema:acme/schemas/shared".to_string(),
             LockDependency {
                 version: "1.2.0".to_string(),
                 integrity: "sha256-shared".to_string(),
@@ -342,7 +345,7 @@ mod tests {
             temp_dir.path().join("rusl.bundle.toml"),
             r#"
 [rusl.resources]
-"acme/root" = ">=1.0.0"
+"acme/schemas/root" = ">=1.0.0"
 "#,
         )
         .expect("write manifest");
@@ -351,13 +354,13 @@ mod tests {
             r#"
 version = "1"
 
-[dependencies."schema:acme/root"]
+[dependencies."schema:acme/schemas/root"]
 version = "1.0.0"
 integrity = "root"
 source = "https://resources.rusl.com"
-dependencies = ["schema:acme/shared"]
+dependencies = ["schema:acme/schemas/shared"]
 
-[dependencies."schema:acme/shared"]
+[dependencies."schema:acme/schemas/shared"]
 version = "1.2.0"
 integrity = "shared"
 source = "https://example.com/schema.json"
@@ -373,8 +376,11 @@ source = "https://example.com/schema.json"
         assert_eq!(tree.root_name, "local bundle");
         assert_eq!(tree.root_version, "unversioned");
         assert_eq!(tree.dependencies.len(), 1);
-        assert_eq!(tree.dependencies[0].display_name, "acme/root");
-        assert_eq!(tree.dependencies[0].children[0].display_name, "acme/shared");
+        assert_eq!(tree.dependencies[0].display_name, "acme/schemas/root");
+        assert_eq!(
+            tree.dependencies[0].children[0].display_name,
+            "acme/schemas/shared"
+        );
     }
 
     #[cfg(windows)]

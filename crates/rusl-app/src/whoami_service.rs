@@ -95,7 +95,8 @@ mod tests {
                 "id": "user_123",
                 "inserted_at": "2026-04-05T00:00:00Z",
                 "slug": "hassox",
-                "updated_at": "2026-04-05T00:00:00Z"
+                "updated_at": "2026-04-05T00:00:00Z",
+                "user_type": "human"
             },
             "accounts": {
                 "zeta": {
