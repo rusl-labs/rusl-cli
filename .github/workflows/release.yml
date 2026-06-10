@@ -309,6 +309,25 @@ jobs:
           git config --global user.name "${GITHUB_USER}"
           git config --global user.email "${GITHUB_EMAIL}"
 
+          push_homebrew_formula() {
+            for attempt in 1 2 3; do
+              if git push; then
+                return 0
+              fi
+
+              git fetch origin main
+              if git merge-base --is-ancestor HEAD origin/main; then
+                echo "Homebrew tap already contains the local formula commit."
+                return 0
+              fi
+
+              echo "Homebrew tap changed before push; rebasing and retrying (${attempt}/3)."
+              git rebase origin/main
+            done
+
+            git push
+          }
+
           for release in $(echo "$PLAN" | jq --compact-output '.releases[] | select([.artifacts[] | endswith(".rb")] | any)'); do
             filename=$(echo "$release" | jq '.artifacts[] | select(endswith(".rb"))' --raw-output)
             name=$(echo "$filename" | sed "s/\.rb$//")
@@ -320,9 +339,13 @@ jobs:
             brew style --except-cops FormulaAudit/Homepage,FormulaAudit/Desc,FormulaAuditStrict --fix "Formula/${filename}" || true
 
             git add "Formula/${filename}"
-            git commit -m "${name} ${version}"
+            if git diff --cached --quiet; then
+              echo "Formula/${filename} is already up to date."
+            else
+              git commit -m "${name} ${version}"
+            fi
           done
-          git push
+          push_homebrew_formula
 
   announce:
     needs:
