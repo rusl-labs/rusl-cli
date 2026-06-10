@@ -141,7 +141,10 @@ mod tests {
             display_package_key("bundle:acme/common"),
             "acme/bundles/common"
         );
-        assert_eq!(display_package_key("schema:acme/types"), "acme/types");
+        assert_eq!(
+            display_package_key("schema:acme/schemas/types"),
+            "acme/schemas/types"
+        );
     }
 
     #[test]
@@ -170,13 +173,13 @@ mod tests {
     #[test]
     fn outdated_item_captures_render_data() {
         let item = OutdatedItem {
-            package_key: "schema:acme/types".to_string(),
-            display_name: "acme/types".to_string(),
+            package_key: "schema:acme/schemas/types".to_string(),
+            display_name: "acme/schemas/types".to_string(),
             current_version: "1.0.0".to_string(),
             latest_version: "1.1.0".to_string(),
         };
 
-        assert_eq!(item.display_name, "acme/types");
+        assert_eq!(item.display_name, "acme/schemas/types");
         assert_eq!(item.current_version, "1.0.0");
         assert_eq!(item.latest_version, "1.1.0");
     }
@@ -202,7 +205,7 @@ mod tests {
         async fn start() -> Self {
             let app = Router::new()
                 .route(
-                    "/resources/{account}/{slug}/metadata",
+                    "/resources/{account}/schemas/{slug}/metadata",
                     get(metadata_handler),
                 )
                 .with_state(TestState);
@@ -309,7 +312,7 @@ mod tests {
             r#"
 version = "1"
 
-[dependencies."schema:hassox/root"]
+[dependencies."schema:hassox/schemas/root"]
 version = "1.0.0"
 integrity = "root"
 source = "https://resources.rusl.com"
@@ -322,8 +325,8 @@ source = "https://resources.rusl.com"
         assert_eq!(
             output,
             OutdatedOutput::Items(vec![OutdatedItem {
-                package_key: "schema:hassox/root".to_string(),
-                display_name: "hassox/root".to_string(),
+                package_key: "schema:hassox/schemas/root".to_string(),
+                display_name: "hassox/schemas/root".to_string(),
                 current_version: "1.0.0".to_string(),
                 latest_version: "1.2.0".to_string(),
             }])

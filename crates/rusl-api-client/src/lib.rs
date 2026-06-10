@@ -183,6 +183,91 @@ impl RuslApiClient {
         .await
     }
 
+    pub async fn fetch_schema_record(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let path = schema_path(account_slug, schema_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
+    pub async fn fetch_schema_version_record(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        version: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let path = schema_version_path(account_slug, schema_slug, version);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
+    pub async fn fetch_bundle_record(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        bundle_slug: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let path = bundle_path(account_slug, bundle_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
+    pub async fn fetch_bundle_version_record(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        bundle_slug: &str,
+        version: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let path = bundle_version_path(account_slug, bundle_slug, version);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
+    pub async fn fetch_annotation_type_record(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        annotation_type_slug: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let path = annotation_type_path(account_slug, annotation_type_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
+    pub async fn fetch_annotation_record(
+        &self,
+        session: &mut SessionTokens,
+        annotation_id: &str,
+    ) -> Result<serde_json::Value, ApiError> {
+        let path = annotation_path(annotation_id);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.get_json(access_token, &path).await }
+        })
+        .await
+    }
+
     pub async fn create_annotation(
         &self,
         session: &mut SessionTokens,
@@ -202,7 +287,7 @@ impl RuslApiClient {
         &self,
         session: &mut SessionTokens,
         annotation_id: &str,
-    ) -> Result<models::RuslWebApiReactionControllerFavourite201Response, ApiError> {
+    ) -> Result<models::RuslWebApiAnnotationControllerEndorse200Response, ApiError> {
         let path = endorse_annotation_path(annotation_id);
         self.with_session(session, |access_token| {
             let path = path.clone();
@@ -215,7 +300,7 @@ impl RuslApiClient {
         &self,
         session: &mut SessionTokens,
         account_slug: &str,
-        request: models::OpenApiSchema5,
+        request: models::OpenApiSchema6,
     ) -> Result<models::RuslWebApiSchemaControllerShow200Response, ApiError> {
         let path = create_schema_path(account_slug);
         self.with_session(session, |access_token| {
@@ -231,7 +316,7 @@ impl RuslApiClient {
         session: &mut SessionTokens,
         account_slug: &str,
         schema_slug: &str,
-        request: models::OpenApiSchema6,
+        request: models::OpenApiSchema3,
     ) -> Result<models::RuslWebApiProposalControllerShow200Response, ApiError> {
         let path = schema_proposals_path(account_slug, schema_slug);
         self.with_session(session, |access_token| {
@@ -263,7 +348,7 @@ impl RuslApiClient {
         account_slug: &str,
         schema_slug: &str,
         proposal_number: i32,
-        request: models::OpenApiSchema4,
+        request: models::OpenApiSchema1,
     ) -> Result<models::RuslWebApiProposalControllerShow200Response, ApiError> {
         let path = schema_proposal_path(account_slug, schema_slug, proposal_number);
         self.with_session(session, |access_token| {
@@ -296,7 +381,7 @@ impl RuslApiClient {
         schema_slug: &str,
         proposal_number: i32,
         request: models::CreateReviewThreadRequest1,
-    ) -> Result<models::RuslWebApiProposalReviewControllerReopenThread200Response, ApiError> {
+    ) -> Result<models::RuslWebApiProposalReviewControllerCreateThread201Response, ApiError> {
         let path = proposal_review_threads_path(account_slug, schema_slug, proposal_number);
         self.with_session(session, |access_token| {
             let path = path.clone();
@@ -636,7 +721,7 @@ fn non_blank(value: String) -> Option<String> {
 
 fn raw_schema_metadata_path(account: &str, slug: &str) -> String {
     format!(
-        "/resources/{}/{}/metadata",
+        "/resources/{}/schemas/{}/metadata",
         generated::apis::urlencode(account),
         generated::apis::urlencode(slug)
     )
@@ -644,7 +729,7 @@ fn raw_schema_metadata_path(account: &str, slug: &str) -> String {
 
 fn raw_schema_document_path(account: &str, schema_slug_and_version: &str) -> String {
     format!(
-        "/resources/{}/{}",
+        "/resources/{}/schemas/{}",
         generated::apis::urlencode(account),
         generated::apis::urlencode(schema_slug_and_version)
     )
@@ -668,6 +753,53 @@ fn create_annotation_path(account_slug: &str) -> String {
 fn endorse_annotation_path(annotation_id: &str) -> String {
     format!(
         "/api/annotations/{}/endorse",
+        generated::apis::urlencode(annotation_id)
+    )
+}
+
+fn schema_path(account_slug: &str, schema_slug: &str) -> String {
+    format!(
+        "/api/{}/schemas/{}",
+        generated::apis::urlencode(account_slug),
+        generated::apis::urlencode(schema_slug)
+    )
+}
+
+fn schema_version_path(account_slug: &str, schema_slug: &str, version: &str) -> String {
+    format!(
+        "{}/versions/{}",
+        schema_path(account_slug, schema_slug),
+        generated::apis::urlencode(version)
+    )
+}
+
+fn bundle_path(account_slug: &str, bundle_slug: &str) -> String {
+    format!(
+        "/api/{}/bundles/{}",
+        generated::apis::urlencode(account_slug),
+        generated::apis::urlencode(bundle_slug)
+    )
+}
+
+fn bundle_version_path(account_slug: &str, bundle_slug: &str, version: &str) -> String {
+    format!(
+        "{}/versions/{}",
+        bundle_path(account_slug, bundle_slug),
+        generated::apis::urlencode(version)
+    )
+}
+
+fn annotation_type_path(account_slug: &str, annotation_type_slug: &str) -> String {
+    format!(
+        "/api/{}/annotation_types/{}",
+        generated::apis::urlencode(account_slug),
+        generated::apis::urlencode(annotation_type_slug)
+    )
+}
+
+fn annotation_path(annotation_id: &str) -> String {
+    format!(
+        "/api/annotations/{}",
         generated::apis::urlencode(annotation_id)
     )
 }
@@ -729,11 +861,12 @@ fn schema_examples_path(account_slug: &str, schema_slug: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
+        annotation_path, annotation_type_path, bundle_path, bundle_version_path,
         create_annotation_path, create_schema_path, endorse_annotation_path, normalize_base_url,
         proposal_review_thread_comments_path, proposal_review_threads_path,
         raw_bundle_metadata_path, raw_schema_document_path, raw_schema_metadata_path,
-        rusl_user_agent, rusl_user_agent_with_context, schema_examples_path, schema_proposal_path,
-        schema_proposals_path,
+        rusl_user_agent, rusl_user_agent_with_context, schema_examples_path, schema_path,
+        schema_proposal_path, schema_proposals_path, schema_version_path,
     };
 
     #[test]
@@ -762,11 +895,11 @@ mod tests {
     fn builds_encoded_raw_resource_paths() {
         assert_eq!(
             raw_schema_metadata_path("hass ox", "common/schema"),
-            "/resources/hass+ox/common%2Fschema/metadata"
+            "/resources/hass+ox/schemas/common%2Fschema/metadata"
         );
         assert_eq!(
             raw_schema_document_path("hass ox", "common@v1.0.0"),
-            "/resources/hass+ox/common%40v1.0.0"
+            "/resources/hass+ox/schemas/common%40v1.0.0"
         );
         assert_eq!(
             raw_bundle_metadata_path("hass ox", "bundle/main"),
@@ -779,6 +912,30 @@ mod tests {
         assert_eq!(
             endorse_annotation_path("annotations.123/456"),
             "/api/annotations/annotations.123%2F456/endorse"
+        );
+        assert_eq!(
+            schema_path("hass ox", "common/schema"),
+            "/api/hass+ox/schemas/common%2Fschema"
+        );
+        assert_eq!(
+            schema_version_path("hass ox", "common/schema", "1.2.3"),
+            "/api/hass+ox/schemas/common%2Fschema/versions/1.2.3"
+        );
+        assert_eq!(
+            bundle_path("hass ox", "bundle/main"),
+            "/api/hass+ox/bundles/bundle%2Fmain"
+        );
+        assert_eq!(
+            bundle_version_path("hass ox", "bundle/main", "1.2.3"),
+            "/api/hass+ox/bundles/bundle%2Fmain/versions/1.2.3"
+        );
+        assert_eq!(
+            annotation_type_path("hass ox", "review/type"),
+            "/api/hass+ox/annotation_types/review%2Ftype"
+        );
+        assert_eq!(
+            annotation_path("annotations.123/456"),
+            "/api/annotations/annotations.123%2F456"
         );
         assert_eq!(create_schema_path("hass ox"), "/api/hass+ox/schemas");
         assert_eq!(

@@ -1,5 +1,5 @@
 {
-  "$id": "https://resources.rusl.com/schemas/rusl/semantic-link",
+  "$id": "https://resources.rusl.com/resources/rusl/schemas/semantic-link",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "A typed relationship from the annotated subject to another schema, bundle, annotation, or external resource.",

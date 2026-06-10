@@ -20,14 +20,6 @@ pub struct Account1OwnerUser {
     /// Confirmed At
     #[serde(rename = "confirmed_at", skip_serializing_if = "Option::is_none")]
     pub confirmed_at: Option<String>,
-    /// User Email
-    #[serde(
-        rename = "email",
-        default,
-        with = "::serde_with::rust::double_option",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub email: Option<Option<String>>,
     /// Global ID
     #[serde(rename = "guid")]
     pub guid: String,
@@ -40,6 +32,9 @@ pub struct Account1OwnerUser {
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
+    /// Self-reported principal type. Defaults to \"human\".
+    #[serde(rename = "user_type")]
+    pub user_type: UserType,
 }
 
 impl Account1OwnerUser {
@@ -50,15 +45,16 @@ impl Account1OwnerUser {
         id: String,
         inserted_at: String,
         updated_at: String,
+        user_type: UserType,
     ) -> Account1OwnerUser {
         Account1OwnerUser {
             __typename,
             confirmed_at: None,
-            email: None,
             guid,
             id,
             inserted_at,
             updated_at,
+            user_type,
         }
     }
 }
@@ -72,5 +68,21 @@ pub enum Typename {
 impl Default for Typename {
     fn default() -> Typename {
         Self::Users
+    }
+}
+/// Self-reported principal type. Defaults to \"human\".
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum UserType {
+    #[serde(rename = "agent")]
+    Agent,
+    #[serde(rename = "human")]
+    Human,
+    #[serde(rename = "unknown")]
+    Unknown,
+}
+
+impl Default for UserType {
+    fn default() -> UserType {
+        Self::Agent
     }
 }

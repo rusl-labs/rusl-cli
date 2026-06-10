@@ -17,13 +17,13 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiCliAuthControllerCreateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -31,13 +31,55 @@ pub enum RuslWebApiCliAuthControllerCreateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiCliAuthControllerExchangeError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_magic_link_controller_confirm`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiMagicLinkControllerConfirmError {
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_magic_link_controller_create`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiMagicLinkControllerCreateError {
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_password_reset_controller_confirm`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiPasswordResetControllerConfirmError {
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`rusl_web_api_password_reset_controller_create`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RuslWebApiPasswordResetControllerCreateError {
     UnknownValue(serde_json::Value),
 }
 
@@ -66,10 +108,10 @@ pub enum RuslWebApiSessionControllerMeError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiTokensControllerExchangeError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -77,10 +119,10 @@ pub enum RuslWebApiTokensControllerExchangeError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiTokensControllerRefreshError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -88,10 +130,10 @@ pub enum RuslWebApiTokensControllerRefreshError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWebauthnControllerAuthenticationOptionsError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -99,13 +141,13 @@ pub enum RuslWebApiWebauthnControllerAuthenticationOptionsError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWebauthnControllerAuthenticationVerifyError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -113,10 +155,10 @@ pub enum RuslWebApiWebauthnControllerAuthenticationVerifyError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWebauthnControllerDeleteError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -124,10 +166,10 @@ pub enum RuslWebApiWebauthnControllerDeleteError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWebauthnControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -135,10 +177,10 @@ pub enum RuslWebApiWebauthnControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWebauthnControllerRegistrationOptionsError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -146,13 +188,13 @@ pub enum RuslWebApiWebauthnControllerRegistrationOptionsError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWebauthnControllerRegistrationVerifyError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -160,13 +202,13 @@ pub enum RuslWebApiWebauthnControllerRegistrationVerifyError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiWebauthnControllerUpdateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -258,6 +300,201 @@ pub async fn rusl_web_api_cli_auth_controller_exchange(
     } else {
         let content = resp.text().await?;
         let entity: Option<RuslWebApiCliAuthControllerExchangeError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Logs the user in using the emailed token (confirms unconfirmed accounts).
+pub async fn rusl_web_api_magic_link_controller_confirm(
+    configuration: &configuration::Configuration,
+    magic_link_confirm_request: Option<models::MagicLinkConfirmRequest>,
+) -> Result<models::LoginResponse, Error<RuslWebApiMagicLinkControllerConfirmError>> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_magic_link_confirm_request = magic_link_confirm_request;
+
+    let uri_str = format!("{}/api/auth/magic-link/confirm", configuration.base_path);
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    req_builder = req_builder.json(&p_body_magic_link_confirm_request);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::LoginResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::LoginResponse`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiMagicLinkControllerConfirmError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Always returns `{ok: true}` regardless of whether the email belongs to an account.
+pub async fn rusl_web_api_magic_link_controller_create(
+    configuration: &configuration::Configuration,
+    email_request: Option<models::EmailRequest>,
+) -> Result<models::AcceptedResponse, Error<RuslWebApiMagicLinkControllerCreateError>> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_email_request = email_request;
+
+    let uri_str = format!("{}/api/auth/magic-link", configuration.base_path);
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    req_builder = req_builder.json(&p_body_email_request);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::AcceptedResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::AcceptedResponse`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiMagicLinkControllerCreateError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Sets the new password using the emailed token and logs the user in.
+pub async fn rusl_web_api_password_reset_controller_confirm(
+    configuration: &configuration::Configuration,
+    forgot_password_confirm_request: Option<models::ForgotPasswordConfirmRequest>,
+) -> Result<models::LoginResponse, Error<RuslWebApiPasswordResetControllerConfirmError>> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_forgot_password_confirm_request = forgot_password_confirm_request;
+
+    let uri_str = format!(
+        "{}/api/auth/forgot-password/confirm",
+        configuration.base_path
+    );
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    req_builder = req_builder.json(&p_body_forgot_password_confirm_request);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::LoginResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::LoginResponse`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiPasswordResetControllerConfirmError> =
+            serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+/// Always returns `{ok: true}` regardless of whether the email belongs to an account.
+pub async fn rusl_web_api_password_reset_controller_create(
+    configuration: &configuration::Configuration,
+    email_request: Option<models::EmailRequest>,
+) -> Result<models::AcceptedResponse, Error<RuslWebApiPasswordResetControllerCreateError>> {
+    // add a prefix to parameters to efficiently prevent name collisions
+    let p_body_email_request = email_request;
+
+    let uri_str = format!("{}/api/auth/forgot-password", configuration.base_path);
+    let mut req_builder = configuration
+        .client
+        .request(reqwest::Method::POST, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    req_builder = req_builder.json(&p_body_email_request);
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::AcceptedResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::AcceptedResponse`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<RuslWebApiPasswordResetControllerCreateError> =
             serde_json::from_str(&content).ok();
         Err(Error::ResponseError(ResponseContent {
             status,

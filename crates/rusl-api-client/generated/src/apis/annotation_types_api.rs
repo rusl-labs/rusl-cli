@@ -17,13 +17,13 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerArchiveError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -31,13 +31,13 @@ pub enum RuslWebApiAnnotationTypeControllerArchiveError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerCreateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -45,10 +45,10 @@ pub enum RuslWebApiAnnotationTypeControllerCreateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -56,10 +56,10 @@ pub enum RuslWebApiAnnotationTypeControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerLookupError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -67,10 +67,10 @@ pub enum RuslWebApiAnnotationTypeControllerLookupError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerShowError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -78,10 +78,10 @@ pub enum RuslWebApiAnnotationTypeControllerShowError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerTypeaheadError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -89,13 +89,13 @@ pub enum RuslWebApiAnnotationTypeControllerTypeaheadError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerUnarchiveError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -103,13 +103,13 @@ pub enum RuslWebApiAnnotationTypeControllerUnarchiveError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAnnotationTypeControllerUpdateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -118,7 +118,7 @@ pub async fn rusl_web_api_annotation_type_controller_archive(
     account_slug: &str,
     annotation_type_slug: &str,
 ) -> Result<
-    models::RuslWebApiAnnotationTypeControllerShow200Response,
+    models::RuslWebApiAnnotationTypeControllerArchive200Response,
     Error<RuslWebApiAnnotationTypeControllerArchiveError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -157,8 +157,8 @@ pub async fn rusl_web_api_annotation_type_controller_archive(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -179,7 +179,7 @@ pub async fn rusl_web_api_annotation_type_controller_create(
         models::RuslWebApiAnnotationTypeControllerCreateRequest,
     >,
 ) -> Result<
-    models::RuslWebApiAnnotationTypeControllerShow200Response,
+    models::RuslWebApiAnnotationTypeControllerArchive200Response,
     Error<RuslWebApiAnnotationTypeControllerCreateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -219,8 +219,8 @@ pub async fn rusl_web_api_annotation_type_controller_create(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -431,7 +431,7 @@ pub async fn rusl_web_api_annotation_type_controller_show(
     account_slug: &str,
     annotation_type_slug: &str,
 ) -> Result<
-    models::RuslWebApiAnnotationTypeControllerShow200Response,
+    models::RuslWebApiAnnotationTypeControllerArchive200Response,
     Error<RuslWebApiAnnotationTypeControllerShowError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -468,8 +468,8 @@ pub async fn rusl_web_api_annotation_type_controller_show(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -547,7 +547,7 @@ pub async fn rusl_web_api_annotation_type_controller_unarchive(
     account_slug: &str,
     annotation_type_slug: &str,
 ) -> Result<
-    models::RuslWebApiAnnotationTypeControllerShow200Response,
+    models::RuslWebApiAnnotationTypeControllerArchive200Response,
     Error<RuslWebApiAnnotationTypeControllerUnarchiveError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -586,8 +586,8 @@ pub async fn rusl_web_api_annotation_type_controller_unarchive(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -609,7 +609,7 @@ pub async fn rusl_web_api_annotation_type_controller_update(
         models::RuslWebApiAnnotationTypeControllerUpdateRequest,
     >,
 ) -> Result<
-    models::RuslWebApiAnnotationTypeControllerShow200Response,
+    models::RuslWebApiAnnotationTypeControllerArchive200Response,
     Error<RuslWebApiAnnotationTypeControllerUpdateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -651,8 +651,8 @@ pub async fn rusl_web_api_annotation_type_controller_update(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerShow200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiAnnotationTypeControllerArchive200Response`")))),
         }
     } else {
         let content = resp.text().await?;

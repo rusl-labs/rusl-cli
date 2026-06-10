@@ -20,13 +20,10 @@ pub enum RuslWebHealthControllerHealthError {
     UnknownValue(serde_json::Value),
 }
 
-/// Returns the health status of the application. Used for monitoring and load balancer health checks.
+/// Returns the health status of the application (including background dependency probes). Used for monitoring, load balancers, and orchestration (Render, Kubernetes, etc.). Returns 200 for both healthy and degraded states; only truly broken states may return 5xx from the coordinator itself.
 pub async fn rusl_web_health_controller_health(
     configuration: &configuration::Configuration,
-) -> Result<
-    models::RuslWebHealthControllerHealth200Response,
-    Error<RuslWebHealthControllerHealthError>,
-> {
+) -> Result<models::HealthStatus, Error<RuslWebHealthControllerHealthError>> {
     let uri_str = format!("{}/health", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
@@ -49,8 +46,8 @@ pub async fn rusl_web_health_controller_health(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebHealthControllerHealth200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebHealthControllerHealth200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::HealthStatus`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::HealthStatus`")))),
         }
     } else {
         let content = resp.text().await?;

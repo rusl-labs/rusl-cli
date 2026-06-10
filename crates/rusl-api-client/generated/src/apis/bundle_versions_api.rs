@@ -17,13 +17,13 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiBundleVersionControllerCreateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -31,10 +31,10 @@ pub enum RuslWebApiBundleVersionControllerCreateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiBundleVersionControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -42,13 +42,13 @@ pub enum RuslWebApiBundleVersionControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiBundleVersionControllerPublishError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -56,10 +56,10 @@ pub enum RuslWebApiBundleVersionControllerPublishError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiBundleVersionControllerShowError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -67,13 +67,13 @@ pub enum RuslWebApiBundleVersionControllerShowError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiBundleVersionControllerUpdateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -81,13 +81,13 @@ pub enum RuslWebApiBundleVersionControllerUpdateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiBundleVersionControllerUpdateStatusError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -95,10 +95,10 @@ pub enum RuslWebApiBundleVersionControllerUpdateStatusError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiBundleVersionControllerValidateError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -111,7 +111,7 @@ pub async fn rusl_web_api_bundle_version_controller_create(
         models::RuslWebApiBundleVersionControllerCreateRequest,
     >,
 ) -> Result<
-    models::RuslWebApiBundleVersionControllerUpdateStatus200Response,
+    models::RuslWebApiBundleVersionControllerPublish200Response,
     Error<RuslWebApiBundleVersionControllerCreateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -153,8 +153,8 @@ pub async fn rusl_web_api_bundle_version_controller_create(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -269,7 +269,7 @@ pub async fn rusl_web_api_bundle_version_controller_publish(
     bundle_slug: &str,
     version: &str,
 ) -> Result<
-    models::RuslWebApiBundleVersionControllerUpdateStatus200Response,
+    models::RuslWebApiBundleVersionControllerPublish200Response,
     Error<RuslWebApiBundleVersionControllerPublishError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -310,8 +310,8 @@ pub async fn rusl_web_api_bundle_version_controller_publish(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -331,7 +331,7 @@ pub async fn rusl_web_api_bundle_version_controller_show(
     bundle_slug: &str,
     version: &str,
 ) -> Result<
-    models::RuslWebApiBundleVersionControllerUpdateStatus200Response,
+    models::RuslWebApiBundleVersionControllerPublish200Response,
     Error<RuslWebApiBundleVersionControllerShowError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -367,8 +367,8 @@ pub async fn rusl_web_api_bundle_version_controller_show(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -392,7 +392,7 @@ pub async fn rusl_web_api_bundle_version_controller_update(
         models::RuslWebApiBundleVersionControllerUpdateRequest,
     >,
 ) -> Result<
-    models::RuslWebApiBundleVersionControllerUpdateStatus200Response,
+    models::RuslWebApiBundleVersionControllerPublish200Response,
     Error<RuslWebApiBundleVersionControllerUpdateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -436,8 +436,8 @@ pub async fn rusl_web_api_bundle_version_controller_update(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -461,7 +461,7 @@ pub async fn rusl_web_api_bundle_version_controller_update_status(
         models::RuslWebApiBundleVersionControllerUpdateStatusRequest,
     >,
 ) -> Result<
-    models::RuslWebApiBundleVersionControllerUpdateStatus200Response,
+    models::RuslWebApiBundleVersionControllerPublish200Response,
     Error<RuslWebApiBundleVersionControllerUpdateStatusError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
@@ -506,8 +506,8 @@ pub async fn rusl_web_api_bundle_version_controller_update_status(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerUpdateStatus200Response`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::RuslWebApiBundleVersionControllerPublish200Response`")))),
         }
     } else {
         let content = resp.text().await?;

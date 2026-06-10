@@ -6,6 +6,8 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**rusl_web_api_schema_controller_archive**](SchemasApi.md#rusl_web_api_schema_controller_archive) | **POST** /api/{account_slug}/schemas/{schema_slug}/archive | Archive a schema
 [**rusl_web_api_schema_controller_create**](SchemasApi.md#rusl_web_api_schema_controller_create) | **POST** /api/{account_slug}/schemas | Create a new schema
+[**rusl_web_api_schema_controller_create_provenance**](SchemasApi.md#rusl_web_api_schema_controller_create_provenance) | **POST** /api/{account_slug}/schemas/{schema_slug}/provenance | Create schema provenance
+[**rusl_web_api_schema_controller_fork**](SchemasApi.md#rusl_web_api_schema_controller_fork) | **POST** /api/{account_slug}/schemas/forks | Fork a schema
 [**rusl_web_api_schema_controller_index**](SchemasApi.md#rusl_web_api_schema_controller_index) | **GET** /api/schemas | Search schemas across accounts
 [**rusl_web_api_schema_controller_lookup**](SchemasApi.md#rusl_web_api_schema_controller_lookup) | **GET** /api/schemas/lookup | Lookup schemas by IDs
 [**rusl_web_api_schema_controller_paginate**](SchemasApi.md#rusl_web_api_schema_controller_paginate) | **POST** /api/{account_slug}/schemas/filter | Paginate schemas
@@ -49,7 +51,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_schema_controller_create
 
-> models::RuslWebApiSchemaControllerShow200Response rusl_web_api_schema_controller_create(account_slug, open_api_schema5)
+> models::RuslWebApiSchemaControllerShow200Response rusl_web_api_schema_controller_create(account_slug, open_api_schema6)
 Create a new schema
 
 ### Parameters
@@ -58,7 +60,70 @@ Create a new schema
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**open_api_schema5** | Option<[**OpenApiSchema5**](OpenApiSchema5.md)> | Create Schema Request |  |
+**open_api_schema6** | Option<[**OpenApiSchema6**](OpenApiSchema6.md)> | Create Schema Request |  |
+
+### Return type
+
+[**models::RuslWebApiSchemaControllerShow200Response**](RuslWeb_Api_SchemaController_show_200_response.md)
+
+### Authorization
+
+[authorization](../README.md#authorization)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_schema_controller_create_provenance
+
+> models::RuslWebApiBundleControllerCreateProvenance201Response rusl_web_api_schema_controller_create_provenance(account_slug, schema_slug, create_resource_origin_request1)
+Create schema provenance
+
+Create ADAPTED_FROM or IMPORTED_FROM provenance for a schema.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**account_slug** | **String** | Account slug | [required] |
+**schema_slug** | **String** | Schema slug | [required] |
+**create_resource_origin_request1** | Option<[**CreateResourceOriginRequest1**](CreateResourceOriginRequest1.md)> | Create Schema Provenance |  |
+
+### Return type
+
+[**models::RuslWebApiBundleControllerCreateProvenance201Response**](RuslWeb_Api_BundleController_create_provenance_201_response.md)
+
+### Authorization
+
+[authorization](../README.md#authorization)
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+
+## rusl_web_api_schema_controller_fork
+
+> models::RuslWebApiSchemaControllerShow200Response rusl_web_api_schema_controller_fork(account_slug, fork_schema_request1)
+Fork a schema
+
+Create a new schema by copying one readable immutable source schema version. Upstream history is not copied.
+
+### Parameters
+
+
+Name | Type | Description  | Required | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+**account_slug** | **String** | Account slug | [required] |
+**fork_schema_request1** | Option<[**ForkSchemaRequest1**](ForkSchemaRequest1.md)> | Fork Schema Request |  |
 
 ### Return type
 
@@ -78,7 +143,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_schema_controller_index
 
-> models::RuslWebApiSchemaControllerIndex200Response rusl_web_api_schema_controller_index(filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
+> models::RuslWebApiSchemaControllerPaginate200Response rusl_web_api_schema_controller_index(filters, order_by, order_directions, first, after, last, before, limit, offset, page, page_size)
 Search schemas across accounts
 
 Search schemas across all accounts with full Flop pagination and filtering support.  Supports filtering by: - q (text search across account slug, schema slug, schema identifier, and description) - identifier (canonical schema identifier, supports exact and in filters) - schema_identifier (resource-specific storage field) - account_slug (string match) - slug (string match) - visibility (PUBLIC, PRIVATE) - schema_format (JSON_SCHEMA)  Results are scoped by user permissions - anonymous users see only PUBLIC schemas, authenticated users see PUBLIC schemas plus PRIVATE schemas from accounts they belong to.
@@ -88,7 +153,7 @@ Search schemas across all accounts with full Flop pagination and filtering suppo
 
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
-**filters** | Option<[**std::collections::HashMap<String, models::RuslWebApiSchemaControllerIndexFiltersParameterValue>**](Models__RuslWebApiSchemaControllerIndexFiltersParameterValue.md)> | Flop filters. Supports q text search via field=q and op=ilike_or. See https://hexdocs.pm/flop/readme.html#parameter-format |  |
+**filters** | Option<[**std::collections::HashMap<String, models::RuslWebApiSchemaControllerPaginateRequestFiltersInner>**](Models__RuslWebApiSchemaControllerPaginateRequestFiltersInner.md)> | Flop filters. Supports q text search via field=q and op=ilike_or. See https://hexdocs.pm/flop/readme.html#parameter-format |  |
 **order_by** | Option<[**Vec<String>**](String.md)> | Fields to order by |  |
 **order_directions** | Option<[**Vec<String>**](String.md)> | Order directions |  |
 **first** | Option<**i32**> | Cursor pagination: number of items to return from the start. |  |[default to 20]
@@ -102,7 +167,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiSchemaControllerIndex200Response**](RuslWeb_Api_SchemaController_index_200_response.md)
+[**models::RuslWebApiSchemaControllerPaginate200Response**](RuslWeb_Api_SchemaController_paginate_200_response.md)
 
 ### Authorization
 
@@ -148,7 +213,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_schema_controller_paginate
 
-> models::RuslWebApiSchemaControllerIndex200Response rusl_web_api_schema_controller_paginate(account_slug, rusl_web_api_schema_controller_paginate_request)
+> models::RuslWebApiSchemaControllerPaginate200Response rusl_web_api_schema_controller_paginate(account_slug, rusl_web_api_schema_controller_paginate_request)
 Paginate schemas
 
 ### Parameters
@@ -161,7 +226,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiSchemaControllerIndex200Response**](RuslWeb_Api_SchemaController_index_200_response.md)
+[**models::RuslWebApiSchemaControllerPaginate200Response**](RuslWeb_Api_SchemaController_paginate_200_response.md)
 
 ### Authorization
 

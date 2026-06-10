@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | Option<[**Vec<models::SchemaVersion2>**](SchemaVersion2.md)> |  | [optional]
-**errors** | Option<[**Vec<models::Error1>**](Error1.md)> | Errors, if any | [optional]
+**data** | Option<[**Vec<models::SchemaVersion1>**](SchemaVersion1.md)> |  | [optional]
+**errors** | Option<[**Vec<models::Error2>**](Error2.md)> | Errors, if any | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

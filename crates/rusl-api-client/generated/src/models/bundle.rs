@@ -55,6 +55,9 @@ pub struct Bundle {
     /// Inserted At
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
+    /// Durable provenance edges for this bundle
+    #[serde(rename = "resource_origins", skip_serializing_if = "Option::is_none")]
+    pub resource_origins: Option<Vec<models::ResourceOrigin1>>,
     /// Bundle Slug
     #[serde(rename = "slug")]
     pub slug: String,
@@ -67,7 +70,7 @@ pub struct Bundle {
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
+    pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
@@ -98,6 +101,7 @@ impl Bundle {
             guid: None,
             id,
             inserted_at,
+            resource_origins: None,
             slug,
             status,
             subject_description: None,

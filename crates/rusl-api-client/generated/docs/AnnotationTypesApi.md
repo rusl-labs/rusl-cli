@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 ## rusl_web_api_annotation_type_controller_archive
 
-> models::RuslWebApiAnnotationTypeControllerShow200Response rusl_web_api_annotation_type_controller_archive(account_slug, annotation_type_slug)
+> models::RuslWebApiAnnotationTypeControllerArchive200Response rusl_web_api_annotation_type_controller_archive(account_slug, annotation_type_slug)
 Archive a registered annotation type
 
 ### Parameters
@@ -30,7 +30,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiAnnotationTypeControllerShow200Response**](RuslWeb_Api_AnnotationTypeController_show_200_response.md)
+[**models::RuslWebApiAnnotationTypeControllerArchive200Response**](RuslWeb_Api_AnnotationTypeController_archive_200_response.md)
 
 ### Authorization
 
@@ -46,7 +46,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_annotation_type_controller_create
 
-> models::RuslWebApiAnnotationTypeControllerShow200Response rusl_web_api_annotation_type_controller_create(account_slug, rusl_web_api_annotation_type_controller_create_request)
+> models::RuslWebApiAnnotationTypeControllerArchive200Response rusl_web_api_annotation_type_controller_create(account_slug, rusl_web_api_annotation_type_controller_create_request)
 Create a registered annotation type
 
 ### Parameters
@@ -59,7 +59,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiAnnotationTypeControllerShow200Response**](RuslWeb_Api_AnnotationTypeController_show_200_response.md)
+[**models::RuslWebApiAnnotationTypeControllerArchive200Response**](RuslWeb_Api_AnnotationTypeController_archive_200_response.md)
 
 ### Authorization
 
@@ -143,7 +143,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_annotation_type_controller_show
 
-> models::RuslWebApiAnnotationTypeControllerShow200Response rusl_web_api_annotation_type_controller_show(account_slug, annotation_type_slug)
+> models::RuslWebApiAnnotationTypeControllerArchive200Response rusl_web_api_annotation_type_controller_show(account_slug, annotation_type_slug)
 Fetch a registered annotation type
 
 ### Parameters
@@ -156,7 +156,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiAnnotationTypeControllerShow200Response**](RuslWeb_Api_AnnotationTypeController_show_200_response.md)
+[**models::RuslWebApiAnnotationTypeControllerArchive200Response**](RuslWeb_Api_AnnotationTypeController_archive_200_response.md)
 
 ### Authorization
 
@@ -203,7 +203,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_annotation_type_controller_unarchive
 
-> models::RuslWebApiAnnotationTypeControllerShow200Response rusl_web_api_annotation_type_controller_unarchive(account_slug, annotation_type_slug)
+> models::RuslWebApiAnnotationTypeControllerArchive200Response rusl_web_api_annotation_type_controller_unarchive(account_slug, annotation_type_slug)
 Unarchive a registered annotation type
 
 ### Parameters
@@ -216,7 +216,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiAnnotationTypeControllerShow200Response**](RuslWeb_Api_AnnotationTypeController_show_200_response.md)
+[**models::RuslWebApiAnnotationTypeControllerArchive200Response**](RuslWeb_Api_AnnotationTypeController_archive_200_response.md)
 
 ### Authorization
 
@@ -232,7 +232,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_annotation_type_controller_update
 
-> models::RuslWebApiAnnotationTypeControllerShow200Response rusl_web_api_annotation_type_controller_update(account_slug, annotation_type_slug, rusl_web_api_annotation_type_controller_update_request)
+> models::RuslWebApiAnnotationTypeControllerArchive200Response rusl_web_api_annotation_type_controller_update(account_slug, annotation_type_slug, rusl_web_api_annotation_type_controller_update_request)
 Update a registered annotation type
 
 ### Parameters
@@ -246,7 +246,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiAnnotationTypeControllerShow200Response**](RuslWeb_Api_AnnotationTypeController_show_200_response.md)
+[**models::RuslWebApiAnnotationTypeControllerArchive200Response**](RuslWeb_Api_AnnotationTypeController_archive_200_response.md)
 
 ### Authorization
 

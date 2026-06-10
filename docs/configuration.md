@@ -15,7 +15,7 @@ Minimal example:
 
 ```toml
 [rusl.resources]
-"rusl/usage-report" = "*"
+"rusl/schemas/usage-report" = "*"
 "rusl/bundles/feedback-schemas" = ">=0.1.1"
 ```
 
@@ -28,7 +28,7 @@ version = "0.1.0"
 description = "Schemas used by the web application."
 
 [rusl.resources]
-"acme/user-profile" = "*"
+"acme/schemas/user-profile" = "*"
 "acme/bundles/common" = ">=1.2.0"
 ```
 
@@ -38,10 +38,10 @@ Resource keys identify registry resources:
 
 | Resource | Format | Example |
 | --- | --- | --- |
-| Schema | `account/slug` | `acme/user-profile` |
+| Schema | `account/schemas/slug` | `acme/schemas/user-profile` |
 | Bundle | `account/bundles/slug` | `acme/bundles/common` |
 
-When a key appears in `[rusl.resources]`, Rusl infers the resource type from that shape. Use the canonical `account/bundles/slug` form for bundles. The shorter bundle form accepted by `rusl add bundle acme/common` is normalized before it is written.
+When a key appears in `[rusl.resources]`, Rusl infers the resource type from that shape. Use canonical `account/schemas/slug` and `account/bundles/slug` forms. Shorter schema and bundle forms accepted for compatibility are normalized before they are written.
 
 ### Version Requirements
 
@@ -115,7 +115,7 @@ The bundle manifest itself is not searched upward. Run bundle commands from the 
 | --- | --- | --- | --- |
 | `api_base_url` | string | `https://resources.rusl.com` | Rusl API server. |
 | `website_url` | string | `https://rusl.com` | Rusl website used for browser-based flows. |
-| `schema_dir` | string | `.rusl/schemas` | Directory where resolved schema files are written, using `<schema_dir>/<account>/<slug>.json`. Relative paths are resolved from the command's current working directory. |
+| `schema_dir` | string | `.rusl/schemas` | Directory where resolved schema files are written, using `<schema_dir>/<account>/<slug>.json`. The registry identifier's `schemas` segment is not repeated in the local file path. Relative paths are resolved from the command's current working directory. |
 
 When `schema_dir` is the default `.rusl/schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.
 

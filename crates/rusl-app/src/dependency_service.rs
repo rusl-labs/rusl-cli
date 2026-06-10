@@ -130,13 +130,16 @@ where
     let manifest_path = current_manifest_path()?;
     let mut document = read_manifest_document(&manifest_path)?;
     let canonical_slug = canonical_identifier(request.kind, &request.slug)?;
+    let removal_candidates = identifier_removal_candidates(request.kind, &request.slug)?;
 
     let mut removed_table_key = None;
-    if existing_resources_table_mut(&mut document)?
-        .and_then(|table| table.remove(&canonical_slug))
-        .is_some()
-    {
-        removed_table_key = Some(RESOURCES_TABLE_KEY);
+    if let Some(table) = existing_resources_table_mut(&mut document)? {
+        for candidate in &removal_candidates {
+            if table.remove(candidate).is_some() {
+                removed_table_key = Some(RESOURCES_TABLE_KEY);
+                break;
+            }
+        }
     }
 
     if removed_table_key.is_none() {
@@ -145,9 +148,9 @@ where
             .get_mut(legacy_table_key)
             .and_then(|item| item.as_table_mut())
             .and_then(|table| {
-                table
-                    .remove(&canonical_slug)
-                    .or_else(|| table.remove(&request.slug))
+                removal_candidates
+                    .iter()
+                    .find_map(|candidate| table.remove(candidate))
             });
         if removed.is_some() {
             removed_table_key = Some(legacy_table_key);
@@ -281,9 +284,27 @@ fn canonical_identifier(kind: DependencyKind, identifier: &str) -> Result<String
         .with_context(|| identifier_error(kind))
 }
 
+fn identifier_removal_candidates(kind: DependencyKind, identifier: &str) -> Result<Vec<String>> {
+    let resource = match kind {
+        DependencyKind::Schema => RegistryResource::schema(identifier),
+        DependencyKind::Bundle => RegistryResource::bundle(identifier),
+    }
+    .with_context(|| identifier_error(kind))?;
+
+    let mut candidates = vec![resource.identifier()];
+    let legacy_identifier = format!("{}/{}", resource.account, resource.slug);
+    if !candidates
+        .iter()
+        .any(|candidate| candidate == &legacy_identifier)
+    {
+        candidates.push(legacy_identifier);
+    }
+    Ok(candidates)
+}
+
 fn identifier_error(kind: DependencyKind) -> &'static str {
     match kind {
-        DependencyKind::Schema => "Schema identifier must be in format account/name",
+        DependencyKind::Schema => "Schema identifier must be in format account/schemas/name",
         DependencyKind::Bundle => "Bundle identifier must be in format account/bundles/name",
     }
 }
@@ -416,10 +437,11 @@ version = "0.1.0"
 
         assert_eq!(result.table_key, RESOURCES_TABLE_KEY);
         assert_eq!(result.version_requirement, ">=1.2.3");
+        assert_eq!(result.slug, "hassox/schemas/test-schema");
         let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
             .expect("read manifest");
         assert!(manifest.contains("[rusl.resources]"));
-        assert!(manifest.contains("\"hassox/test-schema\" = \">=1.2.3\""));
+        assert!(manifest.contains("\"hassox/schemas/test-schema\" = \">=1.2.3\""));
     }
 
     #[tokio::test]
@@ -442,10 +464,11 @@ version = "0.1.0"
         .expect("add dependency");
 
         assert_eq!(result.table_key, RESOURCES_TABLE_KEY);
+        assert_eq!(result.slug, "hassox/schemas/test-schema");
         let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
             .expect("read manifest");
         assert!(manifest.contains("[rusl.resources]"));
-        assert!(manifest.contains("\"hassox/test-schema\" = \">=1.2.3\""));
+        assert!(manifest.contains("\"hassox/schemas/test-schema\" = \">=1.2.3\""));
     }
 
     #[tokio::test]
@@ -497,8 +520,8 @@ name = "hassox/demo"
 version = "0.1.0"
 
 [rusl.resources]
-"hassox/test-schema" = ">=1.2.3"
-"hassox/keep-schema" = ">=2.0.0"
+"hassox/schemas/test-schema" = ">=1.2.3"
+"hassox/schemas/keep-schema" = ">=2.0.0"
 "#,
         )
         .expect("write manifest");
@@ -507,7 +530,7 @@ version = "0.1.0"
         let result = remove_dependency_with_installer(
             RemoveDependencyRequest {
                 kind: DependencyKind::Schema,
-                slug: "hassox/test-schema".to_string(),
+                slug: "hassox/schemas/test-schema".to_string(),
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -521,12 +544,12 @@ version = "0.1.0"
                 slug,
                 table_key: RESOURCES_TABLE_KEY,
                 ..
-            } if slug == "hassox/test-schema"
+            } if slug == "hassox/schemas/test-schema"
         ));
         let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
             .expect("read manifest");
-        assert!(!manifest.contains("hassox/test-schema"));
-        assert!(manifest.contains("hassox/keep-schema"));
+        assert!(!manifest.contains("hassox/schemas/test-schema"));
+        assert!(manifest.contains("hassox/schemas/keep-schema"));
     }
 
     #[tokio::test]
@@ -552,7 +575,7 @@ version = "0.1.0"
         let result = remove_dependency_with_installer(
             RemoveDependencyRequest {
                 kind: DependencyKind::Schema,
-                slug: "hassox/test-schema".to_string(),
+                slug: "hassox/schemas/test-schema".to_string(),
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -566,7 +589,7 @@ version = "0.1.0"
                 slug,
                 table_key: "schemas",
                 ..
-            } if slug == "hassox/test-schema"
+            } if slug == "hassox/schemas/test-schema"
         ));
         let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
             .expect("read manifest");
@@ -656,7 +679,7 @@ version = "0.1.0"
             RemoveDependencyResult::NotPresent {
                 slug,
                 table_key: RESOURCES_TABLE_KEY,
-            } if slug == "hassox/missing-schema"
+            } if slug == "hassox/schemas/missing-schema"
         ));
         let after = std::fs::read_to_string(&manifest_path).expect("read manifest");
         assert_eq!(before, after);

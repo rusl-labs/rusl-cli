@@ -919,11 +919,12 @@ fn registry_search_url(api_base_url: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        AnnotationSort, AnnotationStatus, AnnotationSubjectType, BundleSort,
-        DiscoveryProfileStatus, JsonRootInstanceType, ResourceStatus, SchemaFormat,
+        AnnotationSort, AnnotationStatus, AnnotationSubjectType, AnnotationTypeCardinality,
+        BundleSort, DiscoveryProfileStatus, JsonRootInstanceType, ResourceStatus, SchemaFormat,
         SearchDocumentType, SearchEndpoint, SearchRequest, SearchView, VersionStatus,
         map_search_response, registry_search_url, search_endpoint, to_annotation_api_request,
-        to_bundle_api_request, to_global_api_request, to_schema_api_request,
+        to_annotation_type_api_request, to_bundle_api_request, to_global_api_request,
+        to_schema_api_request,
     };
     use rusl_api_client::models;
     use serde_json::json;
@@ -938,7 +939,7 @@ mod tests {
                 SearchDocumentType::Bundle,
                 SearchDocumentType::AnnotationType,
             ],
-            identifiers: vec![" hassox/common ".to_string(), " ".to_string()],
+            identifiers: vec![" hassox/schemas/common ".to_string(), " ".to_string()],
             account_slugs: vec![" hassox ".to_string(), " ".to_string()],
             page: Some(2),
             per_page: Some(25),
@@ -959,7 +960,10 @@ mod tests {
                 models::global_search_request::Types::AnnotationType,
             ])
         );
-        assert_eq!(request.identifiers, Some(vec!["hassox/common".to_string()]));
+        assert_eq!(
+            request.identifiers,
+            Some(vec!["hassox/schemas/common".to_string()])
+        );
         assert_eq!(request.page, Some(2));
         assert_eq!(request.per_page, Some(25));
         assert_eq!(
@@ -1012,7 +1016,8 @@ mod tests {
         let request = to_schema_api_request(SearchRequest {
             query: Some("part".to_string()),
             types: vec![SearchDocumentType::Schema],
-            identifier_prefix: Some(" hassox/ ".to_string()),
+            identifiers: vec![" hassox/schemas/part ".to_string()],
+            identifier_prefix: Some(" hassox/schemas/ ".to_string()),
             status: Some(ResourceStatus::Active),
             current_version_status: Some(VersionStatus::Deprecated),
             current_version_root_instance_types: vec![JsonRootInstanceType::Object],
@@ -1021,7 +1026,14 @@ mod tests {
             ..SearchRequest::default()
         });
 
-        assert_eq!(request.identifier_prefix.as_deref(), Some("hassox/"));
+        assert_eq!(
+            request.identifier_prefix.as_deref(),
+            Some("hassox/schemas/")
+        );
+        assert_eq!(
+            request.identifiers,
+            Some(vec!["hassox/schemas/part".to_string()])
+        );
         assert_eq!(
             request.status,
             Some(models::schema_search_request::Status::Active)
@@ -1050,6 +1062,7 @@ mod tests {
     fn builds_bundle_search_request_with_specific_filters() {
         let request = to_bundle_api_request(SearchRequest {
             types: vec![SearchDocumentType::Bundle],
+            identifiers: vec!["hassox/bundles/common".to_string()],
             identifier_prefix: Some("hassox/bundles/".to_string()),
             status: Some(ResourceStatus::Archived),
             current_version_status: Some(VersionStatus::Active),
@@ -1057,6 +1070,10 @@ mod tests {
             ..SearchRequest::default()
         });
 
+        assert_eq!(
+            request.identifiers,
+            Some(vec!["hassox/bundles/common".to_string()])
+        );
         assert_eq!(
             request.status,
             Some(models::bundle_search_request::Status::Archived)
@@ -1072,6 +1089,45 @@ mod tests {
     }
 
     #[test]
+    fn builds_annotation_type_search_request_with_identifier_filters() {
+        let request = to_annotation_type_api_request(SearchRequest {
+            types: vec![SearchDocumentType::AnnotationType],
+            identifiers: vec![
+                " hassox/annotation-types/review ".to_string(),
+                " ".to_string(),
+            ],
+            identifier_prefix: Some("hassox/annotation-types/".to_string()),
+            status: Some(ResourceStatus::Active),
+            annotation_type_cardinality: Some(AnnotationTypeCardinality::OnePerSubjectPerAccount),
+            include_metrics: true,
+            ..SearchRequest::default()
+        });
+
+        assert_eq!(
+            request.identifiers,
+            Some(vec!["hassox/annotation-types/review".to_string()])
+        );
+        assert_eq!(
+            request.identifier_prefix.as_deref(),
+            Some("hassox/annotation-types/")
+        );
+        assert_eq!(
+            request.status,
+            Some(models::annotation_type_search_request::Status::Active)
+        );
+        assert_eq!(
+            request.cardinality,
+            Some(models::annotation_type_search_request::Cardinality::OnePerSubjectPerAccount)
+        );
+        assert_eq!(
+            request.include,
+            Some(vec![
+                models::annotation_type_search_request::Include::Metrics
+            ])
+        );
+    }
+
+    #[test]
     fn builds_annotation_search_request_with_specific_filters() {
         let request = to_annotation_api_request(SearchRequest {
             types: vec![SearchDocumentType::Annotation],
@@ -1082,9 +1138,9 @@ mod tests {
             set_by_user_guids: vec!["user-guid".to_string()],
             subject_account_slugs: vec!["subject-account".to_string()],
             subject_guids: vec!["subject-guid".to_string()],
-            subject_identifier_prefix: Some("hassox/common".to_string()),
+            subject_identifier_prefix: Some("hassox/schemas/common".to_string()),
             subject_types: vec![AnnotationSubjectType::Schemas],
-            type_identifiers: vec!["hassox/review".to_string()],
+            type_identifiers: vec!["hassox/annotation-types/review".to_string()],
             ..SearchRequest::default()
         });
 
@@ -1104,7 +1160,7 @@ mod tests {
         );
         assert_eq!(
             request.type_identifiers,
-            Some(vec!["hassox/review".to_string()])
+            Some(vec!["hassox/annotation-types/review".to_string()])
         );
     }
 
@@ -1153,7 +1209,7 @@ mod tests {
     fn rejects_global_only_filters_with_type_specific_filters() {
         let error = search_endpoint(&SearchRequest {
             types: vec![SearchDocumentType::Schema],
-            identifier_prefix: Some("hassox/".to_string()),
+            identifier_prefix: Some("hassox/schemas/".to_string()),
             metric_names: vec!["watchers".to_string()],
             ..SearchRequest::default()
         })
@@ -1185,7 +1241,7 @@ mod tests {
                 document_type_label: "Schema".to_string(),
                 guid: "schema_guid".to_string(),
                 highlights: Vec::new(),
-                identifier: "hassox/common".to_string(),
+                identifier: "hassox/schemas/common".to_string(),
             }],
             vec![models::SearchFacet::new(
                 vec![models::SearchFacetCountsInner::new(1, "schema".to_string())],
@@ -1196,7 +1252,7 @@ mod tests {
 
         let output = map_search_response(response);
 
-        assert_eq!(output.data[0].identifier, "hassox/common");
+        assert_eq!(output.data[0].identifier, "hassox/schemas/common");
         assert_eq!(
             output.data[0].description.as_deref(),
             Some("Shared primitives")

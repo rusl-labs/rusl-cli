@@ -40,6 +40,8 @@ pub enum Field {
     Slug,
     #[serde(rename = "type")]
     Type,
+    #[serde(rename = "user_type")]
+    UserType,
     #[serde(rename = "owner_user_id")]
     OwnerUserId,
     #[serde(rename = "created_order")]

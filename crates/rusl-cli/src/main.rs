@@ -23,6 +23,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Add(args) => commands::add::run(args).await?,
         Commands::Remove(args) => commands::remove::run(args).await?,
         Commands::Login(args) => commands::login::run(args).await?,
+        Commands::Logout(args) => commands::logout::run(args).await?,
         Commands::Whoami(args) => commands::whoami::run(args).await?,
         Commands::List(args) => commands::list::run(args).await?,
         Commands::Outdated(args) => commands::outdated::run(args).await?,
@@ -54,10 +55,15 @@ fn should_check_for_update(command: &Commands) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cli::McpArgs;
+    use crate::cli::{LogoutArgs, McpArgs};
 
     #[test]
     fn skips_update_check_for_mcp_command() {
         assert!(!should_check_for_update(&Commands::Mcp(McpArgs {})));
+    }
+
+    #[test]
+    fn checks_for_update_for_logout_command() {
+        assert!(should_check_for_update(&Commands::Logout(LogoutArgs {})));
     }
 }

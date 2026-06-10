@@ -17,10 +17,10 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaVersionControllerExampleDataIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -28,10 +28,10 @@ pub enum RuslWebApiSchemaVersionControllerExampleDataIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaVersionControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -39,10 +39,10 @@ pub enum RuslWebApiSchemaVersionControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaVersionControllerLookupError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -50,10 +50,10 @@ pub enum RuslWebApiSchemaVersionControllerLookupError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaVersionControllerShowError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -61,13 +61,13 @@ pub enum RuslWebApiSchemaVersionControllerShowError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaVersionControllerUpdateStatusError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -75,10 +75,10 @@ pub enum RuslWebApiSchemaVersionControllerUpdateStatusError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiSchemaVersionControllerVersionExamplesError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 

@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **after** | Option<**String**> | Cursor pagination: return items after this cursor. | [optional]
 **before** | Option<**String**> | Cursor pagination: return items before this cursor. | [optional]
-**filters** | Option<[**Vec<models::RuslWebApiSchemaControllerIndexFiltersParameterValue>**](RuslWebApiSchemaControllerIndexFiltersParameterValue.md)> | List of filters representing filter operations on specific fields. Filters are applied in the order they are defined. | [optional]
+**filters** | Option<[**Vec<models::RuslWebApiSchemaControllerPaginateRequestFiltersInner>**](RuslWebApiSchemaControllerPaginateRequestFiltersInner.md)> | List of filters representing filter operations on specific fields. Filters are applied in the order they are defined. | [optional]
 **first** | Option<**i32**> | Cursor pagination: number of items to return from the start. | [optional][default to 20]
 **last** | Option<**i32**> | Cursor pagination: number of items to return from the end. | [optional][default to 20]
 **limit** | Option<**i32**> | Offset pagination: maximum number of items to return. Defaults to the schema default limit. | [optional][default to 20]

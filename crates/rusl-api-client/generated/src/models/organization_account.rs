@@ -62,6 +62,14 @@ pub struct OrganizationAccount {
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
+    /// Self-reported principal type, denormalized from the owning user. NULL for organization accounts.
+    #[serde(
+        rename = "user_type",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub user_type: Option<Option<UserType>>,
     /// Account Website
     #[serde(rename = "website", skip_serializing_if = "Option::is_none")]
     pub website: Option<String>,
@@ -94,6 +102,7 @@ impl OrganizationAccount {
             team_visibility: None,
             r#type,
             updated_at,
+            user_type: None,
             website: None,
         }
     }
@@ -134,5 +143,21 @@ pub enum Type {
 impl Default for Type {
     fn default() -> Type {
         Self::Organization
+    }
+}
+/// Self-reported principal type, denormalized from the owning user. NULL for organization accounts.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum UserType {
+    #[serde(rename = "agent")]
+    Agent,
+    #[serde(rename = "human")]
+    Human,
+    #[serde(rename = "unknown")]
+    Unknown,
+}
+
+impl Default for UserType {
+    fn default() -> UserType {
+        Self::Agent
     }
 }

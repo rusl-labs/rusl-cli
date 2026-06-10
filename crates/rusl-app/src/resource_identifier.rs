@@ -17,12 +17,22 @@ impl RegistryResource {
         let parts: Vec<&str> = trimmed.split('/').collect();
 
         match parts.as_slice() {
+            [account, "schemas", slug] if valid_part(account) && valid_part(slug) => Some(Self {
+                kind: ResourceKind::Schema,
+                account: (*account).to_string(),
+                slug: (*slug).to_string(),
+            }),
             [account, "bundles", slug] if valid_part(account) && valid_part(slug) => Some(Self {
                 kind: ResourceKind::Bundle,
                 account: (*account).to_string(),
                 slug: (*slug).to_string(),
             }),
-            [account, slug] if valid_part(account) && valid_part(slug) && *slug != "bundles" => {
+            [account, slug]
+                if valid_part(account)
+                    && valid_part(slug)
+                    && *slug != "bundles"
+                    && *slug != "schemas" =>
+            {
                 Some(Self {
                     kind: ResourceKind::Schema,
                     account: (*account).to_string(),
@@ -34,7 +44,7 @@ impl RegistryResource {
     }
 
     pub fn schema(identifier: &str) -> Option<Self> {
-        let (account, slug) = parse_two_part_identifier(identifier)?;
+        let (account, slug) = parse_schema_identifier(identifier)?;
         Some(Self {
             kind: ResourceKind::Schema,
             account,
@@ -73,7 +83,7 @@ impl RegistryResource {
 
     pub fn identifier(&self) -> String {
         match self.kind {
-            ResourceKind::Schema => format!("{}/{}", self.account, self.slug),
+            ResourceKind::Schema => format!("{}/schemas/{}", self.account, self.slug),
             ResourceKind::Bundle => format!("{}/bundles/{}", self.account, self.slug),
         }
     }
@@ -106,13 +116,24 @@ pub fn package_key_from_identifier(identifier: &str) -> Option<String> {
     RegistryResource::from_identifier(identifier).map(|resource| resource.package_key())
 }
 
-fn parse_two_part_identifier(identifier: &str) -> Option<(String, String)> {
+fn parse_schema_identifier(identifier: &str) -> Option<(String, String)> {
     let trimmed = identifier.trim();
-    let (account, slug) = trimmed.split_once('/')?;
-    if slug.contains('/') || !valid_part(account) || !valid_part(slug) {
-        return None;
+    let parts: Vec<&str> = trimmed.split('/').collect();
+
+    match parts.as_slice() {
+        [account, "schemas", slug] if valid_part(account) && valid_part(slug) => {
+            Some(((*account).to_string(), (*slug).to_string()))
+        }
+        [account, slug]
+            if valid_part(account)
+                && valid_part(slug)
+                && *slug != "schemas"
+                && *slug != "bundles" =>
+        {
+            Some(((*account).to_string(), (*slug).to_string()))
+        }
+        _ => None,
     }
-    Some((account.to_string(), slug.to_string()))
 }
 
 fn valid_part(part: &str) -> bool {
@@ -128,25 +149,34 @@ mod tests {
 
     #[test]
     fn parses_schema_identifiers() {
-        let resource = RegistryResource::schema("acme/payment").expect("schema identifier");
+        let resource = RegistryResource::schema("acme/schemas/payment").expect("schema identifier");
 
         assert_eq!(resource.kind, ResourceKind::Schema);
         assert_eq!(resource.account, "acme");
         assert_eq!(resource.slug, "payment");
-        assert_eq!(resource.identifier(), "acme/payment");
-        assert_eq!(resource.package_key(), "schema:acme/payment");
+        assert_eq!(resource.identifier(), "acme/schemas/payment");
+        assert_eq!(resource.package_key(), "schema:acme/schemas/payment");
     }
 
     #[test]
     fn infers_resource_kind_from_canonical_identifier() {
-        let schema = RegistryResource::from_identifier("acme/payment").expect("schema resource");
+        let schema =
+            RegistryResource::from_identifier("acme/schemas/payment").expect("schema resource");
         let bundle =
             RegistryResource::from_identifier("acme/bundles/billing").expect("bundle resource");
 
         assert_eq!(schema.kind, ResourceKind::Schema);
-        assert_eq!(schema.identifier(), "acme/payment");
+        assert_eq!(schema.identifier(), "acme/schemas/payment");
         assert_eq!(bundle.kind, ResourceKind::Bundle);
         assert_eq!(bundle.identifier(), "acme/bundles/billing");
+    }
+
+    #[test]
+    fn accepts_legacy_schema_identifiers_but_displays_canonical_form() {
+        let resource = RegistryResource::schema("acme/payment").expect("legacy schema identifier");
+
+        assert_eq!(resource.identifier(), "acme/schemas/payment");
+        assert_eq!(resource.package_key(), "schema:acme/schemas/payment");
     }
 
     #[test]
@@ -175,7 +205,11 @@ mod tests {
 
     #[test]
     fn displays_package_keys_with_canonical_bundle_identifiers() {
-        assert_eq!(display_package_key("schema:acme/root"), "acme/root");
+        assert_eq!(
+            display_package_key("schema:acme/schemas/root"),
+            "acme/schemas/root"
+        );
+        assert_eq!(display_package_key("schema:acme/root"), "acme/schemas/root");
         assert_eq!(
             display_package_key("bundle:acme/common"),
             "acme/bundles/common"
@@ -193,12 +227,20 @@ mod tests {
             Some("bundle:acme/bundles/common".to_string())
         );
         assert_eq!(
+            package_key_for(ResourceKind::Schema, "acme/common"),
+            Some("schema:acme/schemas/common".to_string())
+        );
+        assert_eq!(
             package_key_from_identifier("acme/bundles/common"),
             Some("bundle:acme/bundles/common".to_string())
         );
         assert_eq!(
             package_key_from_identifier("acme/common"),
-            Some("schema:acme/common".to_string())
+            Some("schema:acme/schemas/common".to_string())
+        );
+        assert_eq!(
+            package_key_from_identifier("acme/schemas/common"),
+            Some("schema:acme/schemas/common".to_string())
         );
     }
 }

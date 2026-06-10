@@ -71,6 +71,10 @@ Class | Method | HTTP request | Description
 *AssetsApi* | [**rusl_web_api_asset_controller_upload_intent**](docs/AssetsApi.md#rusl_web_api_asset_controller_upload_intent) | **POST** /api/assets/upload_intent | Create an Upload Intent
 *AuthenticationApi* | [**rusl_web_api_cli_auth_controller_create**](docs/AuthenticationApi.md#rusl_web_api_cli_auth_controller_create) | **POST** /api/auth/cli/authorizations | Create CLI authorization code
 *AuthenticationApi* | [**rusl_web_api_cli_auth_controller_exchange**](docs/AuthenticationApi.md#rusl_web_api_cli_auth_controller_exchange) | **POST** /api/auth/cli/token | Exchange CLI authorization code
+*AuthenticationApi* | [**rusl_web_api_magic_link_controller_confirm**](docs/AuthenticationApi.md#rusl_web_api_magic_link_controller_confirm) | **POST** /api/auth/magic-link/confirm | Confirm a magic-link login
+*AuthenticationApi* | [**rusl_web_api_magic_link_controller_create**](docs/AuthenticationApi.md#rusl_web_api_magic_link_controller_create) | **POST** /api/auth/magic-link | Request a magic-link login email
+*AuthenticationApi* | [**rusl_web_api_password_reset_controller_confirm**](docs/AuthenticationApi.md#rusl_web_api_password_reset_controller_confirm) | **POST** /api/auth/forgot-password/confirm | Confirm a password reset
+*AuthenticationApi* | [**rusl_web_api_password_reset_controller_create**](docs/AuthenticationApi.md#rusl_web_api_password_reset_controller_create) | **POST** /api/auth/forgot-password | Request a password reset email
 *AuthenticationApi* | [**rusl_web_api_session_controller_create**](docs/AuthenticationApi.md#rusl_web_api_session_controller_create) | **POST** /api/login | Login
 *AuthenticationApi* | [**rusl_web_api_session_controller_delete**](docs/AuthenticationApi.md#rusl_web_api_session_controller_delete) | **DELETE** /api/logout | Logout
 *AuthenticationApi* | [**rusl_web_api_session_controller_me**](docs/AuthenticationApi.md#rusl_web_api_session_controller_me) | **GET** /api/auth/sessions/me | Get current session info
@@ -93,6 +97,8 @@ Class | Method | HTTP request | Description
 *BundleVersionsApi* | [**rusl_web_api_bundle_version_controller_validate**](docs/BundleVersionsApi.md#rusl_web_api_bundle_version_controller_validate) | **POST** /api/{account_slug}/bundles/{bundle_slug}/versions/{version}/validate | Validate a draft version's manifest
 *BundlesApi* | [**rusl_web_api_bundle_controller_archive**](docs/BundlesApi.md#rusl_web_api_bundle_controller_archive) | **POST** /api/{account_slug}/bundles/{bundle_slug}/archive | Archive a bundle
 *BundlesApi* | [**rusl_web_api_bundle_controller_create**](docs/BundlesApi.md#rusl_web_api_bundle_controller_create) | **POST** /api/{account_slug}/bundles | Create a new bundle
+*BundlesApi* | [**rusl_web_api_bundle_controller_create_provenance**](docs/BundlesApi.md#rusl_web_api_bundle_controller_create_provenance) | **POST** /api/{account_slug}/bundles/{bundle_slug}/provenance | Create bundle provenance
+*BundlesApi* | [**rusl_web_api_bundle_controller_fork**](docs/BundlesApi.md#rusl_web_api_bundle_controller_fork) | **POST** /api/{account_slug}/bundles/forks | Fork a bundle
 *BundlesApi* | [**rusl_web_api_bundle_controller_index**](docs/BundlesApi.md#rusl_web_api_bundle_controller_index) | **GET** /api/bundles | Search bundles across accounts
 *BundlesApi* | [**rusl_web_api_bundle_controller_lookup**](docs/BundlesApi.md#rusl_web_api_bundle_controller_lookup) | **GET** /api/bundles/lookup | Lookup bundles by IDs
 *BundlesApi* | [**rusl_web_api_bundle_controller_paginate**](docs/BundlesApi.md#rusl_web_api_bundle_controller_paginate) | **POST** /api/{account_slug}/bundles/filter | Paginate bundles
@@ -113,6 +119,7 @@ Class | Method | HTTP request | Description
 *FavouritesApi* | [**rusl_web_api_reaction_controller_index**](docs/FavouritesApi.md#rusl_web_api_reaction_controller_index) | **POST** /api/favourites/filter | List favourites
 *FavouritesApi* | [**rusl_web_api_reaction_controller_reactions**](docs/FavouritesApi.md#rusl_web_api_reaction_controller_reactions) | **POST** /api/reactions/filter | Search all reactions
 *FavouritesApi* | [**rusl_web_api_reaction_controller_unfavourite**](docs/FavouritesApi.md#rusl_web_api_reaction_controller_unfavourite) | **DELETE** /api/favourites/{subject_guid} | Unfavourite an entity
+*FeedsApi* | [**rusl_web_api_feed_token_controller_create**](docs/FeedsApi.md#rusl_web_api_feed_token_controller_create) | **POST** /api/feeds/token | Mint a short-lived S2 feed read token
 *GroupsApi* | [**rusl_web_api_group_controller_index**](docs/GroupsApi.md#rusl_web_api_group_controller_index) | **GET** /api/groups | List Groups
 *GroupsApi* | [**rusl_web_api_group_controller_members**](docs/GroupsApi.md#rusl_web_api_group_controller_members) | **GET** /api/groups/{id}/members | List Group Members
 *GroupsApi* | [**rusl_web_api_group_controller_show**](docs/GroupsApi.md#rusl_web_api_group_controller_show) | **GET** /api/groups/{id} | Get Group
@@ -146,6 +153,8 @@ Class | Method | HTTP request | Description
 *SchemaVersionsApi* | [**rusl_web_api_schema_version_controller_version_examples**](docs/SchemaVersionsApi.md#rusl_web_api_schema_version_controller_version_examples) | **GET** /api/{account_slug}/schemas/{schema_slug}/version_examples | List committed example data by version
 *SchemasApi* | [**rusl_web_api_schema_controller_archive**](docs/SchemasApi.md#rusl_web_api_schema_controller_archive) | **POST** /api/{account_slug}/schemas/{schema_slug}/archive | Archive a schema
 *SchemasApi* | [**rusl_web_api_schema_controller_create**](docs/SchemasApi.md#rusl_web_api_schema_controller_create) | **POST** /api/{account_slug}/schemas | Create a new schema
+*SchemasApi* | [**rusl_web_api_schema_controller_create_provenance**](docs/SchemasApi.md#rusl_web_api_schema_controller_create_provenance) | **POST** /api/{account_slug}/schemas/{schema_slug}/provenance | Create schema provenance
+*SchemasApi* | [**rusl_web_api_schema_controller_fork**](docs/SchemasApi.md#rusl_web_api_schema_controller_fork) | **POST** /api/{account_slug}/schemas/forks | Fork a schema
 *SchemasApi* | [**rusl_web_api_schema_controller_index**](docs/SchemasApi.md#rusl_web_api_schema_controller_index) | **GET** /api/schemas | Search schemas across accounts
 *SchemasApi* | [**rusl_web_api_schema_controller_lookup**](docs/SchemasApi.md#rusl_web_api_schema_controller_lookup) | **GET** /api/schemas/lookup | Lookup schemas by IDs
 *SchemasApi* | [**rusl_web_api_schema_controller_paginate**](docs/SchemasApi.md#rusl_web_api_schema_controller_paginate) | **POST** /api/{account_slug}/schemas/filter | Paginate schemas
@@ -162,6 +171,7 @@ Class | Method | HTTP request | Description
 *UsersApi* | [**rusl_web_api_user_controller_bulk_lookup**](docs/UsersApi.md#rusl_web_api_user_controller_bulk_lookup) | **GET** /api/users/lookup | Lookup users by IDs
 *UsersApi* | [**rusl_web_api_user_controller_me**](docs/UsersApi.md#rusl_web_api_user_controller_me) | **GET** /api/users/me | Current user information
 *UsersApi* | [**rusl_web_api_user_controller_show**](docs/UsersApi.md#rusl_web_api_user_controller_show) | **GET** /api/users/{id} | Get user by ID
+*UsersApi* | [**rusl_web_api_user_controller_update**](docs/UsersApi.md#rusl_web_api_user_controller_update) | **PATCH** /api/users/me | Update the current user
 *UsersApi* | [**rusl_web_api_user_registration_controller_register**](docs/UsersApi.md#rusl_web_api_user_registration_controller_register) | **POST** /api/users/register | Register a new user
 *VersionDependenciesApi* | [**rusl_web_api_version_dependency_controller_dependents**](docs/VersionDependenciesApi.md#rusl_web_api_version_dependency_controller_dependents) | **GET** /api/{account_slug}/schemas/{schema_slug}/dependents | List dependents of a schema
 *VersionDependenciesApi* | [**rusl_web_api_version_dependency_controller_index**](docs/VersionDependenciesApi.md#rusl_web_api_version_dependency_controller_index) | **GET** /api/{account_slug}/schemas/{schema_slug}/versions/{version}/dependencies | List dependencies for a version
@@ -180,6 +190,7 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [AcceptByTokenRequest](docs/AcceptByTokenRequest.md)
+ - [AcceptedResponse](docs/AcceptedResponse.md)
  - [AccessTokenResponse](docs/AccessTokenResponse.md)
  - [AccessTokenResponse1](docs/AccessTokenResponse1.md)
  - [Account](docs/Account.md)
@@ -196,10 +207,10 @@ Class | Method | HTTP request | Description
  - [AccountMemberListResponse](docs/AccountMemberListResponse.md)
  - [Annotation](docs/Annotation.md)
  - [Annotation1](docs/Annotation1.md)
- - [Annotation1SubjectDescription](docs/Annotation1SubjectDescription.md)
  - [AnnotationSearchRequest](docs/AnnotationSearchRequest.md)
  - [AnnotationType](docs/AnnotationType.md)
  - [AnnotationType1](docs/AnnotationType1.md)
+ - [AnnotationType1SubjectDescription](docs/AnnotationType1SubjectDescription.md)
  - [AnnotationType2](docs/AnnotationType2.md)
  - [AnnotationTypeSearchRequest](docs/AnnotationTypeSearchRequest.md)
  - [Asset](docs/Asset.md)
@@ -223,6 +234,9 @@ Class | Method | HTTP request | Description
  - [CliTokenExchangeRequest1](docs/CliTokenExchangeRequest1.md)
  - [CliTokenExchangeResponse](docs/CliTokenExchangeResponse.md)
  - [CliTokenExchangeResponse1](docs/CliTokenExchangeResponse1.md)
+ - [CreateResourceOriginRequest](docs/CreateResourceOriginRequest.md)
+ - [CreateResourceOriginRequest1](docs/CreateResourceOriginRequest1.md)
+ - [CreateResourceOriginRequest1Source](docs/CreateResourceOriginRequest1Source.md)
  - [CreateReviewCommentRequest](docs/CreateReviewCommentRequest.md)
  - [CreateReviewCommentRequest1](docs/CreateReviewCommentRequest1.md)
  - [CreateReviewThreadRequest](docs/CreateReviewThreadRequest.md)
@@ -241,6 +255,7 @@ Class | Method | HTTP request | Description
  - [DiscoveryProfileWithSubject](docs/DiscoveryProfileWithSubject.md)
  - [DiscoveryProfileWithSubject1](docs/DiscoveryProfileWithSubject1.md)
  - [DiscoveryProfileWithSubject1Subject](docs/DiscoveryProfileWithSubject1Subject.md)
+ - [EmailRequest](docs/EmailRequest.md)
  - [EntitlementDenied](docs/EntitlementDenied.md)
  - [EntitlementDenied1](docs/EntitlementDenied1.md)
  - [EntitlementDenied1Details](docs/EntitlementDenied1Details.md)
@@ -252,10 +267,19 @@ Class | Method | HTTP request | Description
  - [EventSubscription1](docs/EventSubscription1.md)
  - [ExampleData](docs/ExampleData.md)
  - [ExampleData1](docs/ExampleData1.md)
+ - [ForgotPasswordConfirmRequest](docs/ForgotPasswordConfirmRequest.md)
+ - [ForkBundleRequest](docs/ForkBundleRequest.md)
+ - [ForkBundleRequest1](docs/ForkBundleRequest1.md)
+ - [ForkBundleRequest1Source](docs/ForkBundleRequest1Source.md)
+ - [ForkSchemaRequest](docs/ForkSchemaRequest.md)
+ - [ForkSchemaRequest1](docs/ForkSchemaRequest1.md)
+ - [ForkSchemaRequest1Source](docs/ForkSchemaRequest1Source.md)
  - [GlobalSearchRequest](docs/GlobalSearchRequest.md)
  - [Group](docs/Group.md)
  - [GroupPurpose](docs/GroupPurpose.md)
  - [GroupWithMembers](docs/GroupWithMembers.md)
+ - [HealthStatus](docs/HealthStatus.md)
+ - [HealthStatusChecksValue](docs/HealthStatusChecksValue.md)
  - [InviteRequest](docs/InviteRequest.md)
  - [ListResponse](docs/ListResponse.md)
  - [ListResponseMeta](docs/ListResponseMeta.md)
@@ -263,6 +287,7 @@ Class | Method | HTTP request | Description
  - [LoginRequestOneOf](docs/LoginRequestOneOf.md)
  - [LoginRequestOneOf1](docs/LoginRequestOneOf1.md)
  - [LoginResponse](docs/LoginResponse.md)
+ - [MagicLinkConfirmRequest](docs/MagicLinkConfirmRequest.md)
  - [MarkAllReadResponse](docs/MarkAllReadResponse.md)
  - [MarkAllReadResponse1](docs/MarkAllReadResponse1.md)
  - [MeResponse](docs/MeResponse.md)
@@ -297,8 +322,13 @@ Class | Method | HTTP request | Description
  - [ProposalDependency1](docs/ProposalDependency1.md)
  - [RegisterUserResponse](docs/RegisterUserResponse.md)
  - [RegisterUserResponse1](docs/RegisterUserResponse1.md)
+ - [Request](docs/Request.md)
  - [ResourceInteraction](docs/ResourceInteraction.md)
  - [ResourceInteraction1](docs/ResourceInteraction1.md)
+ - [ResourceOrigin](docs/ResourceOrigin.md)
+ - [ResourceOrigin1](docs/ResourceOrigin1.md)
+ - [ResourceOrigin2](docs/ResourceOrigin2.md)
+ - [Response](docs/Response.md)
  - [ReviewComment](docs/ReviewComment.md)
  - [ReviewComment1](docs/ReviewComment1.md)
  - [ReviewThread](docs/ReviewThread.md)
@@ -310,6 +340,7 @@ Class | Method | HTTP request | Description
  - [RuslWebApiAccountControllerLookup200Response](docs/RuslWebApiAccountControllerLookup200Response.md)
  - [RuslWebApiAccountControllerShow200Response](docs/RuslWebApiAccountControllerShow200Response.md)
  - [RuslWebApiAnnotationControllerCreateRequest](docs/RuslWebApiAnnotationControllerCreateRequest.md)
+ - [RuslWebApiAnnotationControllerEndorse200Response](docs/RuslWebApiAnnotationControllerEndorse200Response.md)
  - [RuslWebApiAnnotationControllerFilter200Response](docs/RuslWebApiAnnotationControllerFilter200Response.md)
  - [RuslWebApiAnnotationControllerFilterRequest](docs/RuslWebApiAnnotationControllerFilterRequest.md)
  - [RuslWebApiAnnotationControllerFilterRequestFiltersInner](docs/RuslWebApiAnnotationControllerFilterRequestFiltersInner.md)
@@ -318,17 +349,18 @@ Class | Method | HTTP request | Description
  - [RuslWebApiAnnotationControllerTypes200ResponseDataInner](docs/RuslWebApiAnnotationControllerTypes200ResponseDataInner.md)
  - [RuslWebApiAnnotationControllerUnendorse200Response](docs/RuslWebApiAnnotationControllerUnendorse200Response.md)
  - [RuslWebApiAnnotationControllerUpdateRequest](docs/RuslWebApiAnnotationControllerUpdateRequest.md)
+ - [RuslWebApiAnnotationTypeControllerArchive200Response](docs/RuslWebApiAnnotationTypeControllerArchive200Response.md)
  - [RuslWebApiAnnotationTypeControllerCreateRequest](docs/RuslWebApiAnnotationTypeControllerCreateRequest.md)
  - [RuslWebApiAnnotationTypeControllerIndex200Response](docs/RuslWebApiAnnotationTypeControllerIndex200Response.md)
  - [RuslWebApiAnnotationTypeControllerIndexFiltersParameterValue](docs/RuslWebApiAnnotationTypeControllerIndexFiltersParameterValue.md)
  - [RuslWebApiAnnotationTypeControllerLookup200Response](docs/RuslWebApiAnnotationTypeControllerLookup200Response.md)
- - [RuslWebApiAnnotationTypeControllerShow200Response](docs/RuslWebApiAnnotationTypeControllerShow200Response.md)
  - [RuslWebApiAnnotationTypeControllerTypeahead200Response](docs/RuslWebApiAnnotationTypeControllerTypeahead200Response.md)
  - [RuslWebApiAnnotationTypeControllerTypeahead200ResponseDataInner](docs/RuslWebApiAnnotationTypeControllerTypeahead200ResponseDataInner.md)
  - [RuslWebApiAnnotationTypeControllerUpdateRequest](docs/RuslWebApiAnnotationTypeControllerUpdateRequest.md)
  - [RuslWebApiAssetControllerIndex200Response](docs/RuslWebApiAssetControllerIndex200Response.md)
  - [RuslWebApiAssetControllerShow200Response](docs/RuslWebApiAssetControllerShow200Response.md)
  - [RuslWebApiBundleControllerCreate201Response](docs/RuslWebApiBundleControllerCreate201Response.md)
+ - [RuslWebApiBundleControllerCreateProvenance201Response](docs/RuslWebApiBundleControllerCreateProvenance201Response.md)
  - [RuslWebApiBundleControllerCreateRequest](docs/RuslWebApiBundleControllerCreateRequest.md)
  - [RuslWebApiBundleControllerIndex200Response](docs/RuslWebApiBundleControllerIndex200Response.md)
  - [RuslWebApiBundleControllerIndexFiltersParameterValue](docs/RuslWebApiBundleControllerIndexFiltersParameterValue.md)
@@ -338,9 +370,8 @@ Class | Method | HTTP request | Description
  - [RuslWebApiBundleEntryControllerIndex200Response](docs/RuslWebApiBundleEntryControllerIndex200Response.md)
  - [RuslWebApiBundleVersionControllerCreateRequest](docs/RuslWebApiBundleVersionControllerCreateRequest.md)
  - [RuslWebApiBundleVersionControllerIndex200Response](docs/RuslWebApiBundleVersionControllerIndex200Response.md)
- - [RuslWebApiBundleVersionControllerIndex200ResponsePageInfo](docs/RuslWebApiBundleVersionControllerIndex200ResponsePageInfo.md)
+ - [RuslWebApiBundleVersionControllerPublish200Response](docs/RuslWebApiBundleVersionControllerPublish200Response.md)
  - [RuslWebApiBundleVersionControllerUpdateRequest](docs/RuslWebApiBundleVersionControllerUpdateRequest.md)
- - [RuslWebApiBundleVersionControllerUpdateStatus200Response](docs/RuslWebApiBundleVersionControllerUpdateStatus200Response.md)
  - [RuslWebApiBundleVersionControllerUpdateStatusRequest](docs/RuslWebApiBundleVersionControllerUpdateStatusRequest.md)
  - [RuslWebApiBundleVersionControllerValidate200Response](docs/RuslWebApiBundleVersionControllerValidate200Response.md)
  - [RuslWebApiDiscoverabilityControllerBatch200Response](docs/RuslWebApiDiscoverabilityControllerBatch200Response.md)
@@ -348,7 +379,6 @@ Class | Method | HTTP request | Description
  - [RuslWebApiDiscoveryControllerSearch200Response](docs/RuslWebApiDiscoveryControllerSearch200Response.md)
  - [RuslWebApiDiscoveryControllerShow200Response](docs/RuslWebApiDiscoveryControllerShow200Response.md)
  - [RuslWebApiEventSubscriptionControllerCreateRequest](docs/RuslWebApiEventSubscriptionControllerCreateRequest.md)
- - [RuslWebApiEventSubscriptionControllerDelete200Response](docs/RuslWebApiEventSubscriptionControllerDelete200Response.md)
  - [RuslWebApiEventSubscriptionControllerIndex200Response](docs/RuslWebApiEventSubscriptionControllerIndex200Response.md)
  - [RuslWebApiEventSubscriptionControllerIndexRequest](docs/RuslWebApiEventSubscriptionControllerIndexRequest.md)
  - [RuslWebApiEventSubscriptionControllerIndexRequestFiltersInner](docs/RuslWebApiEventSubscriptionControllerIndexRequestFiltersInner.md)
@@ -364,20 +394,20 @@ Class | Method | HTTP request | Description
  - [RuslWebApiProposalControllerLookup200Response](docs/RuslWebApiProposalControllerLookup200Response.md)
  - [RuslWebApiProposalControllerShow200Response](docs/RuslWebApiProposalControllerShow200Response.md)
  - [RuslWebApiProposalReviewControllerCreateComment201Response](docs/RuslWebApiProposalReviewControllerCreateComment201Response.md)
+ - [RuslWebApiProposalReviewControllerCreateThread201Response](docs/RuslWebApiProposalReviewControllerCreateThread201Response.md)
  - [RuslWebApiProposalReviewControllerDeleteComment200Response](docs/RuslWebApiProposalReviewControllerDeleteComment200Response.md)
  - [RuslWebApiProposalReviewControllerDeleteComment200ResponseData](docs/RuslWebApiProposalReviewControllerDeleteComment200ResponseData.md)
  - [RuslWebApiProposalReviewControllerIndex200Response](docs/RuslWebApiProposalReviewControllerIndex200Response.md)
- - [RuslWebApiProposalReviewControllerReopenThread200Response](docs/RuslWebApiProposalReviewControllerReopenThread200Response.md)
  - [RuslWebApiReactionControllerCheck200Response](docs/RuslWebApiReactionControllerCheck200Response.md)
- - [RuslWebApiReactionControllerFavourite201Response](docs/RuslWebApiReactionControllerFavourite201Response.md)
  - [RuslWebApiReactionControllerIndex200Response](docs/RuslWebApiReactionControllerIndex200Response.md)
+ - [RuslWebApiReactionControllerIndex200ResponsePageInfo](docs/RuslWebApiReactionControllerIndex200ResponsePageInfo.md)
  - [RuslWebApiReactionControllerIndexRequest](docs/RuslWebApiReactionControllerIndexRequest.md)
  - [RuslWebApiReactionControllerIndexRequestFiltersInner](docs/RuslWebApiReactionControllerIndexRequestFiltersInner.md)
  - [RuslWebApiReactionControllerUnfavourite200Response](docs/RuslWebApiReactionControllerUnfavourite200Response.md)
- - [RuslWebApiSchemaControllerIndex200Response](docs/RuslWebApiSchemaControllerIndex200Response.md)
- - [RuslWebApiSchemaControllerIndexFiltersParameterValue](docs/RuslWebApiSchemaControllerIndexFiltersParameterValue.md)
  - [RuslWebApiSchemaControllerLookup200Response](docs/RuslWebApiSchemaControllerLookup200Response.md)
+ - [RuslWebApiSchemaControllerPaginate200Response](docs/RuslWebApiSchemaControllerPaginate200Response.md)
  - [RuslWebApiSchemaControllerPaginateRequest](docs/RuslWebApiSchemaControllerPaginateRequest.md)
+ - [RuslWebApiSchemaControllerPaginateRequestFiltersInner](docs/RuslWebApiSchemaControllerPaginateRequestFiltersInner.md)
  - [RuslWebApiSchemaControllerSchemaIdentifierTypeahead200Response](docs/RuslWebApiSchemaControllerSchemaIdentifierTypeahead200Response.md)
  - [RuslWebApiSchemaControllerSchemaIdentifierTypeahead200ResponseDataInner](docs/RuslWebApiSchemaControllerSchemaIdentifierTypeahead200ResponseDataInner.md)
  - [RuslWebApiSchemaControllerShow200Response](docs/RuslWebApiSchemaControllerShow200Response.md)
@@ -390,13 +420,13 @@ Class | Method | HTTP request | Description
  - [RuslWebApiSchemaVersionControllerVersionExamples200Response](docs/RuslWebApiSchemaVersionControllerVersionExamples200Response.md)
  - [RuslWebApiSessionControllerDelete200Response](docs/RuslWebApiSessionControllerDelete200Response.md)
  - [RuslWebApiUserControllerMe200Response](docs/RuslWebApiUserControllerMe200Response.md)
- - [RuslWebApiUserControllerShow200Response](docs/RuslWebApiUserControllerShow200Response.md)
- - [RuslWebApiVersionDependencyControllerLookup200Response](docs/RuslWebApiVersionDependencyControllerLookup200Response.md)
+ - [RuslWebApiUserControllerUpdate200Response](docs/RuslWebApiUserControllerUpdate200Response.md)
+ - [RuslWebApiVersionDependencyControllerIndex200Response](docs/RuslWebApiVersionDependencyControllerIndex200Response.md)
  - [RuslWebApiWatchControllerUnwatchAccount200Response](docs/RuslWebApiWatchControllerUnwatchAccount200Response.md)
  - [RuslWebApiWatchControllerUnwatchBundle200Response](docs/RuslWebApiWatchControllerUnwatchBundle200Response.md)
  - [RuslWebApiWatchControllerUnwatchProposal200Response](docs/RuslWebApiWatchControllerUnwatchProposal200Response.md)
  - [RuslWebApiWatchControllerUnwatchSchema200Response](docs/RuslWebApiWatchControllerUnwatchSchema200Response.md)
- - [RuslWebHealthControllerHealth200Response](docs/RuslWebHealthControllerHealth200Response.md)
+ - [RuslWebApiWatchControllerWatchBundle201Response](docs/RuslWebApiWatchControllerWatchBundle201Response.md)
  - [RuslWebRawBundleMetadataControllerShow200Response](docs/RuslWebRawBundleMetadataControllerShow200Response.md)
  - [RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner](docs/RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner.md)
  - [RuslWebRawSchemaMetadataControllerShow200Response](docs/RuslWebRawSchemaMetadataControllerShow200Response.md)
@@ -420,8 +450,8 @@ Class | Method | HTTP request | Description
  - [SearchResult](docs/SearchResult.md)
  - [SessionAccount](docs/SessionAccount.md)
  - [SessionAccount1](docs/SessionAccount1.md)
- - [SessionAccount1Permissions](docs/SessionAccount1Permissions.md)
- - [SessionAccount1PermissionsSchemas](docs/SessionAccount1PermissionsSchemas.md)
+ - [SessionAccountPermissions](docs/SessionAccountPermissions.md)
+ - [SessionAccountPermissionsSchemas](docs/SessionAccountPermissionsSchemas.md)
  - [UnendorseResponse](docs/UnendorseResponse.md)
  - [UnendorseResponse1](docs/UnendorseResponse1.md)
  - [UnfavouriteResponse](docs/UnfavouriteResponse.md)
@@ -435,6 +465,7 @@ Class | Method | HTTP request | Description
  - [UnwatchSchemaResponse](docs/UnwatchSchemaResponse.md)
  - [UnwatchSchemaResponse1](docs/UnwatchSchemaResponse1.md)
  - [UpdateMemberRolesRequest](docs/UpdateMemberRolesRequest.md)
+ - [UpdateUserRequest](docs/UpdateUserRequest.md)
  - [UploadIntentRequest](docs/UploadIntentRequest.md)
  - [UploadIntentRequest1](docs/UploadIntentRequest1.md)
  - [UploadIntentResponse](docs/UploadIntentResponse.md)
@@ -443,8 +474,11 @@ Class | Method | HTTP request | Description
  - [User](docs/User.md)
  - [User1](docs/User1.md)
  - [User2](docs/User2.md)
+ - [User3](docs/User3.md)
+ - [User4](docs/User4.md)
  - [UserAccount](docs/UserAccount.md)
  - [UserAccount1](docs/UserAccount1.md)
+ - [UserAccount2](docs/UserAccount2.md)
  - [UserListResponse](docs/UserListResponse.md)
  - [UserWithRoles](docs/UserWithRoles.md)
  - [VersionDependency](docs/VersionDependency.md)

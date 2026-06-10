@@ -11,30 +11,47 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// OpenApiSchema4 : Update Schema Proposal Request
+/// OpenApiSchema4 : Register User Request
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema4 {
-    /// JSON Schema proposal
-    #[serde(rename = "content")]
-    pub content: serde_json::Value,
-    /// Description
-    #[serde(rename = "description", skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    /// Valid Data
-    #[serde(rename = "valid_data")]
-    pub valid_data: Vec<models::ExampleData1>,
+    /// User Email
+    #[serde(rename = "email")]
+    pub email: String,
+    /// Password
+    #[serde(rename = "password")]
+    pub password: String,
+    /// Self-reported principal type. Optional; defaults to \"human\".
+    #[serde(rename = "user_type", skip_serializing_if = "Option::is_none")]
+    pub user_type: Option<UserType>,
+    /// Username
+    #[serde(rename = "username")]
+    pub username: String,
 }
 
 impl OpenApiSchema4 {
-    /// Update Schema Proposal Request
-    pub fn new(
-        content: serde_json::Value,
-        valid_data: Vec<models::ExampleData1>,
-    ) -> OpenApiSchema4 {
+    /// Register User Request
+    pub fn new(email: String, password: String, username: String) -> OpenApiSchema4 {
         OpenApiSchema4 {
-            content,
-            description: None,
-            valid_data,
+            email,
+            password,
+            user_type: None,
+            username,
         }
+    }
+}
+/// Self-reported principal type. Optional; defaults to \"human\".
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum UserType {
+    #[serde(rename = "agent")]
+    Agent,
+    #[serde(rename = "human")]
+    Human,
+    #[serde(rename = "unknown")]
+    Unknown,
+}
+
+impl Default for UserType {
+    fn default() -> UserType {
+        Self::Agent
     }
 }

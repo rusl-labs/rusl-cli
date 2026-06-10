@@ -66,7 +66,7 @@ pub struct Annotation {
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
+    pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
     /// GUID of the annotated subject
     #[serde(rename = "subject_guid")]
     pub subject_guid: String,

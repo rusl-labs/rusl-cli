@@ -12,7 +12,7 @@ Method | HTTP request | Description
 
 ## rusl_web_api_version_dependency_controller_dependents
 
-> models::RuslWebApiVersionDependencyControllerLookup200Response rusl_web_api_version_dependency_controller_dependents(account_slug, schema_slug)
+> models::RuslWebApiVersionDependencyControllerIndex200Response rusl_web_api_version_dependency_controller_dependents(account_slug, schema_slug)
 List dependents of a schema
 
 Returns all version dependencies that depend on this schema.
@@ -27,7 +27,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiVersionDependencyControllerLookup200Response**](RuslWeb_Api_VersionDependencyController_lookup_200_response.md)
+[**models::RuslWebApiVersionDependencyControllerIndex200Response**](RuslWeb_Api_VersionDependencyController_index_200_response.md)
 
 ### Authorization
 
@@ -43,7 +43,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_version_dependency_controller_index
 
-> models::RuslWebApiVersionDependencyControllerLookup200Response rusl_web_api_version_dependency_controller_index(version, account_slug, schema_slug)
+> models::RuslWebApiVersionDependencyControllerIndex200Response rusl_web_api_version_dependency_controller_index(version, account_slug, schema_slug)
 List dependencies for a version
 
 Returns all dependencies extracted from $ref URLs for a specific schema version.
@@ -59,7 +59,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiVersionDependencyControllerLookup200Response**](RuslWeb_Api_VersionDependencyController_lookup_200_response.md)
+[**models::RuslWebApiVersionDependencyControllerIndex200Response**](RuslWeb_Api_VersionDependencyController_index_200_response.md)
 
 ### Authorization
 
@@ -75,7 +75,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_version_dependency_controller_lookup
 
-> models::RuslWebApiVersionDependencyControllerLookup200Response rusl_web_api_version_dependency_controller_lookup(ids)
+> models::RuslWebApiVersionDependencyControllerIndex200Response rusl_web_api_version_dependency_controller_lookup(ids)
 Lookup version dependencies by version IDs
 
 Returns dependencies for the given schema version IDs (max 100). Visibility-scoped: dependencies for private schemas the caller cannot access are excluded.
@@ -89,7 +89,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiVersionDependencyControllerLookup200Response**](RuslWeb_Api_VersionDependencyController_lookup_200_response.md)
+[**models::RuslWebApiVersionDependencyControllerIndex200Response**](RuslWeb_Api_VersionDependencyController_index_200_response.md)
 
 ### Authorization
 

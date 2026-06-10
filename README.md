@@ -29,13 +29,14 @@ Authenticate with the registry:
 ```bash
 rusl login
 rusl whoami
+rusl logout
 ```
 
 Add dependencies:
 
 ```bash
-rusl add schema rusl/common
-rusl add bundle rusl/common --version ">=1.0.0"
+rusl add schema rusl/schemas/common
+rusl add bundle rusl/bundles/common --version ">=1.0.0"
 ```
 
 Install and link the resolved schemas:
@@ -47,8 +48,8 @@ rusl install
 Remove dependencies when they are no longer needed:
 
 ```bash
-rusl remove schema rusl/common
-rusl remove bundle rusl/common
+rusl remove schema rusl/schemas/common
+rusl remove bundle rusl/bundles/common
 ```
 
 `rusl add` and `rusl remove` update `rusl.bundle.toml` and then run install so the local schema
@@ -60,7 +61,7 @@ Example `rusl.bundle.toml`:
 
 ```toml
 [rusl.resources]
-"rusl/common" = "*"
+"rusl/schemas/common" = "*"
 "rusl/bundles/common" = ">=1.0.0"
 ```
 
@@ -71,8 +72,9 @@ rusl install
 rusl list
 rusl list --tree
 rusl outdated
-rusl why rusl/common
+rusl why rusl/schemas/common
 rusl cache --clear
+rusl logout
 ```
 
 ## Update Rusl

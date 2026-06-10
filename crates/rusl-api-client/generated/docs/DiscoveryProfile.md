@@ -5,7 +5,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **__typename** | **Typename** | Type discriminator (enum: discovery_profiles) |
-**content** | Option<**std::collections::HashMap<String, serde_json::Value>**> | Discovery payload conforming to the rusl/discovery-profile JSON Schema. Null for pending or failed profiles. Canonical schema: https://hassox.rusl-api.ngrok.io/resources/rusl/discovery-profile | [optional]
+**content** | Option<**std::collections::HashMap<String, serde_json::Value>**> | Discovery payload conforming to the rusl/discovery-profile JSON Schema. Null for pending or failed profiles. Canonical schema: /resources/rusl/discovery-profile | [optional]
 **generated_at** | Option<**String**> | When the current content was generated | [optional]
 **inserted_at** | **String** |  |
 **status** | **Status** | Profile generation status (enum: pending, ready, failed) |

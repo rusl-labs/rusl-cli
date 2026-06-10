@@ -14,10 +14,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiBundleControllerLookup200Response {
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
-    pub data: Option<Vec<models::Bundle2>>,
+    pub data: Option<Vec<models::Bundle1>>,
     /// Errors, if any
     #[serde(rename = "errors", skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<models::Error1>>,
+    pub errors: Option<Vec<models::Error2>>,
 }
 
 impl RuslWebApiBundleControllerLookup200Response {

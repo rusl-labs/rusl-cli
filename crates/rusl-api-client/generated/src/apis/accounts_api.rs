@@ -17,14 +17,14 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAccountControllerCreateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
     Status402(models::EntitlementDenied1),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -32,10 +32,10 @@ pub enum RuslWebApiAccountControllerCreateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAccountControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -43,10 +43,10 @@ pub enum RuslWebApiAccountControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAccountControllerLookupError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -54,10 +54,10 @@ pub enum RuslWebApiAccountControllerLookupError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAccountControllerShowError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -65,26 +65,26 @@ pub enum RuslWebApiAccountControllerShowError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiAccountControllerUpdateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
 /// Create a new organization account. Requires authentication.  The authenticated user becomes the owner of the organization.
 pub async fn rusl_web_api_account_controller_create(
     configuration: &configuration::Configuration,
-    open_api_schema7: Option<models::OpenApiSchema7>,
+    open_api_schema5: Option<models::OpenApiSchema5>,
 ) -> Result<
     models::RuslWebApiAccountControllerCreate201Response,
     Error<RuslWebApiAccountControllerCreateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
-    let p_body_open_api_schema7 = open_api_schema7;
+    let p_body_open_api_schema5 = open_api_schema5;
 
     let uri_str = format!("{}/api/accounts", configuration.base_path);
     let mut req_builder = configuration
@@ -97,7 +97,7 @@ pub async fn rusl_web_api_account_controller_create(
     if let Some(ref token) = configuration.bearer_access_token {
         req_builder = req_builder.bearer_auth(token.to_owned());
     };
-    req_builder = req_builder.json(&p_body_open_api_schema7);
+    req_builder = req_builder.json(&p_body_open_api_schema5);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;
@@ -381,14 +381,14 @@ pub async fn rusl_web_api_account_controller_show(
 pub async fn rusl_web_api_account_controller_update(
     configuration: &configuration::Configuration,
     slug: &str,
-    open_api_schema3: Option<models::OpenApiSchema3>,
+    open_api_schema7: Option<models::OpenApiSchema7>,
 ) -> Result<
     models::RuslWebApiAccountControllerShow200Response,
     Error<RuslWebApiAccountControllerUpdateError>,
 > {
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_slug = slug;
-    let p_body_open_api_schema3 = open_api_schema3;
+    let p_body_open_api_schema7 = open_api_schema7;
 
     let uri_str = format!(
         "{}/api/accounts/{slug}",
@@ -405,7 +405,7 @@ pub async fn rusl_web_api_account_controller_update(
     if let Some(ref token) = configuration.bearer_access_token {
         req_builder = req_builder.bearer_auth(token.to_owned());
     };
-    req_builder = req_builder.json(&p_body_open_api_schema3);
+    req_builder = req_builder.json(&p_body_open_api_schema7);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;

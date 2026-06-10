@@ -5,52 +5,52 @@ version = "0.1.1"
 integrity = ""
 source = "http://localhost:4000"
 dependencies = [
-    "schema:rusl/usage-report",
-    "schema:rusl/context-loading-hint",
-    "schema:rusl/trust-signal",
-    "schema:rusl/migration-guide",
-    "schema:rusl/context-request",
-    "schema:rusl/semantic-link",
-    "schema:rusl/domain-interpretation",
-    "schema:rusl/source-attestation",
+    "schema:rusl/schemas/usage-report",
+    "schema:rusl/schemas/context-loading-hint",
+    "schema:rusl/schemas/trust-signal",
+    "schema:rusl/schemas/migration-guide",
+    "schema:rusl/schemas/context-request",
+    "schema:rusl/schemas/semantic-link",
+    "schema:rusl/schemas/domain-interpretation",
+    "schema:rusl/schemas/source-attestation",
 ]
 
-[dependencies."schema:rusl/context-loading-hint"]
+[dependencies."schema:rusl/schemas/context-loading-hint"]
 version = "0.1.0"
-integrity = "1c9ee5c2bb30af316d85508c0ebc71c4afa2829efa7e82796e933c58b199e51f"
+integrity = "7ab7198f50ab57381f9d4b1bbe3d3c47b1a1e979e22b724b5f4f0719eb8bed06"
 source = "http://localhost:4000"
 
-[dependencies."schema:rusl/context-request"]
+[dependencies."schema:rusl/schemas/context-request"]
 version = "0.1.0"
-integrity = "5d08f4be32da7cc4c7a90f6d5d5e698d6417bd509bac214e87babf752455d465"
+integrity = "137605563988a5cbd6bbb4413ac30e05f71f950259cd737dbdd7c3a93f6f5f9d"
 source = "http://localhost:4000"
 
-[dependencies."schema:rusl/domain-interpretation"]
+[dependencies."schema:rusl/schemas/domain-interpretation"]
 version = "0.1.0"
-integrity = "b80d4b4f15ac62611d30d892cbf44fbe8007fc97b8067f18a0c2acbc9df301ff"
+integrity = "25917b197d59555ee2557c2523ef1ed757132681c3003498087f8fbf25246961"
 source = "http://localhost:4000"
 
-[dependencies."schema:rusl/migration-guide"]
+[dependencies."schema:rusl/schemas/migration-guide"]
 version = "0.1.0"
-integrity = "69795afb195bd74bfcf8df31b048b444628b97eb0ce5db88a0c661df6e8216df"
+integrity = "cf091e08bdf46450d7c82a4f47cebb4801e5cfe96c413a1d138e64f01ccb2014"
 source = "http://localhost:4000"
 
-[dependencies."schema:rusl/semantic-link"]
+[dependencies."schema:rusl/schemas/semantic-link"]
 version = "0.1.0"
-integrity = "f3d5c6ce195b2542a16318c942dc1079d08cf55d0b5f9a2c1dd76416f00c7504"
+integrity = "36ecc223cce68ba11e0ce208572ed0f4401f6e5d6d5e6c09956da23ef7a0f6a5"
 source = "http://localhost:4000"
 
-[dependencies."schema:rusl/source-attestation"]
+[dependencies."schema:rusl/schemas/source-attestation"]
 version = "0.1.0"
-integrity = "82526410b0c566321740b377e24ed946f6bc232f02acbe3fb356e41b4eee36cc"
+integrity = "c6fa94720e1ece581ca352b6a12ea33f526d3a20e0c34c0d76b0bb8214ea88b5"
 source = "http://localhost:4000"
 
-[dependencies."schema:rusl/trust-signal"]
+[dependencies."schema:rusl/schemas/trust-signal"]
 version = "0.1.0"
-integrity = "2ef6346dd2c9d308cb687c45e78b402308a1c1a128447e50dfd88d6c5775fa1a"
+integrity = "7f981f79e000a2ceb98b72af9f99775e6cf254f520932fbc36382e8012637d41"
 source = "http://localhost:4000"
 
-[dependencies."schema:rusl/usage-report"]
+[dependencies."schema:rusl/schemas/usage-report"]
 version = "0.1.0"
-integrity = "c2f633cf85bf6d5d6fd101213c51e07215f1a9c0206f1c3d31d68f190d5087e9"
+integrity = "bbeb88b6b8294b2ee068a96f132b9b0a2e9b5700dbd57f587544ce3f31aae58b"
 source = "http://localhost:4000"

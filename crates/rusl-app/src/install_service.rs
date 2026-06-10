@@ -172,11 +172,11 @@ mod tests {
 
             let app = Router::new()
                 .route(
-                    "/resources/{account}/{slug}/metadata",
+                    "/resources/{account}/schemas/{slug}/metadata",
                     get(metadata_handler),
                 )
                 .route(
-                    "/resources/{account}/{slug_and_version}",
+                    "/resources/{account}/schemas/{slug_and_version}",
                     get(schema_handler),
                 )
                 .with_state(state);
@@ -290,7 +290,7 @@ mod tests {
             workspace_dir.join("rusl.bundle.toml"),
             r#"
 [rusl.resources]
-"hassox/root" = ">=1.0.0"
+"hassox/schemas/root" = ">=1.0.0"
 "#,
         )
         .expect("write manifest");
@@ -333,33 +333,41 @@ schema_dir = "schemas/vendor"
         .expect("parse lockfile");
         assert_eq!(lock.dependencies.len(), 2);
         assert_eq!(
-            lock.dependencies["schema:hassox/root"].dependencies,
-            vec!["schema:hassox/dep".to_string()]
+            lock.dependencies["schema:hassox/schemas/root"].dependencies,
+            vec!["schema:hassox/schemas/dep".to_string()]
         );
         assert_eq!(
-            lock.dependencies["schema:hassox/root"].source,
+            lock.dependencies["schema:hassox/schemas/root"].source,
             server.base_url
         );
-        assert!(!lock.dependencies["schema:hassox/root"].integrity.is_empty());
-        assert!(!lock.dependencies["schema:hassox/dep"].integrity.is_empty());
+        assert!(
+            !lock.dependencies["schema:hassox/schemas/root"]
+                .integrity
+                .is_empty()
+        );
+        assert!(
+            !lock.dependencies["schema:hassox/schemas/dep"]
+                .integrity
+                .is_empty()
+        );
 
         assert_eq!(
             server.recorded_requests().await,
             vec![
                 RecordedRequest {
-                    path: "/resources/hassox/root/metadata".to_string(),
+                    path: "/resources/hassox/schemas/root/metadata".to_string(),
                     authorization: None,
                 },
                 RecordedRequest {
-                    path: "/resources/hassox/dep/metadata".to_string(),
+                    path: "/resources/hassox/schemas/dep/metadata".to_string(),
                     authorization: None,
                 },
                 RecordedRequest {
-                    path: "/resources/hassox/dep@v1.0.0".to_string(),
+                    path: "/resources/hassox/schemas/dep@v1.0.0".to_string(),
                     authorization: None,
                 },
                 RecordedRequest {
-                    path: "/resources/hassox/root@v1.0.0".to_string(),
+                    path: "/resources/hassox/schemas/root@v1.0.0".to_string(),
                     authorization: None,
                 },
             ]
@@ -373,7 +381,7 @@ schema_dir = "schemas/vendor"
     ) -> (StatusCode, Json<Value>) {
         record_request(
             &state,
-            format!("/resources/{account}/{slug}/metadata"),
+            format!("/resources/{account}/schemas/{slug}/metadata"),
             &headers,
         )
         .await;
@@ -382,7 +390,7 @@ schema_dir = "schemas/vendor"
                 "name": "root",
                 "versions": [{
                     "version": "1.0.0",
-                    "schemas": { "hassox/dep": ">=1.0.0" },
+                    "schemas": { "hassox/schemas/dep": ">=1.0.0" },
                     "bundles": {}
                 }]
             }),
@@ -411,7 +419,7 @@ schema_dir = "schemas/vendor"
     ) -> (StatusCode, Json<Value>) {
         record_request(
             &state,
-            format!("/resources/{account}/{slug_and_version}"),
+            format!("/resources/{account}/schemas/{slug_and_version}"),
             &headers,
         )
         .await;

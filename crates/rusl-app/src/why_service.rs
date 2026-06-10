@@ -166,9 +166,15 @@ fn resolve_search_key(search: &str, lock: &LockManifest) -> Option<String> {
         return Some(search.to_string());
     }
 
-    let schema_key = format!("schema:{search}");
-    if lock.dependencies.contains_key(&schema_key) {
+    if let Some(schema_key) = package_key_for(ResourceKind::Schema, search)
+        && lock.dependencies.contains_key(&schema_key)
+    {
         return Some(schema_key);
+    }
+
+    let legacy_schema_key = format!("schema:{search}");
+    if lock.dependencies.contains_key(&legacy_schema_key) {
+        return Some(legacy_schema_key);
     }
 
     if let Some(bundle_key) = package_key_for(ResourceKind::Bundle, search)
@@ -231,7 +237,10 @@ mod tests {
             display_name("bundle:hassox/bundles/demo"),
             "hassox/bundles/demo"
         );
-        assert_eq!(display_name("schema:rusl/common"), "rusl/common");
+        assert_eq!(
+            display_name("schema:rusl/schemas/common"),
+            "rusl/schemas/common"
+        );
     }
 
     #[test]
@@ -296,7 +305,7 @@ mod tests {
             temp_dir.path().join("rusl.bundle.toml"),
             r#"
 [rusl.resources]
-"acme/root" = ">=1.0.0"
+"acme/schemas/root" = ">=1.0.0"
 "#,
         )
         .expect("write manifest");
@@ -305,13 +314,13 @@ mod tests {
             r#"
 version = "1"
 
-[dependencies."schema:acme/root"]
+[dependencies."schema:acme/schemas/root"]
 version = "1.0.0"
 integrity = "root"
 source = "https://resources.rusl.com"
-dependencies = ["schema:acme/shared"]
+dependencies = ["schema:acme/schemas/shared"]
 
-[dependencies."schema:acme/shared"]
+[dependencies."schema:acme/schemas/shared"]
 version = "1.2.0"
 integrity = "shared"
 source = "https://resources.rusl.com"
@@ -319,15 +328,15 @@ source = "https://resources.rusl.com"
         )
         .expect("write lockfile");
 
-        let output = load_dependency_paths("acme/shared").expect("load dependency paths");
+        let output = load_dependency_paths("acme/schemas/shared").expect("load dependency paths");
 
         let WhyOutput::Tree(tree) = output else {
             panic!("expected tree output");
         };
-        assert_eq!(tree.target_display_name, "acme/shared");
+        assert_eq!(tree.target_display_name, "acme/schemas/shared");
         assert_eq!(tree.root_name, "local bundle");
         assert_eq!(tree.root_version, "unversioned");
-        assert_eq!(tree.paths[0].display_name, "acme/root");
+        assert_eq!(tree.paths[0].display_name, "acme/schemas/root");
         assert!(tree.paths[0].children[0].is_target);
     }
 
@@ -344,7 +353,7 @@ name = "hassox/demo"
 version = "0.1.0"
 
 [rusl.resources]
-"acme/root" = ">=1.0.0"
+"acme/schemas/root" = ">=1.0.0"
 "#,
         )
         .expect("write manifest");
@@ -353,7 +362,7 @@ version = "0.1.0"
             r#"
 version = "1"
 
-[dependencies."schema:acme/other"]
+[dependencies."schema:acme/schemas/other"]
 version = "1.0.0"
 integrity = "other"
 source = "https://resources.rusl.com"
@@ -361,12 +370,12 @@ source = "https://resources.rusl.com"
         )
         .expect("write lockfile");
 
-        let output = load_dependency_paths("acme/other").expect("load dependency paths");
+        let output = load_dependency_paths("acme/schemas/other").expect("load dependency paths");
 
         assert_eq!(
             output,
             WhyOutput::Unreachable {
-                display_name: "acme/other".to_string(),
+                display_name: "acme/schemas/other".to_string(),
             }
         );
     }

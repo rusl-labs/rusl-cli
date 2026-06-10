@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**field** | **Field** | Field to filter on (enum: slug, type, owner_user_id, created_order, mine) |
+**field** | **Field** | Field to filter on (enum: slug, type, user_type, owner_user_id, created_order, mine) |
 **op** | **Op** | Filter operation (enum: ==, !=, =~, empty, not_empty, <=, <, >=, >, in, not_in, contains, not_contains, like, not_like, like_and, like_or, ilike, not_ilike, ilike_and, ilike_or) |
 **value** | **String** | Value to filter on |
 

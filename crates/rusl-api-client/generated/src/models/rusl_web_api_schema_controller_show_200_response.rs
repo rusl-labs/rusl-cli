@@ -22,7 +22,7 @@ pub struct RuslWebApiSchemaControllerShow200Response {
     pub data: Option<Option<Box<models::Schema1>>>,
     /// Errors, if any
     #[serde(rename = "errors", skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<models::Error1>>,
+    pub errors: Option<Vec<models::Error2>>,
 }
 
 impl RuslWebApiSchemaControllerShow200Response {

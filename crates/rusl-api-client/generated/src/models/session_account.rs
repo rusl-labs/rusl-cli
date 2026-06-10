@@ -40,7 +40,7 @@ pub struct SessionAccount {
     #[serde(rename = "owner_user_id")]
     pub owner_user_id: uuid::Uuid,
     #[serde(rename = "permissions")]
-    pub permissions: Box<models::SessionAccount1Permissions>,
+    pub permissions: Box<models::SessionAccountPermissions>,
     /// User's roles in this account
     #[serde(rename = "roles")]
     pub roles: Vec<Roles>,
@@ -58,7 +58,7 @@ impl SessionAccount {
         __typename: Typename,
         guid: String,
         owner_user_id: uuid::Uuid,
-        permissions: models::SessionAccount1Permissions,
+        permissions: models::SessionAccountPermissions,
         roles: Vec<Roles>,
         slug: String,
         r#type: Type,

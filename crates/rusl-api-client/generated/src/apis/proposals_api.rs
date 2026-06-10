@@ -17,13 +17,13 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerAcceptError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -31,13 +31,13 @@ pub enum RuslWebApiProposalControllerAcceptError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerCloseError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -45,13 +45,13 @@ pub enum RuslWebApiProposalControllerCloseError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerCreateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -59,10 +59,10 @@ pub enum RuslWebApiProposalControllerCreateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerIndexError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -70,10 +70,10 @@ pub enum RuslWebApiProposalControllerIndexError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerLookupError {
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status500(models::Error2),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -81,13 +81,13 @@ pub enum RuslWebApiProposalControllerLookupError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerRebaseError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -95,13 +95,13 @@ pub enum RuslWebApiProposalControllerRebaseError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerRejectError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -116,13 +116,13 @@ pub enum RuslWebApiProposalControllerShowError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RuslWebApiProposalControllerUpdateError {
-    Status400(models::Error2),
-    Status401(models::Error2),
-    Status403(models::Error2),
-    Status404(models::Error2),
-    Status409(models::Error2),
-    Status422(models::Error2),
-    Status500(models::Error2),
+    Status400(models::Error1),
+    Status401(models::Error1),
+    Status403(models::Error1),
+    Status404(models::Error1),
+    Status409(models::Error1),
+    Status422(models::Error1),
+    Status500(models::Error1),
     UnknownValue(serde_json::Value),
 }
 
@@ -268,7 +268,7 @@ pub async fn rusl_web_api_proposal_controller_create(
     configuration: &configuration::Configuration,
     account_slug: &str,
     schema_slug: &str,
-    open_api_schema6: Option<models::OpenApiSchema6>,
+    open_api_schema3: Option<models::OpenApiSchema3>,
 ) -> Result<
     models::RuslWebApiProposalControllerShow200Response,
     Error<RuslWebApiProposalControllerCreateError>,
@@ -276,7 +276,7 @@ pub async fn rusl_web_api_proposal_controller_create(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_path_account_slug = account_slug;
     let p_path_schema_slug = schema_slug;
-    let p_body_open_api_schema6 = open_api_schema6;
+    let p_body_open_api_schema3 = open_api_schema3;
 
     let uri_str = format!(
         "{}/api/{account_slug}/schemas/{schema_slug}/proposals",
@@ -294,7 +294,7 @@ pub async fn rusl_web_api_proposal_controller_create(
     if let Some(ref token) = configuration.bearer_access_token {
         req_builder = req_builder.bearer_auth(token.to_owned());
     };
-    req_builder = req_builder.json(&p_body_open_api_schema6);
+    req_builder = req_builder.json(&p_body_open_api_schema3);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;
@@ -679,7 +679,7 @@ pub async fn rusl_web_api_proposal_controller_update(
     proposal_number: i32,
     account_slug: &str,
     schema_slug: &str,
-    open_api_schema4: Option<models::OpenApiSchema4>,
+    open_api_schema1: Option<models::OpenApiSchema1>,
 ) -> Result<
     models::RuslWebApiProposalControllerShow200Response,
     Error<RuslWebApiProposalControllerUpdateError>,
@@ -688,7 +688,7 @@ pub async fn rusl_web_api_proposal_controller_update(
     let p_path_proposal_number = proposal_number;
     let p_path_account_slug = account_slug;
     let p_path_schema_slug = schema_slug;
-    let p_body_open_api_schema4 = open_api_schema4;
+    let p_body_open_api_schema1 = open_api_schema1;
 
     let uri_str = format!(
         "{}/api/{account_slug}/schemas/{schema_slug}/proposals/{proposal_number}",
@@ -707,7 +707,7 @@ pub async fn rusl_web_api_proposal_controller_update(
     if let Some(ref token) = configuration.bearer_access_token {
         req_builder = req_builder.bearer_auth(token.to_owned());
     };
-    req_builder = req_builder.json(&p_body_open_api_schema4);
+    req_builder = req_builder.json(&p_body_open_api_schema1);
 
     let req = req_builder.build()?;
     let resp = configuration.client.execute(req).await?;

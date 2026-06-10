@@ -11,70 +11,58 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// OpenApiSchema5 : Create Schema Request
+/// OpenApiSchema5 : Create Organization Account Request
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema5 {
-    /// Description
+    /// Asset ID for the account avatar
     #[serde(
-        rename = "description",
+        rename = "avatar_asset_id",
         default,
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub description: Option<Option<String>>,
-    /// Schema format
-    #[serde(rename = "schema_format", skip_serializing_if = "Option::is_none")]
-    pub schema_format: Option<SchemaFormat>,
-    /// Schema Slug
+    pub avatar_asset_id: Option<Option<uuid::Uuid>>,
+    /// Organization bio
+    #[serde(rename = "bio", skip_serializing_if = "Option::is_none")]
+    pub bio: Option<String>,
+    /// Organization display name
+    #[serde(rename = "display_name", skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    /// Organization slug (URL identifier)
     #[serde(rename = "slug")]
     pub slug: String,
-    #[serde(
-        rename = "subject_description",
-        default,
-        with = "::serde_with::rust::double_option",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub subject_description: Option<Option<Box<models::OpenApiSchema2SubjectDescription>>>,
-    /// Visibility
-    #[serde(rename = "visibility", skip_serializing_if = "Option::is_none")]
-    pub visibility: Option<Visibility>,
+    /// Whether team members are publicly visible
+    #[serde(rename = "team_visibility")]
+    pub team_visibility: TeamVisibility,
+    /// Organization website URL
+    #[serde(rename = "website", skip_serializing_if = "Option::is_none")]
+    pub website: Option<String>,
 }
 
 impl OpenApiSchema5 {
-    /// Create Schema Request
-    pub fn new(slug: String) -> OpenApiSchema5 {
+    /// Create Organization Account Request
+    pub fn new(slug: String, team_visibility: TeamVisibility) -> OpenApiSchema5 {
         OpenApiSchema5 {
-            description: None,
-            schema_format: None,
+            avatar_asset_id: None,
+            bio: None,
+            display_name: None,
             slug,
-            subject_description: None,
-            visibility: None,
+            team_visibility,
+            website: None,
         }
     }
 }
-/// Schema format
+/// Whether team members are publicly visible
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum SchemaFormat {
-    #[serde(rename = "JSON_SCHEMA")]
-    JsonSchema,
-}
-
-impl Default for SchemaFormat {
-    fn default() -> SchemaFormat {
-        Self::JsonSchema
-    }
-}
-/// Visibility
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-pub enum Visibility {
-    #[serde(rename = "PUBLIC")]
+pub enum TeamVisibility {
+    #[serde(rename = "public")]
     Public,
-    #[serde(rename = "PRIVATE")]
+    #[serde(rename = "private")]
     Private,
 }
 
-impl Default for Visibility {
-    fn default() -> Visibility {
+impl Default for TeamVisibility {
+    fn default() -> TeamVisibility {
         Self::Public
     }
 }

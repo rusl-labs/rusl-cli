@@ -1,5 +1,5 @@
 {
-  "$id": "https://resources.rusl.com/schemas/rusl/domain-interpretation",
+  "$id": "https://resources.rusl.com/resources/rusl/schemas/domain-interpretation",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "A context-specific meaning for a schema or field when the official description is incomplete for a domain.",

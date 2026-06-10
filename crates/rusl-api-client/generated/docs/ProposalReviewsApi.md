@@ -47,7 +47,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_proposal_review_controller_create_thread
 
-> models::RuslWebApiProposalReviewControllerReopenThread200Response rusl_web_api_proposal_review_controller_create_thread(proposal_number, account_slug, schema_slug, create_review_thread_request1)
+> models::RuslWebApiProposalReviewControllerCreateThread201Response rusl_web_api_proposal_review_controller_create_thread(proposal_number, account_slug, schema_slug, create_review_thread_request1)
 Create review thread
 
 ### Parameters
@@ -62,7 +62,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiProposalReviewControllerReopenThread200Response**](RuslWeb_Api_ProposalReviewController_reopen_thread_200_response.md)
+[**models::RuslWebApiProposalReviewControllerCreateThread201Response**](RuslWeb_Api_ProposalReviewController_create_thread_201_response.md)
 
 ### Authorization
 
@@ -142,7 +142,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_proposal_review_controller_reopen_thread
 
-> models::RuslWebApiProposalReviewControllerReopenThread200Response rusl_web_api_proposal_review_controller_reopen_thread(proposal_number, thread_id, account_slug, schema_slug)
+> models::RuslWebApiProposalReviewControllerCreateThread201Response rusl_web_api_proposal_review_controller_reopen_thread(proposal_number, thread_id, account_slug, schema_slug)
 Reopen review thread
 
 ### Parameters
@@ -157,7 +157,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiProposalReviewControllerReopenThread200Response**](RuslWeb_Api_ProposalReviewController_reopen_thread_200_response.md)
+[**models::RuslWebApiProposalReviewControllerCreateThread201Response**](RuslWeb_Api_ProposalReviewController_create_thread_201_response.md)
 
 ### Authorization
 
@@ -173,7 +173,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_proposal_review_controller_resolve_thread
 
-> models::RuslWebApiProposalReviewControllerReopenThread200Response rusl_web_api_proposal_review_controller_resolve_thread(proposal_number, thread_id, account_slug, schema_slug)
+> models::RuslWebApiProposalReviewControllerCreateThread201Response rusl_web_api_proposal_review_controller_resolve_thread(proposal_number, thread_id, account_slug, schema_slug)
 Resolve review thread
 
 ### Parameters
@@ -188,7 +188,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiProposalReviewControllerReopenThread200Response**](RuslWeb_Api_ProposalReviewController_reopen_thread_200_response.md)
+[**models::RuslWebApiProposalReviewControllerCreateThread201Response**](RuslWeb_Api_ProposalReviewController_create_thread_201_response.md)
 
 ### Authorization
 

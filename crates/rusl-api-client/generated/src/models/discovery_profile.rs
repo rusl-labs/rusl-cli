@@ -17,7 +17,7 @@ pub struct DiscoveryProfile {
     /// Type discriminator
     #[serde(rename = "__typename")]
     pub __typename: Typename,
-    /// Discovery payload conforming to the rusl/discovery-profile JSON Schema. Null for pending or failed profiles. Canonical schema: https://hassox.rusl-api.ngrok.io/resources/rusl/discovery-profile
+    /// Discovery payload conforming to the rusl/discovery-profile JSON Schema. Null for pending or failed profiles. Canonical schema: /resources/rusl/discovery-profile
     #[serde(
         rename = "content",
         default,

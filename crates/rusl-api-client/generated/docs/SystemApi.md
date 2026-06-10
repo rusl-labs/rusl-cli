@@ -10,10 +10,10 @@ Method | HTTP request | Description
 
 ## rusl_web_health_controller_health
 
-> models::RuslWebHealthControllerHealth200Response rusl_web_health_controller_health()
+> models::HealthStatus rusl_web_health_controller_health()
 Health check endpoint
 
-Returns the health status of the application. Used for monitoring and load balancer health checks.
+Returns the health status of the application (including background dependency probes). Used for monitoring, load balancers, and orchestration (Render, Kubernetes, etc.). Returns 200 for both healthy and degraded states; only truly broken states may return 5xx from the coordinator itself.
 
 ### Parameters
 
@@ -21,7 +21,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**models::RuslWebHealthControllerHealth200Response**](RuslWeb_HealthController_health_200_response.md)
+[**models::HealthStatus**](HealthStatus.md)
 
 ### Authorization
 

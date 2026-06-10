@@ -12,17 +12,31 @@ pub struct LoginSession {
     pub code_verifier: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LoginCallbackOutcome {
+    Success,
+    MissingCode,
+    ExchangeFailed,
+}
+
 impl LoginSession {
-    pub fn callback_page_html(&self, success: bool) -> String {
-        let title = if success {
-            "Login successful"
-        } else {
-            "Login failed"
+    pub fn callback_page_html(&self, outcome: LoginCallbackOutcome) -> String {
+        let title = match outcome {
+            LoginCallbackOutcome::Success => "Login successful",
+            LoginCallbackOutcome::MissingCode | LoginCallbackOutcome::ExchangeFailed => {
+                "Login failed"
+            }
         };
-        let message = if success {
-            "You can safely close this browser window and return to your terminal."
-        } else {
-            "We could not read the login callback. Please return to your terminal and try again."
+        let message = match outcome {
+            LoginCallbackOutcome::Success => {
+                "You can safely close this browser window and return to your terminal."
+            }
+            LoginCallbackOutcome::MissingCode => {
+                "We could not read the authorization code. Please return to your terminal and try again."
+            }
+            LoginCallbackOutcome::ExchangeFailed => {
+                "The CLI could not verify your credentials. Please return to your terminal for details."
+            }
         };
 
         format!(

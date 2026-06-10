@@ -18,6 +18,7 @@ Name | Type | Description | Notes
 **team_visibility** | Option<**TeamVisibility**> | Whether the account's team members are publicly visible (enum: public, private) | [optional]
 **r#type** | **Type** |  (enum: organization) |
 **updated_at** | **String** | Updated At |
+**user_type** | Option<**UserType**> | Self-reported principal type, denormalized from the owning user. NULL for organization accounts. (enum: agent, human, unknown) | [optional]
 **website** | Option<**String**> | Account Website | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

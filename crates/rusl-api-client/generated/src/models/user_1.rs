@@ -40,6 +40,9 @@ pub struct User1 {
     pub updated_at: String,
     #[serde(rename = "user_account", skip_serializing_if = "Option::is_none")]
     pub user_account: Option<Box<models::UserAccount1>>,
+    /// Self-reported principal type. Defaults to \"human\".
+    #[serde(rename = "user_type")]
+    pub user_type: UserType,
 }
 
 impl User1 {
@@ -51,6 +54,7 @@ impl User1 {
         inserted_at: String,
         slug: String,
         updated_at: String,
+        user_type: UserType,
     ) -> User1 {
         User1 {
             __typename,
@@ -62,6 +66,7 @@ impl User1 {
             slug,
             updated_at,
             user_account: None,
+            user_type,
         }
     }
 }
@@ -75,5 +80,21 @@ pub enum Typename {
 impl Default for Typename {
     fn default() -> Typename {
         Self::Users
+    }
+}
+/// Self-reported principal type. Defaults to \"human\".
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum UserType {
+    #[serde(rename = "agent")]
+    Agent,
+    #[serde(rename = "human")]
+    Human,
+    #[serde(rename = "unknown")]
+    Unknown,
+}
+
+impl Default for UserType {
+    fn default() -> UserType {
+        Self::Agent
     }
 }

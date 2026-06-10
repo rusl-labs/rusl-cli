@@ -11,27 +11,36 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// OpenApiSchema : Register User Request
+/// OpenApiSchema : Update Account Request
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema {
-    /// User Email
-    #[serde(rename = "email")]
-    pub email: String,
-    /// Password
-    #[serde(rename = "password")]
-    pub password: String,
-    /// Username
-    #[serde(rename = "username")]
-    pub username: String,
+    /// Asset ID for the account avatar
+    #[serde(
+        rename = "avatar_asset_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub avatar_asset_id: Option<Option<uuid::Uuid>>,
+    /// Account bio
+    #[serde(rename = "bio", skip_serializing_if = "Option::is_none")]
+    pub bio: Option<String>,
+    /// Account display name
+    #[serde(rename = "display_name", skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    /// Account website URL
+    #[serde(rename = "website", skip_serializing_if = "Option::is_none")]
+    pub website: Option<String>,
 }
 
 impl OpenApiSchema {
-    /// Register User Request
-    pub fn new(email: String, password: String, username: String) -> OpenApiSchema {
+    /// Update Account Request
+    pub fn new() -> OpenApiSchema {
         OpenApiSchema {
-            email,
-            password,
-            username,
+            avatar_asset_id: None,
+            bio: None,
+            display_name: None,
+            website: None,
         }
     }
 }

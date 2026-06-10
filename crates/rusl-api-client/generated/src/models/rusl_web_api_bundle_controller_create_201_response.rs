@@ -19,10 +19,10 @@ pub struct RuslWebApiBundleControllerCreate201Response {
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub data: Option<Option<Box<models::Bundle1>>>,
+    pub data: Option<Option<Box<models::Bundle2>>>,
     /// Errors, if any
     #[serde(rename = "errors", skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<models::Error1>>,
+    pub errors: Option<Vec<models::Error2>>,
 }
 
 impl RuslWebApiBundleControllerCreate201Response {

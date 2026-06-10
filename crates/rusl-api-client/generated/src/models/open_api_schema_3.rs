@@ -11,36 +11,30 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// OpenApiSchema3 : Update Account Request
+/// OpenApiSchema3 : Create Schema Proposal Request
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema3 {
-    /// Asset ID for the account avatar
-    #[serde(
-        rename = "avatar_asset_id",
-        default,
-        with = "::serde_with::rust::double_option",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub avatar_asset_id: Option<Option<uuid::Uuid>>,
-    /// Account bio
-    #[serde(rename = "bio", skip_serializing_if = "Option::is_none")]
-    pub bio: Option<String>,
-    /// Account display name
-    #[serde(rename = "display_name", skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
-    /// Account website URL
-    #[serde(rename = "website", skip_serializing_if = "Option::is_none")]
-    pub website: Option<String>,
+    /// JSON Schema proposal
+    #[serde(rename = "content")]
+    pub content: serde_json::Value,
+    /// Description
+    #[serde(rename = "description", skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Valid Data
+    #[serde(rename = "valid_data")]
+    pub valid_data: Vec<models::ExampleData1>,
 }
 
 impl OpenApiSchema3 {
-    /// Update Account Request
-    pub fn new() -> OpenApiSchema3 {
+    /// Create Schema Proposal Request
+    pub fn new(
+        content: serde_json::Value,
+        valid_data: Vec<models::ExampleData1>,
+    ) -> OpenApiSchema3 {
         OpenApiSchema3 {
-            avatar_asset_id: None,
-            bio: None,
-            display_name: None,
-            website: None,
+            content,
+            description: None,
+            valid_data,
         }
     }
 }

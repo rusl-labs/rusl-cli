@@ -14,9 +14,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiAnnotationTypeControllerIndex200Response {
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
-    pub data: Option<Box<models::AnnotationType1>>,
+    pub data: Option<Box<models::AnnotationType2>>,
     #[serde(rename = "page_info", skip_serializing_if = "Option::is_none")]
-    pub page_info: Option<Box<models::RuslWebApiBundleVersionControllerIndex200ResponsePageInfo>>,
+    pub page_info: Option<Box<models::RuslWebApiReactionControllerIndex200ResponsePageInfo>>,
 }
 
 impl RuslWebApiAnnotationTypeControllerIndex200Response {

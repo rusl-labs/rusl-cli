@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | Option<[**models::AnnotationType1**](AnnotationType1.md)> |  | [optional]
-**page_info** | Option<[**models::RuslWebApiBundleVersionControllerIndex200ResponsePageInfo**](RuslWebApiBundleVersionControllerIndex200ResponsePageInfo.md)> |  | [optional]
+**data** | Option<[**models::AnnotationType2**](AnnotationType2.md)> |  | [optional]
+**page_info** | Option<[**models::RuslWebApiReactionControllerIndex200ResponsePageInfo**](RuslWebApiReactionControllerIndex200ResponsePageInfo.md)> |  | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -24,9 +24,6 @@ pub struct AccountMember {
         skip_serializing_if = "Option::is_none"
     )]
     pub display_name: Option<Option<String>>,
-    /// User email
-    #[serde(rename = "email", skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
     /// Membership ID
     #[serde(rename = "id")]
     pub id: uuid::Uuid,
@@ -43,6 +40,8 @@ pub struct AccountMember {
         skip_serializing_if = "Option::is_none"
     )]
     pub slug: Option<Option<String>>,
+    #[serde(rename = "user", skip_serializing_if = "Option::is_none")]
+    pub user: Option<Box<models::User3>>,
     /// User ID
     #[serde(rename = "user_id")]
     pub user_id: uuid::Uuid,
@@ -59,11 +58,11 @@ impl AccountMember {
         AccountMember {
             __typename,
             display_name: None,
-            email: None,
             id,
             joined_at,
             roles,
             slug: None,
+            user: None,
             user_id,
         }
     }

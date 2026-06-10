@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 ## rusl_web_api_event_subscription_controller_create
 
-> models::RuslWebApiEventSubscriptionControllerDelete200Response rusl_web_api_event_subscription_controller_create(rusl_web_api_event_subscription_controller_create_request)
+> models::RuslWebApiWatchControllerWatchBundle201Response rusl_web_api_event_subscription_controller_create(rusl_web_api_event_subscription_controller_create_request)
 Create or update an event subscription
 
 Create a subscription to watch a subscribable entity. Accepts subject_type + subject_id or a raw subject_guid. If a subscription already exists for the same subject, event_prefixes are merged.
@@ -28,7 +28,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiEventSubscriptionControllerDelete200Response**](RuslWeb_Api_EventSubscriptionController_delete_200_response.md)
+[**models::RuslWebApiWatchControllerWatchBundle201Response**](RuslWeb_Api_WatchController_watch_bundle_201_response.md)
 
 ### Authorization
 
@@ -44,7 +44,7 @@ Name | Type | Description  | Required | Notes
 
 ## rusl_web_api_event_subscription_controller_delete
 
-> models::RuslWebApiEventSubscriptionControllerDelete200Response rusl_web_api_event_subscription_controller_delete(id)
+> models::RuslWebApiWatchControllerWatchBundle201Response rusl_web_api_event_subscription_controller_delete(id)
 Delete an event subscription
 
 Deletes the subscription by ID. Only the subscription owner can delete it.
@@ -58,7 +58,7 @@ Name | Type | Description  | Required | Notes
 
 ### Return type
 
-[**models::RuslWebApiEventSubscriptionControllerDelete200Response**](RuslWeb_Api_EventSubscriptionController_delete_200_response.md)
+[**models::RuslWebApiWatchControllerWatchBundle201Response**](RuslWeb_Api_WatchController_watch_bundle_201_response.md)
 
 ### Authorization
 

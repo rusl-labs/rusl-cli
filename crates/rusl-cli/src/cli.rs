@@ -19,6 +19,8 @@ pub enum Commands {
     Remove(RemoveArgs),
     /// Authenticate securely against the backend registry using OAuth2/PKCE callbacks natively
     Login(LoginArgs),
+    /// Clear the stored authenticated session from this machine
+    Logout(LogoutArgs),
     /// Check the active authenticated session
     Whoami(WhoamiArgs),
     /// List all locally installed dependencies based on the lockfile
@@ -42,6 +44,9 @@ pub struct InstallArgs {}
 pub struct LoginArgs {}
 
 #[derive(Parser, Debug)]
+pub struct LogoutArgs {}
+
+#[derive(Parser, Debug)]
 pub struct WhoamiArgs {}
 
 #[derive(clap::ValueEnum, Clone, Debug)]
@@ -54,7 +59,7 @@ pub enum DepType {
 pub struct AddArgs {
     /// The mathematical category to index the dependency inside
     pub kind: DepType,
-    /// The unique package identifier (e.g., rusl/common)
+    /// The unique package identifier (e.g., rusl/schemas/common)
     pub slug: String,
     /// An optional specific version requirement (e.g. >= 1.0.0). Defaults to latest if omitted.
     #[arg(long, short)]
@@ -65,7 +70,7 @@ pub struct AddArgs {
 pub struct RemoveArgs {
     /// The mathematical category to drop the dependency from
     pub kind: DepType,
-    /// The unique package identifier (e.g., rusl/common)
+    /// The unique package identifier (e.g., rusl/schemas/common)
     pub slug: String,
 }
 
@@ -265,7 +270,7 @@ pub enum SearchAnnotationSubjectType {
 
 #[derive(Parser, Debug)]
 pub struct WhyArgs {
-    /// The package to search for (e.g., rusl/common or hassox/bundles/test-bundle)
+    /// The package to search for (e.g., rusl/schemas/common or hassox/bundles/test-bundle)
     pub package: String,
 }
 

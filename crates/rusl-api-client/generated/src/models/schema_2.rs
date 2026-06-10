@@ -34,7 +34,7 @@ pub struct Schema2 {
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub current_version: Option<Option<Box<models::SchemaVersion1>>>,
+    pub current_version: Option<Option<Box<models::SchemaVersion2>>>,
     /// Schema Description
     #[serde(
         rename = "description",
@@ -52,6 +52,9 @@ pub struct Schema2 {
     /// Inserted At
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
+    /// Durable provenance edges for this schema
+    #[serde(rename = "resource_origins", skip_serializing_if = "Option::is_none")]
+    pub resource_origins: Option<Vec<models::ResourceOrigin1>>,
     /// Schema format
     #[serde(rename = "schema_format")]
     pub schema_format: SchemaFormat,
@@ -67,7 +70,7 @@ pub struct Schema2 {
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub subject_description: Option<Option<Box<models::Annotation1SubjectDescription>>>,
+    pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
@@ -97,6 +100,7 @@ impl Schema2 {
             guid: None,
             id,
             inserted_at,
+            resource_origins: None,
             schema_format,
             slug,
             status,
