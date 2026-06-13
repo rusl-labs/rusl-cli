@@ -1,3 +1,5 @@
+IRON RULE: Before creating, modifying, or generating code for any data type, you must read SCHEMA.md first.
+
 # Rusl Agent Directives
 
 These rules are mechanical. Follow them unless the user explicitly overrides a specific item.
