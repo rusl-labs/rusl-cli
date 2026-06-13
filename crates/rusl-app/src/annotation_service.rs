@@ -225,36 +225,12 @@ fn feedback_schema_path(kind: FeedbackAnnotationKind) -> Result<PathBuf> {
     let config = config::load().context("Failed to load schema configuration")?;
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
     let schema_file = PathBuf::from("rusl").join(format!("{}.json", kind.slug()));
-    let configured_schema_path = PathBuf::from(config.schema_dir()).join(&schema_file);
-    let vendored_schema_path = PathBuf::from("schemas/vendor").join(&schema_file);
-
-    for root in schema_search_roots(&cwd) {
-        for relative_path in [&configured_schema_path, &vendored_schema_path] {
-            let candidate = root.join(relative_path);
-            if candidate.exists() {
-                return Ok(candidate);
-            }
-        }
-    }
-
-    Ok(cwd.join(configured_schema_path))
-}
-
-fn schema_search_roots(cwd: &std::path::Path) -> Vec<PathBuf> {
-    let mut roots = cwd.ancestors().map(PathBuf::from).collect::<Vec<_>>();
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    if let Some(workspace_root) = manifest_dir.parent().and_then(std::path::Path::parent) {
-        let workspace_root = workspace_root.to_path_buf();
-        if !roots.iter().any(|root| root == &workspace_root) {
-            roots.push(workspace_root);
-        }
-    }
-    roots
+    Ok(cwd.join(config.schema_dir()).join(schema_file))
 }
 
 fn missing_feedback_schema_message(kind: FeedbackAnnotationKind, path: &std::path::Path) -> String {
     format!(
-        "Feedback schema {} is not installed at {}. Add rusl/bundles/feedback-schemas to rusl.bundle.toml and run `rusl install` to vendor the schema snapshot.",
+        "Feedback schema {} is not installed at {}. Add rusl/bundles/feedback-schemas to rusl.bundle.toml and run `rusl install` to install the schema snapshot.",
         kind.slug(),
         path.display()
     )
@@ -290,9 +266,69 @@ fn interaction_type_label(
 mod tests {
     use super::{FeedbackAnnotationKind, annotation_id_from_guid, validate_feedback_content};
     use serde_json::json;
+    use serial_test::serial;
+    use std::{ffi::OsString, path::PathBuf};
+    use tempfile::TempDir;
+
+    const CONTEXT_REQUEST_SCHEMA: &str =
+        include_str!("../../../schemas/vendor/rusl/context-request.json");
+
+    struct SchemaWorkspaceGuard {
+        previous_home: Option<OsString>,
+        previous_xdg_config_home: Option<OsString>,
+        previous_xdg_data_home: Option<OsString>,
+        previous_dir: PathBuf,
+        _temp_dir: TempDir,
+    }
+
+    impl SchemaWorkspaceGuard {
+        fn new() -> Self {
+            let temp_dir = TempDir::new().expect("create temp dir");
+            let home_dir = temp_dir.path().join("home");
+            let workspace_dir = temp_dir.path().join("workspace");
+            let schema_dir = workspace_dir.join("schemas").join("rusl");
+            std::fs::create_dir_all(&home_dir).expect("create home dir");
+            std::fs::create_dir_all(&schema_dir).expect("create schema dir");
+            std::fs::write(
+                schema_dir.join("context-request.json"),
+                CONTEXT_REQUEST_SCHEMA,
+            )
+            .expect("write context request schema");
+
+            let previous_home = std::env::var_os(home_var_name());
+            let previous_xdg_config_home = std::env::var_os("XDG_CONFIG_HOME");
+            let previous_xdg_data_home = std::env::var_os("XDG_DATA_HOME");
+            let previous_dir = std::env::current_dir().expect("current dir");
+
+            set_env_var(home_var_name(), home_dir.as_os_str());
+            set_env_var("XDG_CONFIG_HOME", home_dir.join(".config"));
+            set_env_var("XDG_DATA_HOME", home_dir.join(".local").join("share"));
+            std::env::set_current_dir(&workspace_dir).expect("set workspace dir");
+
+            Self {
+                previous_home,
+                previous_xdg_config_home,
+                previous_xdg_data_home,
+                previous_dir,
+                _temp_dir: temp_dir,
+            }
+        }
+    }
+
+    impl Drop for SchemaWorkspaceGuard {
+        fn drop(&mut self) {
+            restore_env_var(home_var_name(), self.previous_home.as_ref());
+            restore_env_var("XDG_CONFIG_HOME", self.previous_xdg_config_home.as_ref());
+            restore_env_var("XDG_DATA_HOME", self.previous_xdg_data_home.as_ref());
+            std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
+        }
+    }
 
     #[test]
-    fn validates_feedback_content_against_vendored_schema() {
+    #[serial]
+    fn validates_feedback_content_against_configured_schema() {
+        let _guard = SchemaWorkspaceGuard::new();
+
         validate_feedback_content(
             FeedbackAnnotationKind::ContextRequest,
             &json!({
@@ -319,5 +355,30 @@ mod tests {
             "abc-123".to_string()
         );
         assert_eq!(annotation_id_from_guid("abc-123"), "abc-123".to_string());
+    }
+
+    #[cfg(windows)]
+    fn home_var_name() -> &'static str {
+        "USERPROFILE"
+    }
+
+    #[cfg(not(windows))]
+    fn home_var_name() -> &'static str {
+        "HOME"
+    }
+
+    fn set_env_var<K, V>(key: K, value: V)
+    where
+        K: AsRef<std::ffi::OsStr>,
+        V: AsRef<std::ffi::OsStr>,
+    {
+        unsafe { std::env::set_var(key, value) }
+    }
+
+    fn restore_env_var(key: &str, value: Option<&OsString>) {
+        match value {
+            Some(value) => unsafe { std::env::set_var(key, value) },
+            None => unsafe { std::env::remove_var(key) },
+        }
     }
 }

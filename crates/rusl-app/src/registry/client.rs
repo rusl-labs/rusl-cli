@@ -808,7 +808,7 @@ mod tests {
         let client = RegistryClient::new(Config {
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
-            schema_dir: None,
+            ..Config::default()
         });
 
         let me = client.fetch_me().await.expect("fetch me");
@@ -862,7 +862,7 @@ mod tests {
         let client = RegistryClient::new(Config {
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
-            schema_dir: None,
+            ..Config::default()
         });
 
         let me = client.fetch_me().await.expect("fetch me");
@@ -930,7 +930,7 @@ mod tests {
             Config {
                 api_base_url: server.base_url.clone(),
                 website_url: "https://example.test".to_string(),
-                schema_dir: None,
+                ..Config::default()
             },
             "rusl-cli/0.1.0 (mcp)",
             "mcp",

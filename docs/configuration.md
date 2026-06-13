@@ -90,7 +90,7 @@ The manifest parser also accepts `[external]` and `[overrides]`, but current ins
 
 ## `rusl.config.toml`
 
-`rusl.config.toml` is optional. Put it in the project when you need generated schema files to land somewhere other than the default `.rusl/schemas` cache directory, or when you need to point the CLI at a non-production Rusl environment.
+`rusl.config.toml` is optional. Put it in the project when you need generated schema files to land somewhere other than the default `./schemas` directory, or when you need to point the CLI at a non-production Rusl environment.
 
 Example:
 
@@ -115,8 +115,8 @@ The bundle manifest itself is not searched upward. Run bundle commands from the 
 | --- | --- | --- | --- |
 | `api_base_url` | string | `https://resources.rusl.com` | Rusl API server. |
 | `website_url` | string | `https://rusl.com` | Rusl website used for browser-based flows. |
-| `schema_dir` | string | `.rusl/schemas` | Directory where resolved schema files are written, using `<schema_dir>/<account>/<slug>.json`. The registry identifier's `schemas` segment is not repeated in the local file path. Relative paths are resolved from the command's current working directory. |
+| `schema_dir` | string | `./schemas` | Directory where resolved schema files are written, using `<schema_dir>/<account>/<slug>.json`. The registry identifier's `schemas` segment is not repeated in the local file path. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the command's current working directory. |
 
-When `schema_dir` is the default `.rusl/schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.
+When `schema_dir` is the default `./schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.
 
 `rusl install` and `rusl cache --clear` remove the configured schema directory before writing fresh schema files. Do not point `schema_dir` at a directory that contains unrelated project files.

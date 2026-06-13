@@ -217,7 +217,7 @@ rusl generate typescript --print-request | ./my-plugin
 | `kind` | `"schema"` \| `"bundle"` \| `"external"` | Source type of the dependency |
 | `target` | `bool` | `true` if this schema matched the filter, `false` if included as a transitive dependency |
 | `content` | `object \| null` | The full JSON Schema content, inline. `null` when `content_ref` is provided instead (see below). |
-| `content_ref` | `string \| null` | Relative file path to the schema on disk (e.g., `.rusl/schemas/rusl/common.json`). Provided as a fallback when `content` is `null` for large schemas. Plugins should prefer `content` when present. |
+| `content_ref` | `string \| null` | Relative file path to the schema on disk (e.g., `schemas/rusl/common.json`). Provided as a fallback when `content` is `null` for large schemas. Plugins should prefer `content` when present. |
 | `dependencies` | `string[]` | Direct dependency names (for graph awareness) |
 
 ### Content Delivery Strategy
@@ -309,7 +309,7 @@ rusl generate [name]
 │     "Generator command not found: bunx. Is it installed?"
 │
 ├─ 3. VERIFY INSTALLATION
-│     Check .rusl/schemas/ directory exists
+│     Check schemas/ directory exists
 │     Check rusl.lock exists
 │     If not: error "No schemas installed. Run `rusl install` first."
 │
@@ -331,7 +331,7 @@ rusl generate [name]
 │
 ├─ 7. BUILD REQUEST
 │     For each schema in sorted order:
-│       Read content from .rusl/schemas/<account>/<slug>.json
+│       Read content from schemas/<account>/<slug>.json
 │       Build Schema object with name, version, kind, target, content,
 │         content_ref, dependencies
 │     Assemble GenerationRequest with version, options (from args), schemas
@@ -674,7 +674,7 @@ timeout = 30  # seconds, default TBD
 rusl generate --watch typescript
 ```
 
-Re-runs generation when schemas change (file watcher on `.rusl/schemas/`).
+Re-runs generation when schemas change (file watcher on `schemas/`).
 
 ### Chained Generators
 

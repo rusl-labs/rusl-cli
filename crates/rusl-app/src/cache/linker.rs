@@ -1,3 +1,4 @@
+use crate::config::DEFAULT_SCHEMA_DIR;
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
@@ -12,8 +13,6 @@ pub struct Linker {
     /// When true, copy files instead of symlinking (for committable output).
     copy_mode: bool,
 }
-
-const DEFAULT_SCHEMA_DIR: &str = ".rusl/schemas";
 
 impl Linker {
     pub fn new(cwd: PathBuf, schema_dir: &str) -> Self {

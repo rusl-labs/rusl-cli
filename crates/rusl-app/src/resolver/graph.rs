@@ -309,7 +309,7 @@ mod tests {
         let client = RegistryClient::new(Config {
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
-            schema_dir: None,
+            ..Config::default()
         });
         let manifest: BundleManifest = toml::from_str(
             r#"
@@ -349,7 +349,7 @@ version = "0.1.0"
         let client = RegistryClient::new(Config {
             api_base_url: server.base_url.clone(),
             website_url: "https://example.test".to_string(),
-            schema_dir: None,
+            ..Config::default()
         });
         let manifest: BundleManifest = toml::from_str(
             r#"

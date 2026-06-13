@@ -56,7 +56,7 @@ where
     progress.set_message("Cleaning old schema cache...".to_string());
     linker
         .purge_all()
-        .context("Failed to safely prune .rusl/schemas/ directory manually")?;
+        .with_context(|| format!("Failed to safely prune {} directory", config.schema_dir()))?;
 
     progress.set_message("Downloading schemas...".to_string());
 

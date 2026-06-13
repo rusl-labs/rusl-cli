@@ -36,19 +36,27 @@ mod tests {
 
     struct EnvGuard {
         previous_home: Option<OsString>,
+        previous_xdg_config_home: Option<OsString>,
+        previous_xdg_data_home: Option<OsString>,
         previous_dir: PathBuf,
     }
 
     impl EnvGuard {
         fn new(home_dir: &std::path::Path, workspace_dir: &std::path::Path) -> Self {
             let previous_home = std::env::var_os(home_var_name());
+            let previous_xdg_config_home = std::env::var_os("XDG_CONFIG_HOME");
+            let previous_xdg_data_home = std::env::var_os("XDG_DATA_HOME");
             let previous_dir = std::env::current_dir().expect("current dir");
 
             set_env_var(home_var_name(), home_dir.as_os_str());
+            set_env_var("XDG_CONFIG_HOME", home_dir.join(".config"));
+            set_env_var("XDG_DATA_HOME", home_dir.join(".local").join("share"));
             std::env::set_current_dir(workspace_dir).expect("set workspace dir");
 
             Self {
                 previous_home,
+                previous_xdg_config_home,
+                previous_xdg_data_home,
                 previous_dir,
             }
         }
@@ -57,6 +65,8 @@ mod tests {
     impl Drop for EnvGuard {
         fn drop(&mut self) {
             restore_env_var(home_var_name(), self.previous_home.as_ref());
+            restore_env_var("XDG_CONFIG_HOME", self.previous_xdg_config_home.as_ref());
+            restore_env_var("XDG_DATA_HOME", self.previous_xdg_data_home.as_ref());
             std::env::set_current_dir(&self.previous_dir).expect("restore current dir");
         }
     }
@@ -79,7 +89,7 @@ mod tests {
             .expect("write blob");
         assert!(blob_path.exists());
 
-        let schema_dir = workspace_dir.join(".rusl").join("schemas");
+        let schema_dir = workspace_dir.join("schemas");
         std::fs::create_dir_all(schema_dir.join("acme")).expect("create schema dir");
         std::fs::write(schema_dir.join("acme").join("thing.json"), "{}")
             .expect("write schema link target");
