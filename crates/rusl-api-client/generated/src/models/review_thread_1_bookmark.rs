@@ -15,9 +15,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ReviewThread1Bookmark {
-    #[serde(rename="DiffLineBookmark_1")]
+    #[serde(rename = "DiffLineBookmark_1")]
     DiffLineBookmark1(Box<models::DiffLineBookmark1>),
-    #[serde(rename="SchemaPathBookmark_1")]
+    #[serde(rename = "SchemaPathBookmark_1")]
     SchemaPathBookmark1(Box<models::SchemaPathBookmark1>),
 }
 

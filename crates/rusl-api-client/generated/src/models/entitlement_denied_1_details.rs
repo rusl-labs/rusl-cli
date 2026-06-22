@@ -15,12 +15,22 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EntitlementDenied1Details {
     /// Current count toward the limit for quota gates, or `null` for non-quota gates.
-    #[serde(rename = "current", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "current",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub current: Option<Option<i32>>,
     /// The entitlement gate that denied the request
     #[serde(rename = "gate")]
     pub gate: String,
-    #[serde(rename = "limit", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "limit",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub limit: Option<Option<Box<models::EntitlementDenied1DetailsLimit>>>,
     /// Plan slug of the account that was checked
     #[serde(rename = "plan")]
@@ -35,7 +45,12 @@ pub struct EntitlementDenied1Details {
 
 impl EntitlementDenied1Details {
     /// Structured denial context
-    pub fn new(gate: String, plan: String, reason: Reason, upgrade_to: Vec<String>) -> EntitlementDenied1Details {
+    pub fn new(
+        gate: String,
+        plan: String,
+        reason: Reason,
+        upgrade_to: Vec<String>,
+    ) -> EntitlementDenied1Details {
         EntitlementDenied1Details {
             current: None,
             gate,

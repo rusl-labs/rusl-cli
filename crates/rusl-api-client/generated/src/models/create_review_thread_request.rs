@@ -20,7 +20,12 @@ pub struct CreateReviewThreadRequest {
     /// Root comment body
     #[serde(rename = "body_text")]
     pub body_text: String,
-    #[serde(rename = "bookmark", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "bookmark",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub bookmark: Option<Option<Box<models::ReviewThread1Bookmark>>>,
 }
 

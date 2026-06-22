@@ -25,9 +25,6 @@ pub struct ExampleData1 {
 impl ExampleData1 {
     /// Example Data
     pub fn new(data: serde_json::Value) -> ExampleData1 {
-        ExampleData1 {
-            data,
-            title: None,
-        }
+        ExampleData1 { data, title: None }
     }
 }

@@ -25,12 +25,12 @@ pub struct RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValu
 }
 
 impl RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue {
-    pub fn new(field: Field, op: Op, value: String) -> RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue {
-        RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue {
-            field,
-            op,
-            value,
-        }
+    pub fn new(
+        field: Field,
+        op: Op,
+        value: String,
+    ) -> RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue {
+        RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue { field, op, value }
     }
 }
 /// Field to filter on

@@ -21,9 +21,6 @@ pub struct SearchFacetCountsInner {
 
 impl SearchFacetCountsInner {
     pub fn new(count: i32, value: String) -> SearchFacetCountsInner {
-        SearchFacetCountsInner {
-            count,
-            value,
-        }
+        SearchFacetCountsInner { count, value }
     }
 }

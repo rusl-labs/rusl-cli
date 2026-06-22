@@ -21,8 +21,6 @@ pub struct MeResponseUnauthenticated1 {
 impl MeResponseUnauthenticated1 {
     /// Session info for unauthenticated request
     pub fn new(authenticated: bool) -> MeResponseUnauthenticated1 {
-        MeResponseUnauthenticated1 {
-            authenticated,
-        }
+        MeResponseUnauthenticated1 { authenticated }
     }
 }

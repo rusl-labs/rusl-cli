@@ -26,7 +26,11 @@ pub struct EntitlementDenied1 {
 
 impl EntitlementDenied1 {
     /// Response body for `402 Payment Required`. Returned when an entitlement gate (feature, quota, or rate limit) denies the request.
-    pub fn new(code: Code, details: models::EntitlementDenied1Details, error: String) -> EntitlementDenied1 {
+    pub fn new(
+        code: Code,
+        details: models::EntitlementDenied1Details,
+        error: String,
+    ) -> EntitlementDenied1 {
         EntitlementDenied1 {
             code,
             details: Box::new(details),

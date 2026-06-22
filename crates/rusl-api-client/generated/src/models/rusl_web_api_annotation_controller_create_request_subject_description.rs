@@ -15,10 +15,20 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiAnnotationControllerCreateRequestSubjectDescription {
     /// Intended consumers or audience
-    #[serde(rename = "audience", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "audience",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub audience: Option<Option<String>>,
     /// Owner-authored constraints, caveats, or limits
-    #[serde(rename = "constraints", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "constraints",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub constraints: Option<Option<String>>,
     /// Owner-authored domains or categories
     #[serde(rename = "domains", skip_serializing_if = "Option::is_none")]
@@ -27,7 +37,12 @@ pub struct RuslWebApiAnnotationControllerCreateRequestSubjectDescription {
     #[serde(rename = "keywords", skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
     /// What the owner says this subject is for
-    #[serde(rename = "purpose", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "purpose",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub purpose: Option<Option<String>>,
     /// Owner-authored use cases
     #[serde(rename = "use_cases", skip_serializing_if = "Option::is_none")]

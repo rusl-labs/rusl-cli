@@ -18,13 +18,28 @@ pub struct BundleVersion {
     #[serde(rename = "__typename")]
     pub __typename: Typename,
     /// User who published the version
-    #[serde(rename = "approved_by_user_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "approved_by_user_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub approved_by_user_id: Option<Option<String>>,
     /// User who created the draft
-    #[serde(rename = "created_by_user_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "created_by_user_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub created_by_user_id: Option<Option<String>>,
     /// Release notes for this version
-    #[serde(rename = "description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub description: Option<Option<String>>,
     /// Global ID
     #[serde(rename = "guid")]
@@ -42,7 +57,12 @@ pub struct BundleVersion {
     #[serde(rename = "manifest_format")]
     pub manifest_format: ManifestFormat,
     /// Published At
-    #[serde(rename = "published_at", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "published_at",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub published_at: Option<Option<String>>,
     /// Version Status
     #[serde(rename = "status")]
@@ -57,7 +77,15 @@ pub struct BundleVersion {
 
 impl BundleVersion {
     /// An immutable version of a bundle manifest
-    pub fn new(__typename: Typename, guid: String, id: String, manifest: String, manifest_format: ManifestFormat, status: Status, version: String) -> BundleVersion {
+    pub fn new(
+        __typename: Typename,
+        guid: String,
+        id: String,
+        manifest: String,
+        manifest_format: ManifestFormat,
+        status: Status,
+        version: String,
+    ) -> BundleVersion {
         BundleVersion {
             __typename,
             approved_by_user_id: None,

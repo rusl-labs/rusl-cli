@@ -18,7 +18,12 @@ pub struct UserAccount {
     #[serde(rename = "__typename")]
     pub __typename: Typename,
     /// ID of the account's avatar asset
-    #[serde(rename = "avatar_asset_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "avatar_asset_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub avatar_asset_id: Option<Option<uuid::Uuid>>,
     /// Account Bio
     #[serde(rename = "bio", skip_serializing_if = "Option::is_none")]
@@ -33,7 +38,12 @@ pub struct UserAccount {
     /// Number of members in the account
     #[serde(rename = "member_count", skip_serializing_if = "Option::is_none")]
     pub member_count: Option<i32>,
-    #[serde(rename = "owner_user", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "owner_user",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub owner_user: Option<Option<Box<models::Account1OwnerUser>>>,
     /// Owner User ID
     #[serde(rename = "owner_user_id")]
@@ -53,7 +63,12 @@ pub struct UserAccount {
     #[serde(rename = "updated_at")]
     pub updated_at: String,
     /// Self-reported principal type, denormalized from the owning user. NULL for organization accounts.
-    #[serde(rename = "user_type", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "user_type",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub user_type: Option<Option<UserType>>,
     /// Account Website
     #[serde(rename = "website", skip_serializing_if = "Option::is_none")]
@@ -62,7 +77,16 @@ pub struct UserAccount {
 
 impl UserAccount {
     /// User Account
-    pub fn new(__typename: Typename, guid: String, inserted_at: String, owner_user_id: String, plan: String, slug: String, r#type: Type, updated_at: String) -> UserAccount {
+    pub fn new(
+        __typename: Typename,
+        guid: String,
+        inserted_at: String,
+        owner_user_id: String,
+        plan: String,
+        slug: String,
+        r#type: Type,
+        updated_at: String,
+    ) -> UserAccount {
         UserAccount {
             __typename,
             avatar_asset_id: None,

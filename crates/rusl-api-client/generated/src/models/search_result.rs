@@ -14,10 +14,20 @@ use serde::{Deserialize, Serialize};
 /// SearchResult : One flattened search result. Projection-owned fields are returned directly on the result row; compact view narrows those fields.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SearchResult {
-    #[serde(rename = "description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub description: Option<Option<String>>,
     /// Projection-shaped discovery profile data when included by the selected view.
-    #[serde(rename = "discovery_profile", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "discovery_profile",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub discovery_profile: Option<Option<std::collections::HashMap<String, serde_json::Value>>>,
     #[serde(rename = "document_type")]
     pub document_type: DocumentType,
@@ -33,7 +43,13 @@ pub struct SearchResult {
 
 impl SearchResult {
     /// One flattened search result. Projection-owned fields are returned directly on the result row; compact view narrows those fields.
-    pub fn new(document_type: DocumentType, document_type_label: String, guid: String, highlights: Vec<std::collections::HashMap<String, serde_json::Value>>, identifier: String) -> SearchResult {
+    pub fn new(
+        document_type: DocumentType,
+        document_type_label: String,
+        guid: String,
+        highlights: Vec<std::collections::HashMap<String, serde_json::Value>>,
+        identifier: String,
+    ) -> SearchResult {
         SearchResult {
             description: None,
             discovery_profile: None,

@@ -22,7 +22,11 @@ pub struct SearchResponse {
 }
 
 impl SearchResponse {
-    pub fn new(data: Vec<models::SearchResult>, facets: Vec<models::SearchFacet>, page_info: models::SearchPageInfo) -> SearchResponse {
+    pub fn new(
+        data: Vec<models::SearchResult>,
+        facets: Vec<models::SearchFacet>,
+        page_info: models::SearchPageInfo,
+    ) -> SearchResponse {
         SearchResponse {
             data,
             facets,

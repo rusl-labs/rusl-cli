@@ -36,18 +36,36 @@ pub struct Annotation {
     #[serde(rename = "inserted_at", skip_serializing_if = "Option::is_none")]
     pub inserted_at: Option<String>,
     /// Optional human-readable label
-    #[serde(rename = "label", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "label",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub label: Option<Option<String>>,
     /// User who last created/updated this annotation
-    #[serde(rename = "set_by_user_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "set_by_user_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub set_by_user_id: Option<Option<String>>,
     /// Annotation lifecycle status
     #[serde(rename = "status")]
     pub status: Status,
     /// Account slug that owns the annotated subject
-    #[serde(rename = "subject_account_slug", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_account_slug",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_account_slug: Option<String>,
-    #[serde(rename = "subject_description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
     /// GUID of the annotated subject
     #[serde(rename = "subject_guid")]
@@ -65,16 +83,37 @@ pub struct Annotation {
     #[serde(rename = "updated_at", skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<String>,
     /// Schema version content was validated against
-    #[serde(rename = "validated_at_version", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "validated_at_version",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub validated_at_version: Option<Option<String>>,
     /// Schema identifier used to validate content at write time
-    #[serde(rename = "validation_schema_identifier", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "validation_schema_identifier",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub validation_schema_identifier: Option<Option<String>>,
 }
 
 impl Annotation {
     /// A community-contributed metadata attachment on any subject (schema, bundle, etc.)
-    pub fn new(__typename: Typename, account_slug: String, annotation_type_id: String, content: serde_json::Value, guid: String, id: String, status: Status, subject_guid: String, r#type: String, type_cardinality: TypeCardinality) -> Annotation {
+    pub fn new(
+        __typename: Typename,
+        account_slug: String,
+        annotation_type_id: String,
+        content: serde_json::Value,
+        guid: String,
+        id: String,
+        status: Status,
+        subject_guid: String,
+        r#type: String,
+        type_cardinality: TypeCardinality,
+    ) -> Annotation {
         Annotation {
             __typename,
             account_slug,

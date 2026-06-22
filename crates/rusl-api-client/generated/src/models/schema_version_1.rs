@@ -21,7 +21,12 @@ pub struct SchemaVersion1 {
     #[serde(rename = "content")]
     pub content: serde_json::Value,
     /// Description of this version
-    #[serde(rename = "description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub description: Option<Option<String>>,
     /// Global ID
     #[serde(rename = "guid")]
@@ -33,7 +38,12 @@ pub struct SchemaVersion1 {
     #[serde(rename = "inserted_at", skip_serializing_if = "Option::is_none")]
     pub inserted_at: Option<String>,
     /// Published At
-    #[serde(rename = "published_at", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "published_at",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub published_at: Option<Option<String>>,
     /// Explicit JSON Schema root instance types declared by content.type
     #[serde(rename = "root_instance_types")]
@@ -54,7 +64,15 @@ pub struct SchemaVersion1 {
 
 impl SchemaVersion1 {
     /// Schema Version
-    pub fn new(__typename: Typename, content: serde_json::Value, guid: String, id: String, root_instance_types: Vec<String>, status: Status, version: String) -> SchemaVersion1 {
+    pub fn new(
+        __typename: Typename,
+        content: serde_json::Value,
+        guid: String,
+        id: String,
+        root_instance_types: Vec<String>,
+        status: Status,
+        version: String,
+    ) -> SchemaVersion1 {
         SchemaVersion1 {
             __typename,
             content,

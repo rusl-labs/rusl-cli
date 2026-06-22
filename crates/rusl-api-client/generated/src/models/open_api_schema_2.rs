@@ -27,7 +27,10 @@ pub struct OpenApiSchema2 {
 
 impl OpenApiSchema2 {
     /// Create Schema Proposal Request
-    pub fn new(content: serde_json::Value, valid_data: Vec<models::ExampleData1>) -> OpenApiSchema2 {
+    pub fn new(
+        content: serde_json::Value,
+        valid_data: Vec<models::ExampleData1>,
+    ) -> OpenApiSchema2 {
         OpenApiSchema2 {
             content,
             description: None,

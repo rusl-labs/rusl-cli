@@ -18,7 +18,12 @@ pub struct ProposalDependency {
     #[serde(rename = "__typename", skip_serializing_if = "Option::is_none")]
     pub __typename: Option<Typename>,
     /// Account slug if parseable
-    #[serde(rename = "account_slug", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "account_slug",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub account_slug: Option<Option<String>>,
     /// MANAGED if resolvable to a Rusl schema, UNMANAGED otherwise
     #[serde(rename = "kind")]
@@ -27,10 +32,20 @@ pub struct ProposalDependency {
     #[serde(rename = "ref_url")]
     pub ref_url: String,
     /// Schema ID if MANAGED
-    #[serde(rename = "schema_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "schema_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub schema_id: Option<Option<String>>,
     /// Schema slug if parseable
-    #[serde(rename = "slug", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "slug",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub slug: Option<Option<String>>,
 }
 
