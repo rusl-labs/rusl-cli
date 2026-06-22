@@ -1,0 +1,13 @@
+pub mod account;
+pub mod add;
+pub mod cache;
+pub mod install;
+pub mod list;
+pub mod login;
+pub mod logout;
+pub mod mcp;
+pub mod outdated;
+pub mod remove;
+pub mod search;
+pub mod whoami;
+pub mod why;

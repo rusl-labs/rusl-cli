@@ -1,0 +1,10 @@
+# RuslWebApiSchemaVersionControllerExampleDataIndex200Response
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**data** | Option<[**Vec<models::SchemaExampleData1>**](SchemaExampleData1.md)> |  | [optional]
+**page_info** | Option<[**models::RuslWebApiSchemaVersionControllerExampleDataIndex200ResponsePageInfo**](RuslWebApiSchemaVersionControllerExampleDataIndex200ResponsePageInfo.md)> |  | [optional]
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -1,0 +1,56 @@
+version = "1"
+
+[dependencies."bundle:rusl/bundles/feedback-schemas"]
+version = "0.1.1"
+integrity = ""
+source = "http://localhost:4000"
+dependencies = [
+    "schema:rusl/schemas/usage-report",
+    "schema:rusl/schemas/context-loading-hint",
+    "schema:rusl/schemas/trust-signal",
+    "schema:rusl/schemas/migration-guide",
+    "schema:rusl/schemas/context-request",
+    "schema:rusl/schemas/semantic-link",
+    "schema:rusl/schemas/domain-interpretation",
+    "schema:rusl/schemas/source-attestation",
+]
+
+[dependencies."schema:rusl/schemas/context-loading-hint"]
+version = "0.1.0"
+integrity = "7ab7198f50ab57381f9d4b1bbe3d3c47b1a1e979e22b724b5f4f0719eb8bed06"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/schemas/context-request"]
+version = "0.1.0"
+integrity = "137605563988a5cbd6bbb4413ac30e05f71f950259cd737dbdd7c3a93f6f5f9d"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/schemas/domain-interpretation"]
+version = "0.1.0"
+integrity = "25917b197d59555ee2557c2523ef1ed757132681c3003498087f8fbf25246961"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/schemas/migration-guide"]
+version = "0.1.0"
+integrity = "cf091e08bdf46450d7c82a4f47cebb4801e5cfe96c413a1d138e64f01ccb2014"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/schemas/semantic-link"]
+version = "0.1.0"
+integrity = "36ecc223cce68ba11e0ce208572ed0f4401f6e5d6d5e6c09956da23ef7a0f6a5"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/schemas/source-attestation"]
+version = "0.1.0"
+integrity = "c6fa94720e1ece581ca352b6a12ea33f526d3a20e0c34c0d76b0bb8214ea88b5"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/schemas/trust-signal"]
+version = "0.1.0"
+integrity = "7f981f79e000a2ceb98b72af9f99775e6cf254f520932fbc36382e8012637d41"
+source = "http://localhost:4000"
+
+[dependencies."schema:rusl/schemas/usage-report"]
+version = "0.1.0"
+integrity = "bbeb88b6b8294b2ee068a96f132b9b0a2e9b5700dbd57f587544ce3f31aae58b"
+source = "http://localhost:4000"
