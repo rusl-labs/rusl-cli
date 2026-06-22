@@ -27,7 +27,12 @@ pub struct ResourceInteraction {
     #[serde(rename = "subject_guid")]
     pub subject_guid: String,
     /// Auto-populated type prefix from the GUID
-    #[serde(rename = "subject_type", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_type",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_type: Option<Option<String>>,
     #[serde(rename = "updated_at")]
     pub updated_at: String,
@@ -37,7 +42,15 @@ pub struct ResourceInteraction {
 
 impl ResourceInteraction {
     /// A current user interaction on a discoverable resource
-    pub fn new(__typename: Typename, id: uuid::Uuid, inserted_at: String, interaction_type: InteractionType, subject_guid: String, updated_at: String, user_id: uuid::Uuid) -> ResourceInteraction {
+    pub fn new(
+        __typename: Typename,
+        id: uuid::Uuid,
+        inserted_at: String,
+        interaction_type: InteractionType,
+        subject_guid: String,
+        updated_at: String,
+        user_id: uuid::Uuid,
+    ) -> ResourceInteraction {
         ResourceInteraction {
             __typename,
             id,

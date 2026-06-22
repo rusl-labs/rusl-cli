@@ -16,7 +16,8 @@ pub struct RuslWebApiSchemaVersionControllerExampleDataIndex200Response {
     #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
     pub data: Option<Vec<models::SchemaExampleData1>>,
     #[serde(rename = "page_info", skip_serializing_if = "Option::is_none")]
-    pub page_info: Option<Box<models::RuslWebApiSchemaVersionControllerExampleDataIndex200ResponsePageInfo>>,
+    pub page_info:
+        Option<Box<models::RuslWebApiSchemaVersionControllerExampleDataIndex200ResponsePageInfo>>,
 }
 
 impl RuslWebApiSchemaVersionControllerExampleDataIndex200Response {

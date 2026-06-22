@@ -28,7 +28,14 @@ pub struct SearchPageInfo {
 }
 
 impl SearchPageInfo {
-    pub fn new(current_page: i32, has_next_page: bool, has_previous_page: bool, page_size: i32, total_count: i32, total_pages: i32) -> SearchPageInfo {
+    pub fn new(
+        current_page: i32,
+        has_next_page: bool,
+        has_previous_page: bool,
+        page_size: i32,
+        total_count: i32,
+        total_pages: i32,
+    ) -> SearchPageInfo {
         SearchPageInfo {
             current_page,
             has_next_page,

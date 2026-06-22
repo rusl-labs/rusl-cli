@@ -21,9 +21,6 @@ pub struct SearchFacet {
 
 impl SearchFacet {
     pub fn new(counts: Vec<models::SearchFacetCountsInner>, field: String) -> SearchFacet {
-        SearchFacet {
-            counts,
-            field,
-        }
+        SearchFacet { counts, field }
     }
 }

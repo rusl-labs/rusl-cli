@@ -31,7 +31,12 @@ pub struct ReviewComment {
     pub id: String,
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
-    #[serde(rename = "parent_comment_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "parent_comment_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub parent_comment_id: Option<Option<String>>,
     #[serde(rename = "thread_id")]
     pub thread_id: String,
@@ -41,7 +46,18 @@ pub struct ReviewComment {
 
 impl ReviewComment {
     /// A review comment within a proposal review thread
-    pub fn new(__typename: Typename, body_format: BodyFormat, body_meta: serde_json::Value, body_text: String, created_by_user_id: String, depth: Depth, id: String, inserted_at: String, thread_id: String, updated_at: String) -> ReviewComment {
+    pub fn new(
+        __typename: Typename,
+        body_format: BodyFormat,
+        body_meta: serde_json::Value,
+        body_text: String,
+        created_by_user_id: String,
+        depth: Depth,
+        id: String,
+        inserted_at: String,
+        thread_id: String,
+        updated_at: String,
+    ) -> ReviewComment {
         ReviewComment {
             __typename,
             body_format,

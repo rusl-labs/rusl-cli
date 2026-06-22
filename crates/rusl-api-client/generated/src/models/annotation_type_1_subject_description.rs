@@ -15,10 +15,20 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AnnotationType1SubjectDescription {
     /// Intended consumers or audience
-    #[serde(rename = "audience", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "audience",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub audience: Option<Option<String>>,
     /// Owner-authored constraints, caveats, or limits
-    #[serde(rename = "constraints", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "constraints",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub constraints: Option<Option<String>>,
     /// Owner-authored domains or categories
     #[serde(rename = "domains")]
@@ -30,19 +40,34 @@ pub struct AnnotationType1SubjectDescription {
     #[serde(rename = "keywords")]
     pub keywords: Vec<String>,
     /// What the owner says this subject is for
-    #[serde(rename = "purpose", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "purpose",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub purpose: Option<Option<String>>,
     /// Described subject GUID
     #[serde(rename = "subject_guid")]
     pub subject_guid: String,
     /// Subject GUID type prefix
-    #[serde(rename = "subject_type", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_type",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_type: Option<Option<String>>,
     /// Updated at
     #[serde(rename = "updated_at")]
     pub updated_at: String,
     /// User who last wrote the description
-    #[serde(rename = "updated_by_user_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "updated_by_user_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub updated_by_user_id: Option<Option<String>>,
     /// Owner-authored use cases
     #[serde(rename = "use_cases")]
@@ -51,7 +76,14 @@ pub struct AnnotationType1SubjectDescription {
 
 impl AnnotationType1SubjectDescription {
     /// Owner-authored descriptive signal for this subject
-    pub fn new(domains: Vec<String>, inserted_at: String, keywords: Vec<String>, subject_guid: String, updated_at: String, use_cases: Vec<String>) -> AnnotationType1SubjectDescription {
+    pub fn new(
+        domains: Vec<String>,
+        inserted_at: String,
+        keywords: Vec<String>,
+        subject_guid: String,
+        updated_at: String,
+        use_cases: Vec<String>,
+    ) -> AnnotationType1SubjectDescription {
         AnnotationType1SubjectDescription {
             audience: None,
             constraints: None,

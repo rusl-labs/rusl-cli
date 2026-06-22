@@ -17,7 +17,10 @@ pub struct AnnotationSearchRequest {
     #[serde(rename = "account_slugs", skip_serializing_if = "Option::is_none")]
     pub account_slugs: Option<Vec<String>>,
     /// Restrict results to registered annotation type GUIDs.
-    #[serde(rename = "annotation_type_guids", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "annotation_type_guids",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub annotation_type_guids: Option<Vec<String>>,
     /// Optional response groups to add to the selected view.
     #[serde(rename = "include", skip_serializing_if = "Option::is_none")]
@@ -38,13 +41,19 @@ pub struct AnnotationSearchRequest {
     #[serde(rename = "status", skip_serializing_if = "Option::is_none")]
     pub status: Option<Status>,
     /// Restrict results by the annotated subject account slug.
-    #[serde(rename = "subject_account_slugs", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_account_slugs",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_account_slugs: Option<Vec<String>>,
     /// Restrict results to annotations attached to these subject GUIDs.
     #[serde(rename = "subject_guids", skip_serializing_if = "Option::is_none")]
     pub subject_guids: Option<Vec<String>>,
     /// Restrict results to annotated subject identifiers beginning with this prefix.
-    #[serde(rename = "subject_identifier_prefix", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_identifier_prefix",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_identifier_prefix: Option<String>,
     /// Restrict results by annotated subject type.
     #[serde(rename = "subject_types", skip_serializing_if = "Option::is_none")]

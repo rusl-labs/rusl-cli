@@ -37,7 +37,17 @@ pub struct AccountInvitation1 {
 
 impl AccountInvitation1 {
     /// Account Invitation
-    pub fn new(__typename: Typename, account_slug: String, expires_at: String, id: uuid::Uuid, inserted_at: String, roles: Vec<Roles>, status: Status, target_email: String, updated_at: String) -> AccountInvitation1 {
+    pub fn new(
+        __typename: Typename,
+        account_slug: String,
+        expires_at: String,
+        id: uuid::Uuid,
+        inserted_at: String,
+        roles: Vec<Roles>,
+        status: Status,
+        target_email: String,
+        updated_at: String,
+    ) -> AccountInvitation1 {
         AccountInvitation1 {
             __typename,
             account_slug,

@@ -21,7 +21,12 @@ pub struct AnnotationType {
     #[serde(rename = "account_slug")]
     pub account_slug: String,
     /// Archived at
-    #[serde(rename = "archived_at", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "archived_at",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub archived_at: Option<Option<String>>,
     /// How many active annotations of this type an account may attach to one subject
     #[serde(rename = "cardinality")]
@@ -30,7 +35,12 @@ pub struct AnnotationType {
     #[serde(rename = "content_immutable")]
     pub content_immutable: bool,
     /// Annotation type description
-    #[serde(rename = "description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub description: Option<Option<String>>,
     /// Global ID
     #[serde(rename = "guid")]
@@ -42,13 +52,23 @@ pub struct AnnotationType {
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
     /// Pinned schema version ID when schema_mode is PINNED
-    #[serde(rename = "pinned_schema_version_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "pinned_schema_version_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub pinned_schema_version_id: Option<Option<String>>,
     /// Validation schema ID
     #[serde(rename = "schema_id")]
     pub schema_id: String,
     /// Validation schema identifier
-    #[serde(rename = "schema_identifier", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "schema_identifier",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub schema_identifier: Option<Option<String>>,
     /// How annotation content is validated
     #[serde(rename = "schema_mode")]
@@ -59,7 +79,12 @@ pub struct AnnotationType {
     /// Annotation type lifecycle status
     #[serde(rename = "status")]
     pub status: Status,
-    #[serde(rename = "subject_description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
     /// Full identifier in account_slug/annotation-types/slug form
     #[serde(rename = "type_identifier")]
@@ -74,7 +99,22 @@ pub struct AnnotationType {
 
 impl AnnotationType {
     /// A registered annotation type definition
-    pub fn new(__typename: Typename, account_slug: String, cardinality: Cardinality, content_immutable: bool, guid: String, id: String, inserted_at: String, schema_id: String, schema_mode: SchemaMode, slug: String, status: Status, type_identifier: String, updated_at: String, visibility: Visibility) -> AnnotationType {
+    pub fn new(
+        __typename: Typename,
+        account_slug: String,
+        cardinality: Cardinality,
+        content_immutable: bool,
+        guid: String,
+        id: String,
+        inserted_at: String,
+        schema_id: String,
+        schema_mode: SchemaMode,
+        slug: String,
+        status: Status,
+        type_identifier: String,
+        updated_at: String,
+        visibility: Visibility,
+    ) -> AnnotationType {
         AnnotationType {
             __typename,
             account_slug,

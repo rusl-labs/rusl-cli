@@ -13,7 +13,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuslWebApiBundleVersionControllerShow200Response {
-    #[serde(rename = "data", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "data",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub data: Option<Option<Box<models::BundleVersion1>>>,
     /// Errors, if any
     #[serde(rename = "errors", skip_serializing_if = "Option::is_none")]

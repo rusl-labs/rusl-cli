@@ -28,9 +28,11 @@ pub async fn run(args: AccountArgs) -> Result<()> {
 }
 
 async fn list_accounts() -> Result<()> {
-    let profile = load_current_user().await.context("Failed to load user profile")?;
+    let profile = load_current_user()
+        .await
+        .context("Failed to load user profile")?;
     let config = config::load().context("Failed to load configurations")?;
-    
+
     let default_slug = profile.slug.clone();
     let acting_slug = config.acting_account.unwrap_or(default_slug.clone());
 
@@ -46,7 +48,7 @@ async fn list_accounts() -> Result<()> {
     for account in all_accounts {
         let is_active = account.slug == acting_slug;
         let prefix = if is_active { "=>" } else { "  " };
-        
+
         let slug_display = if is_active {
             account.slug.green().bold()
         } else {
@@ -59,7 +61,10 @@ async fn list_accounts() -> Result<()> {
             "".dimmed()
         };
 
-        println!("{} {} [{}] {}", prefix, slug_display, account.role, default_tag);
+        println!(
+            "{} {} [{}] {}",
+            prefix, slug_display, account.role, default_tag
+        );
     }
 
     Ok(())
@@ -67,12 +72,15 @@ async fn list_accounts() -> Result<()> {
 
 async fn set_account(slug: Option<String>) -> Result<()> {
     account_service::set_acting_account(slug.as_deref())?;
-    
+
     if let Some(s) = slug {
         println!("{} Acting account set to: {}", "✔".green(), s.bold());
     } else {
-        println!("{} Acting account cleared. Using default user account.", "✔".green());
+        println!(
+            "{} Acting account cleared. Using default user account.",
+            "✔".green()
+        );
     }
-    
+
     Ok(())
 }

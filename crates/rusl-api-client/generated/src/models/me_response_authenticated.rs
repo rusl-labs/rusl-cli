@@ -28,7 +28,12 @@ pub struct MeResponseAuthenticated {
 
 impl MeResponseAuthenticated {
     /// Session info for authenticated user
-    pub fn new(accounts: std::collections::HashMap<String, models::SessionAccount1>, authenticated: bool, invitations: Vec<models::AccountInvitation1>, user: models::User1) -> MeResponseAuthenticated {
+    pub fn new(
+        accounts: std::collections::HashMap<String, models::SessionAccount1>,
+        authenticated: bool,
+        invitations: Vec<models::AccountInvitation1>,
+        user: models::User1,
+    ) -> MeResponseAuthenticated {
         MeResponseAuthenticated {
             accounts,
             authenticated,
