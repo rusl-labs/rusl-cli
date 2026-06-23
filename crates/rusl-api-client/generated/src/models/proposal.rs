@@ -18,31 +18,71 @@ pub struct Proposal {
     #[serde(rename = "__typename")]
     pub __typename: Typename,
     /// Accepted At
-    #[serde(rename = "accepted_at", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "accepted_at",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub accepted_at: Option<Option<String>>,
     /// Closed By User ID
-    #[serde(rename = "accepted_by_user_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "accepted_by_user_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub accepted_by_user_id: Option<Option<String>>,
     /// Schema version this proposal was based on
-    #[serde(rename = "based_on_version", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "based_on_version",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub based_on_version: Option<Option<String>>,
     /// Closed At
-    #[serde(rename = "closed_at", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "closed_at",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub closed_at: Option<Option<String>>,
     /// Closed By User ID
-    #[serde(rename = "closed_by_user_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "closed_by_user_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub closed_by_user_id: Option<Option<String>>,
     /// Closed Reason
-    #[serde(rename = "closed_reason", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "closed_reason",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub closed_reason: Option<Option<String>>,
     /// JSON Schema proposal
     #[serde(rename = "content")]
     pub content: serde_json::Value,
     /// Resolved schema dependencies extracted from $ref URLs
-    #[serde(rename = "dependencies", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "dependencies",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub dependencies: Option<Option<Vec<models::ProposalDependency1>>>,
     /// Description
-    #[serde(rename = "description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub description: Option<Option<String>>,
     /// Global ID
     #[serde(rename = "guid")]
@@ -54,7 +94,12 @@ pub struct Proposal {
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
     /// Minimum version bump type required
-    #[serde(rename = "minimum_bump_type", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "minimum_bump_type",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub minimum_bump_type: Option<Option<MinimumBumpType>>,
     /// Whether this proposal is outdated
     #[serde(rename = "outdated", skip_serializing_if = "Option::is_none")]
@@ -63,10 +108,18 @@ pub struct Proposal {
     #[serde(rename = "proposal_number", skip_serializing_if = "Option::is_none")]
     pub proposal_number: Option<i32>,
     /// Proposed By User ID
-    #[serde(rename = "proposed_by_user_id", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "proposed_by_user_id",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub proposed_by_user_id: Option<String>,
     /// Proposed version
-    #[serde(rename = "proposed_version", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "proposed_version",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub proposed_version: Option<Option<String>>,
     /// Explicit JSON Schema root instance types declared by content.type
     #[serde(rename = "root_instance_types")]
@@ -78,7 +131,12 @@ pub struct Proposal {
     #[serde(rename = "schema_id")]
     pub schema_id: String,
     /// Schema version created from this proposal
-    #[serde(rename = "schema_version_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "schema_version_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub schema_version_id: Option<Option<String>>,
     /// Proposal Status
     #[serde(rename = "status")]
@@ -93,7 +151,18 @@ pub struct Proposal {
 
 impl Proposal {
     /// Schema Proposal
-    pub fn new(__typename: Typename, content: serde_json::Value, guid: String, id: String, inserted_at: String, root_instance_types: Vec<String>, schema_id: String, status: Status, updated_at: String, valid_data: Vec<models::ExampleData1>) -> Proposal {
+    pub fn new(
+        __typename: Typename,
+        content: serde_json::Value,
+        guid: String,
+        id: String,
+        inserted_at: String,
+        root_instance_types: Vec<String>,
+        schema_id: String,
+        status: Status,
+        updated_at: String,
+        valid_data: Vec<models::ExampleData1>,
+    ) -> Proposal {
         Proposal {
             __typename,
             accepted_at: None,

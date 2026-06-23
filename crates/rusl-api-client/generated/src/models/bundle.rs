@@ -21,15 +21,30 @@ pub struct Bundle {
     #[serde(rename = "account_slug")]
     pub account_slug: String,
     /// Archived At
-    #[serde(rename = "archived_at", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "archived_at",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub archived_at: Option<Option<String>>,
     /// Full identifier in account_slug/bundles/slug form
     #[serde(rename = "bundle_identifier")]
     pub bundle_identifier: String,
-    #[serde(rename = "current_version", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "current_version",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub current_version: Option<Option<Box<models::BundleVersion1>>>,
     /// Bundle Description
-    #[serde(rename = "description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub description: Option<Option<String>>,
     /// Global ID
     #[serde(rename = "guid", skip_serializing_if = "Option::is_none")]
@@ -49,7 +64,12 @@ pub struct Bundle {
     /// Bundle Lifecycle Status
     #[serde(rename = "status")]
     pub status: Status,
-    #[serde(rename = "subject_description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
     /// Updated At
     #[serde(rename = "updated_at")]
@@ -61,7 +81,16 @@ pub struct Bundle {
 
 impl Bundle {
     /// A curated collection of schema references with version constraints
-    pub fn new(__typename: Typename, account_slug: String, bundle_identifier: String, id: String, inserted_at: String, slug: String, status: Status, updated_at: String) -> Bundle {
+    pub fn new(
+        __typename: Typename,
+        account_slug: String,
+        bundle_identifier: String,
+        id: String,
+        inserted_at: String,
+        slug: String,
+        status: Status,
+        updated_at: String,
+    ) -> Bundle {
         Bundle {
             __typename,
             account_slug,

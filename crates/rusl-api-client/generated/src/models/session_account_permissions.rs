@@ -21,8 +21,6 @@ pub struct SessionAccountPermissions {
 impl SessionAccountPermissions {
     /// User's permissions in this account
     pub fn new() -> SessionAccountPermissions {
-        SessionAccountPermissions {
-            schemas: None,
-        }
+        SessionAccountPermissions { schemas: None }
     }
 }

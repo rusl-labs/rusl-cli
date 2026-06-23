@@ -17,7 +17,12 @@ pub struct Error2 {
     #[serde(rename = "code")]
     pub code: String,
     /// Field path (optional)
-    #[serde(rename = "field", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "field",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub field: Option<Option<String>>,
     /// Human-readable message
     #[serde(rename = "message")]

@@ -15,10 +15,21 @@ use serde::{Deserialize, Serialize};
 pub struct RuslWebApiAnnotationControllerCreateRequest {
     #[serde(rename = "content")]
     pub content: serde_json::Value,
-    #[serde(rename = "label", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "label",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub label: Option<Option<String>>,
-    #[serde(rename = "subject_description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
-    pub subject_description: Option<Option<Box<models::RuslWebApiAnnotationControllerCreateRequestSubjectDescription>>>,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description:
+        Option<Option<Box<models::RuslWebApiAnnotationControllerCreateRequestSubjectDescription>>>,
     #[serde(rename = "subject_guid")]
     pub subject_guid: String,
     /// Registered annotation type identifier
@@ -27,7 +38,11 @@ pub struct RuslWebApiAnnotationControllerCreateRequest {
 }
 
 impl RuslWebApiAnnotationControllerCreateRequest {
-    pub fn new(content: serde_json::Value, subject_guid: String, r#type: String) -> RuslWebApiAnnotationControllerCreateRequest {
+    pub fn new(
+        content: serde_json::Value,
+        subject_guid: String,
+        r#type: String,
+    ) -> RuslWebApiAnnotationControllerCreateRequest {
         RuslWebApiAnnotationControllerCreateRequest {
             content,
             label: None,

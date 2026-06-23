@@ -17,7 +17,10 @@ pub struct GlobalSearchRequest {
     #[serde(rename = "account_slugs", skip_serializing_if = "Option::is_none")]
     pub account_slugs: Option<Vec<String>>,
     /// Restrict results by discovery profile status.
-    #[serde(rename = "discovery_profile_status", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "discovery_profile_status",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub discovery_profile_status: Option<DiscoveryProfileStatus>,
     /// Restrict results to exact canonical resource identifiers.
     #[serde(rename = "identifiers", skip_serializing_if = "Option::is_none")]

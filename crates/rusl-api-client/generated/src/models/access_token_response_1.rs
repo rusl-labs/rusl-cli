@@ -20,8 +20,6 @@ pub struct AccessTokenResponse1 {
 
 impl AccessTokenResponse1 {
     pub fn new(access_token: String) -> AccessTokenResponse1 {
-        AccessTokenResponse1 {
-            access_token,
-        }
+        AccessTokenResponse1 { access_token }
     }
 }

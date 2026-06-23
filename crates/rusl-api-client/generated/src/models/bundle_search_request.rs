@@ -16,7 +16,10 @@ pub struct BundleSearchRequest {
     /// Restrict results to account slugs.
     #[serde(rename = "account_slugs", skip_serializing_if = "Option::is_none")]
     pub account_slugs: Option<Vec<String>>,
-    #[serde(rename = "current_version_status", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "current_version_status",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub current_version_status: Option<CurrentVersionStatus>,
     /// Restrict results to identifiers beginning with this prefix.
     #[serde(rename = "identifier_prefix", skip_serializing_if = "Option::is_none")]

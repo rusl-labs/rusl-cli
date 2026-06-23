@@ -127,7 +127,9 @@ mod tests {
         example.title = Some(Some("Minimal object".to_string()));
 
         let mut page_info =
-            models::RuslWebApiSchemaVersionControllerExampleDataIndex200ResponsePageInfo::new(true, false);
+            models::RuslWebApiSchemaVersionControllerExampleDataIndex200ResponsePageInfo::new(
+                true, false,
+            );
         page_info.current_page = Some(Some(1));
         page_info.page_size = Some(Some(20));
         page_info.total_count = Some(Some(21));

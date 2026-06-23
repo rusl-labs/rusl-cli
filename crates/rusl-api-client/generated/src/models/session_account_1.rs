@@ -18,10 +18,20 @@ pub struct SessionAccount1 {
     #[serde(rename = "__typename")]
     pub __typename: Typename,
     /// Avatar asset ID
-    #[serde(rename = "avatar_asset_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "avatar_asset_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub avatar_asset_id: Option<Option<uuid::Uuid>>,
     /// Display name
-    #[serde(rename = "display_name", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "display_name",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub display_name: Option<Option<String>>,
     /// Account global ID
     #[serde(rename = "guid")]
@@ -44,7 +54,15 @@ pub struct SessionAccount1 {
 
 impl SessionAccount1 {
     /// Account information for user session
-    pub fn new(__typename: Typename, guid: String, owner_user_id: uuid::Uuid, permissions: models::SessionAccountPermissions, roles: Vec<Roles>, slug: String, r#type: Type) -> SessionAccount1 {
+    pub fn new(
+        __typename: Typename,
+        guid: String,
+        owner_user_id: uuid::Uuid,
+        permissions: models::SessionAccountPermissions,
+        roles: Vec<Roles>,
+        slug: String,
+        r#type: Type,
+    ) -> SessionAccount1 {
         SessionAccount1 {
             __typename,
             avatar_asset_id: None,

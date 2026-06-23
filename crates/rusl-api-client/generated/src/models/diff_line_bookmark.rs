@@ -15,7 +15,12 @@ use serde::{Deserialize, Serialize};
 pub struct DiffLineBookmark {
     #[serde(rename = "line")]
     pub line: i32,
-    #[serde(rename = "schema_path", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "schema_path",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub schema_path: Option<Option<String>>,
     #[serde(rename = "type")]
     pub r#type: Type,

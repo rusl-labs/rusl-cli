@@ -16,39 +16,104 @@ use serde::{Deserialize, Serialize};
 pub struct ResourceOrigin {
     #[serde(rename = "__typename")]
     pub __typename: Typename,
-    #[serde(rename = "attribution_text", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "attribution_text",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub attribution_text: Option<Option<String>>,
-    #[serde(rename = "created_by_user_id", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "created_by_user_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub created_by_user_id: Option<Option<String>>,
     #[serde(rename = "id")]
     pub id: String,
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
-    #[serde(rename = "license_name", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "license_name",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub license_name: Option<Option<String>>,
-    #[serde(rename = "license_url", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "license_url",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub license_url: Option<Option<String>>,
     #[serde(rename = "relationship_type")]
     pub relationship_type: RelationshipType,
-    #[serde(rename = "source_content_hash", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_content_hash",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_content_hash: Option<Option<String>>,
-    #[serde(rename = "source_guid", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_guid",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_guid: Option<Option<String>>,
-    #[serde(rename = "source_identifier", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_identifier",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_identifier: Option<Option<String>>,
     #[serde(rename = "source_kind")]
     pub source_kind: SourceKind,
-    #[serde(rename = "source_owner_name", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_owner_name",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_owner_name: Option<Option<String>>,
-    #[serde(rename = "source_owner_url", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_owner_url",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_owner_url: Option<Option<String>>,
-    #[serde(rename = "source_title", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_title",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_title: Option<Option<String>>,
-    #[serde(rename = "source_type", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_type",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_type: Option<Option<SourceType>>,
-    #[serde(rename = "source_uri", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_uri",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_uri: Option<Option<String>>,
-    #[serde(rename = "source_version", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "source_version",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub source_version: Option<Option<String>>,
     #[serde(rename = "subject_guid")]
     pub subject_guid: String,
@@ -60,7 +125,16 @@ pub struct ResourceOrigin {
 
 impl ResourceOrigin {
     /// Durable provenance edge for a schema or bundle
-    pub fn new(__typename: Typename, id: String, inserted_at: String, relationship_type: RelationshipType, source_kind: SourceKind, subject_guid: String, subject_type: SubjectType, updated_at: String) -> ResourceOrigin {
+    pub fn new(
+        __typename: Typename,
+        id: String,
+        inserted_at: String,
+        relationship_type: RelationshipType,
+        source_kind: SourceKind,
+        subject_guid: String,
+        subject_type: SubjectType,
+        updated_at: String,
+    ) -> ResourceOrigin {
         ResourceOrigin {
             __typename,
             attribution_text: None,

@@ -15,7 +15,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OpenApiSchema1 {
     /// Description
-    #[serde(rename = "description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub description: Option<Option<String>>,
     /// Schema format
     #[serde(rename = "schema_format", skip_serializing_if = "Option::is_none")]
@@ -23,8 +28,14 @@ pub struct OpenApiSchema1 {
     /// Schema Slug
     #[serde(rename = "slug")]
     pub slug: String,
-    #[serde(rename = "subject_description", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
-    pub subject_description: Option<Option<Box<models::RuslWebApiAnnotationControllerCreateRequestSubjectDescription>>>,
+    #[serde(
+        rename = "subject_description",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub subject_description:
+        Option<Option<Box<models::RuslWebApiAnnotationControllerCreateRequestSubjectDescription>>>,
     /// Visibility
     #[serde(rename = "visibility", skip_serializing_if = "Option::is_none")]
     pub visibility: Option<Visibility>,

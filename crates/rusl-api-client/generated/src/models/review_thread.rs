@@ -17,9 +17,19 @@ pub struct ReviewThread {
     /// Type discriminator
     #[serde(rename = "__typename")]
     pub __typename: Typename,
-    #[serde(rename = "bookmark", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "bookmark",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub bookmark: Option<Option<Box<models::ReviewThread1Bookmark>>>,
-    #[serde(rename = "comments", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "comments",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub comments: Option<Option<Vec<models::ReviewComment1>>>,
     #[serde(rename = "created_by_user_id")]
     pub created_by_user_id: String,
@@ -37,7 +47,15 @@ pub struct ReviewThread {
 
 impl ReviewThread {
     /// A review thread on a proposal with one root comment and flat replies
-    pub fn new(__typename: Typename, created_by_user_id: String, id: String, inserted_at: String, status: Status, subject_guid: String, updated_at: String) -> ReviewThread {
+    pub fn new(
+        __typename: Typename,
+        created_by_user_id: String,
+        id: String,
+        inserted_at: String,
+        status: Status,
+        subject_guid: String,
+        updated_at: String,
+    ) -> ReviewThread {
         ReviewThread {
             __typename,
             bookmark: None,

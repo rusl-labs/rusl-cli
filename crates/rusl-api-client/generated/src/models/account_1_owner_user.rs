@@ -39,7 +39,14 @@ pub struct Account1OwnerUser {
 
 impl Account1OwnerUser {
     /// Owner User
-    pub fn new(__typename: Typename, guid: String, id: String, inserted_at: String, updated_at: String, user_type: UserType) -> Account1OwnerUser {
+    pub fn new(
+        __typename: Typename,
+        guid: String,
+        id: String,
+        inserted_at: String,
+        updated_at: String,
+        user_type: UserType,
+    ) -> Account1OwnerUser {
         Account1OwnerUser {
             __typename,
             confirmed_at: None,

@@ -47,7 +47,15 @@ pub struct User1 {
 
 impl User1 {
     /// User
-    pub fn new(__typename: Typename, guid: String, id: String, inserted_at: String, slug: String, updated_at: String, user_type: UserType) -> User1 {
+    pub fn new(
+        __typename: Typename,
+        guid: String,
+        id: String,
+        inserted_at: String,
+        slug: String,
+        updated_at: String,
+        user_type: UserType,
+    ) -> User1 {
         User1 {
             __typename,
             confirmed_at: None,

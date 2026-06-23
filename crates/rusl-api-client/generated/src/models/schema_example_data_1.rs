@@ -30,7 +30,12 @@ pub struct SchemaExampleData1 {
     #[serde(rename = "schema_version_id")]
     pub schema_version_id: String,
     /// Optional title for this example
-    #[serde(rename = "title", default, with = "::serde_with::rust::double_option", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "title",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub title: Option<Option<String>>,
     /// Updated At
     #[serde(rename = "updated_at")]
@@ -42,7 +47,15 @@ pub struct SchemaExampleData1 {
 
 impl SchemaExampleData1 {
     /// Committed example data entry for a schema version
-    pub fn new(data: serde_json::Value, id: String, inserted_at: String, position: i32, schema_version_id: String, updated_at: String, version: String) -> SchemaExampleData1 {
+    pub fn new(
+        data: serde_json::Value,
+        id: String,
+        inserted_at: String,
+        position: i32,
+        schema_version_id: String,
+        updated_at: String,
+        version: String,
+    ) -> SchemaExampleData1 {
         SchemaExampleData1 {
             data,
             id,
