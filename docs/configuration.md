@@ -95,7 +95,9 @@ The manifest parser also accepts `[external]` and `[overrides]`, but current ins
 Example:
 
 ```toml
+[output]
 schema_dir = "schemas/vendor"
+suffix = ".schema.json"
 ```
 
 ### Config Resolution
@@ -115,7 +117,12 @@ The bundle manifest itself is not searched upward. Run bundle commands from the 
 | --- | --- | --- | --- |
 | `api_base_url` | string | `https://resources.rusl.com` | Rusl API server. |
 | `website_url` | string | `https://rusl.com` | Rusl website used for browser-based flows. |
-| `schema_dir` | string | `./schemas` | Directory where resolved schema files are written, using `<schema_dir>/<account>/<slug>.json`. The registry identifier's `schemas` segment is not repeated in the local file path. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the command's current working directory. |
+| `output.schema_dir` | string | `./schemas` | Directory where resolved schema files are written, using `<schema_dir>/<identifier><suffix>`. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the command's current working directory. |
+| `output.suffix` | string | `.schema.json` | Suffix appended to the schema identifier when writing the file. |
+
+#### `[output]`
+
+Controls where and how installed schemas are materialized on disk. Schemas are written to `{schema_dir}/{identifier}{suffix}`, where `identifier` is the canonical registry path (e.g. `acme/schemas/payment` resolves to `./schemas/acme/schemas/payment.schema.json` by default).
 
 When `schema_dir` is the default `./schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.
 

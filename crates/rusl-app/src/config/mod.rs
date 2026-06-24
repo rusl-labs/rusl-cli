@@ -7,6 +7,7 @@ pub mod credentials;
 pub const DEFAULT_API_BASE_URL: &str = "https://resources.rusl.com";
 pub const DEFAULT_WEBSITE_URL: &str = "https://rusl.com";
 pub const DEFAULT_SCHEMA_DIR: &str = "./schemas";
+pub const DEFAULT_SCHEMA_SUFFIX: &str = ".schema.json";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(default)]
@@ -14,15 +15,20 @@ pub struct Config {
     #[serde(alias = "registry_url")]
     pub api_base_url: String,
     pub website_url: String,
-    /// Directory where installed schemas are linked. Defaults to `./schemas`.
-    pub schema_dir: String,
+    /// Output configuration controlling where and how installed schemas are written to disk.
+    pub output: OutputConfig,
     pub acting_account: Option<String>,
 }
 
 impl Config {
     /// Returns the effective schema directory.
     pub fn schema_dir(&self) -> &str {
-        &self.schema_dir
+        &self.output.schema_dir
+    }
+
+    /// Returns the suffix appended to schema identifiers when writing files.
+    pub fn output_suffix(&self) -> &str {
+        &self.output.suffix
     }
 }
 
@@ -34,8 +40,32 @@ impl Default for Config {
         Self {
             api_base_url: default_api.to_string(),
             website_url: default_web.to_string(),
-            schema_dir: DEFAULT_SCHEMA_DIR.to_string(),
+            output: OutputConfig::default(),
             acting_account: None,
+        }
+    }
+}
+
+/// Output configuration that controls where and how installed schemas are
+/// materialized on disk.
+///
+/// Schemas are written to `{schema_dir}/{identifier}{suffix}`, where
+/// `identifier` is the canonical registry path (e.g. `acme/schemas/payment`).
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(default)]
+pub struct OutputConfig {
+    /// Directory where installed schemas are linked. Defaults to `./schemas`.
+    pub schema_dir: String,
+    /// Suffix appended to the schema identifier when writing the file.
+    /// Defaults to `.schema.json`.
+    pub suffix: String,
+}
+
+impl Default for OutputConfig {
+    fn default() -> Self {
+        Self {
+            schema_dir: DEFAULT_SCHEMA_DIR.to_string(),
+            suffix: DEFAULT_SCHEMA_SUFFIX.to_string(),
         }
     }
 }
@@ -47,8 +77,15 @@ struct PartialConfig {
     #[serde(alias = "registry_url")]
     pub api_base_url: Option<String>,
     pub website_url: Option<String>,
-    pub schema_dir: Option<String>,
+    pub output: Option<PartialOutputConfig>,
     pub acting_account: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(default)]
+struct PartialOutputConfig {
+    pub schema_dir: Option<String>,
+    pub suffix: Option<String>,
 }
 
 /// Load config using the standard precedence order.
@@ -102,7 +139,7 @@ pub fn load() -> anyhow::Result<Config> {
 fn apply_partial(
     config: &mut Config,
     partial: PartialConfig,
-    schema_dir_base: Option<&std::path::Path>,
+    output_base: Option<&std::path::Path>,
 ) {
     if let Some(url) = partial.api_base_url {
         config.api_base_url = url;
@@ -110,8 +147,13 @@ fn apply_partial(
     if let Some(url) = partial.website_url {
         config.website_url = url;
     }
-    if let Some(schema_dir) = partial.schema_dir {
-        config.schema_dir = resolve_schema_dir(schema_dir, schema_dir_base);
+    if let Some(output) = partial.output {
+        if let Some(schema_dir) = output.schema_dir {
+            config.output.schema_dir = resolve_schema_dir(schema_dir, output_base);
+        }
+        if let Some(suffix) = output.suffix {
+            config.output.suffix = suffix;
+        }
     }
     if let Some(acting_account) = partial.acting_account {
         config.acting_account = Some(acting_account);
@@ -132,7 +174,10 @@ fn resolve_schema_dir(schema_dir: String, base_dir: Option<&std::path::Path>) ->
 
 #[cfg(test)]
 mod tests {
-    use super::{Config, DEFAULT_API_BASE_URL, DEFAULT_SCHEMA_DIR, DEFAULT_WEBSITE_URL, load};
+    use super::{
+        Config, DEFAULT_API_BASE_URL, DEFAULT_SCHEMA_DIR, DEFAULT_SCHEMA_SUFFIX,
+        DEFAULT_WEBSITE_URL, load,
+    };
     use serial_test::serial;
     use std::{ffi::OsString, path::PathBuf};
     use tempfile::TempDir;
@@ -195,6 +240,12 @@ mod tests {
     }
 
     #[test]
+    fn output_suffix_defaults_to_schema_json() {
+        assert_eq!(DEFAULT_SCHEMA_SUFFIX, ".schema.json");
+        assert_eq!(Config::default().output_suffix(), ".schema.json");
+    }
+
+    #[test]
     #[serial]
     fn load_applies_global_then_project_then_environment_overrides() {
         let temp_dir = TempDir::new().expect("create temp dir");
@@ -214,6 +265,8 @@ mod tests {
             r#"
 api_base_url = "https://global-api.example"
 website_url = "https://global-web.example"
+
+[output]
 schema_dir = "global-schemas"
 "#,
         )
@@ -223,7 +276,10 @@ schema_dir = "global-schemas"
             workspace_dir.join("rusl.config.toml"),
             r#"
 website_url = "https://project-web.example"
+
+[output]
 schema_dir = "project-schemas"
+suffix = ".json"
 "#,
         )
         .expect("write project config");
@@ -234,6 +290,7 @@ schema_dir = "project-schemas"
 
         assert_eq!(config.api_base_url, "https://env-api.example");
         assert_eq!(config.website_url, "https://project-web.example");
+        assert_eq!(config.output_suffix(), ".json");
         assert_eq!(
             std::path::PathBuf::from(config.schema_dir()),
             workspace_dir

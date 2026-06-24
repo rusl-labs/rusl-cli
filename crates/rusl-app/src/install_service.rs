@@ -28,7 +28,7 @@ where
         .context("Failed to initialize CAS store")?;
 
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let linker = Linker::new(cwd.clone(), config.schema_dir());
+    let linker = Linker::new(cwd.clone(), config.schema_dir(), config.output_suffix());
     let manifest_path = cwd.join("rusl.bundle.toml");
 
     if !manifest_path.exists() {
@@ -84,7 +84,7 @@ where
 
         let (integrity, cas_path) = store.put(&blob).await?;
         integrity_map.insert(package_key.clone(), integrity);
-        linker.link_schema(&resource.account, &resource.slug, &cas_path)?;
+        linker.link_schema(&resource.identifier(), &cas_path)?;
         schema_count += 1;
     }
 
@@ -297,6 +297,7 @@ mod tests {
         std::fs::write(
             workspace_dir.join("rusl.config.toml"),
             r#"
+[output]
 schema_dir = "schemas/vendor"
 "#,
         )
@@ -312,12 +313,14 @@ schema_dir = "schemas/vendor"
             .join("schemas")
             .join("vendor")
             .join("hassox")
-            .join("root.json");
+            .join("schemas")
+            .join("root.schema.json");
         let dep_schema = workspace_dir
             .join("schemas")
             .join("vendor")
             .join("hassox")
-            .join("dep.json");
+            .join("schemas")
+            .join("dep.schema.json");
         assert_eq!(
             std::fs::read_to_string(&root_schema).expect("root schema"),
             r#"{"title":"root","type":"object"}"#
