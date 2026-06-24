@@ -17,7 +17,7 @@ pub async fn clear_cache() -> Result<CacheClearResult> {
         .await
         .context("Failed to clear global cache store")?;
 
-    let linker = Linker::new(cwd, config.schema_dir());
+    let linker = Linker::new(cwd, config.schema_dir(), config.output_suffix());
     let local_schema_cache_cleared = linker.purge_all()?;
 
     Ok(CacheClearResult {

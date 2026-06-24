@@ -265,11 +265,11 @@ mod tests {
             let temp_dir = TempDir::new().expect("create temp dir");
             let home_dir = temp_dir.path().join("home");
             let workspace_dir = temp_dir.path().join("workspace");
-            let schema_dir = workspace_dir.join("schemas").join("rusl");
+            let schema_dir = workspace_dir.join("schemas").join("rusl").join("schemas");
             std::fs::create_dir_all(&home_dir).expect("create home dir");
             std::fs::create_dir_all(&schema_dir).expect("create schema dir");
             std::fs::write(
-                schema_dir.join("context-request.json"),
+                schema_dir.join("context-request.schema.json"),
                 CONTEXT_REQUEST_SCHEMA,
             )
             .expect("write context request schema");

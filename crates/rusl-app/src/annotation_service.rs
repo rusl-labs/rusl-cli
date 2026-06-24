@@ -224,7 +224,8 @@ fn map_annotation(annotation: models::Annotation) -> AnnotationOutput {
 fn feedback_schema_path(kind: FeedbackAnnotationKind) -> Result<PathBuf> {
     let config = config::load().context("Failed to load schema configuration")?;
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let schema_file = PathBuf::from("rusl").join(format!("{}.json", kind.slug()));
+    let identifier = format!("rusl/schemas/{}", kind.slug());
+    let schema_file = format!("{}{}", identifier, config.output_suffix());
     Ok(cwd.join(config.schema_dir()).join(schema_file))
 }
 
@@ -286,11 +287,11 @@ mod tests {
             let temp_dir = TempDir::new().expect("create temp dir");
             let home_dir = temp_dir.path().join("home");
             let workspace_dir = temp_dir.path().join("workspace");
-            let schema_dir = workspace_dir.join("schemas").join("rusl");
+            let schema_dir = workspace_dir.join("schemas").join("rusl").join("schemas");
             std::fs::create_dir_all(&home_dir).expect("create home dir");
             std::fs::create_dir_all(&schema_dir).expect("create schema dir");
             std::fs::write(
-                schema_dir.join("context-request.json"),
+                schema_dir.join("context-request.schema.json"),
                 CONTEXT_REQUEST_SCHEMA,
             )
             .expect("write context request schema");
