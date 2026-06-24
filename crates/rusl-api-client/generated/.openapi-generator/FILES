@@ -39,7 +39,6 @@ docs/DiffLineBookmark1.md
 docs/EntitlementDenied.md
 docs/EntitlementDenied1.md
 docs/EntitlementDenied1Details.md
-docs/EntitlementDenied1DetailsLimit.md
 docs/Error.md
 docs/Error1.md
 docs/Error2.md
@@ -163,7 +162,6 @@ src/models/diff_line_bookmark_1.rs
 src/models/entitlement_denied.rs
 src/models/entitlement_denied_1.rs
 src/models/entitlement_denied_1_details.rs
-src/models/entitlement_denied_1_details_limit.rs
 src/models/error.rs
 src/models/error_1.rs
 src/models/error_2.rs

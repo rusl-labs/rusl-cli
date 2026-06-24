@@ -141,7 +141,6 @@ Class | Method | HTTP request | Description
  - [EntitlementDenied](docs/EntitlementDenied.md)
  - [EntitlementDenied1](docs/EntitlementDenied1.md)
  - [EntitlementDenied1Details](docs/EntitlementDenied1Details.md)
- - [EntitlementDenied1DetailsLimit](docs/EntitlementDenied1DetailsLimit.md)
  - [Error](docs/Error.md)
  - [Error1](docs/Error1.md)
  - [Error2](docs/Error2.md)

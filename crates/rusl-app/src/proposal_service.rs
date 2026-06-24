@@ -93,7 +93,7 @@ pub struct SchemaOutput {
     pub guid: Option<String>,
     pub account_slug: String,
     pub schema_slug: String,
-    pub schema_identifier: String,
+    pub identifier: String,
     pub description: Option<String>,
     pub schema_format: String,
     pub status: String,
@@ -460,7 +460,7 @@ fn map_schema(schema: models::Schema1) -> SchemaOutput {
     SchemaOutput {
         id: schema.id,
         guid: schema.guid,
-        schema_identifier: format!("{}/{}", schema.account_slug, schema.slug),
+        identifier: schema.identifier,
         account_slug: schema.account_slug,
         schema_slug: schema.slug,
         description: schema.description.flatten(),

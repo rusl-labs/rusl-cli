@@ -58,8 +58,6 @@ pub mod entitlement_denied_1;
 pub use self::entitlement_denied_1::EntitlementDenied1;
 pub mod entitlement_denied_1_details;
 pub use self::entitlement_denied_1_details::EntitlementDenied1Details;
-pub mod entitlement_denied_1_details_limit;
-pub use self::entitlement_denied_1_details_limit::EntitlementDenied1DetailsLimit;
 pub mod error;
 pub use self::error::Error;
 pub mod error_1;

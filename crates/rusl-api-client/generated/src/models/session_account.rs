@@ -17,6 +17,9 @@ pub struct SessionAccount {
     /// Type discriminator
     #[serde(rename = "__typename")]
     pub __typename: Typename,
+    /// Total number of available seats (included + paid)
+    #[serde(rename = "available_seats")]
+    pub available_seats: i32,
     /// Avatar asset ID
     #[serde(
         rename = "avatar_asset_id",
@@ -25,6 +28,17 @@ pub struct SessionAccount {
         skip_serializing_if = "Option::is_none"
     )]
     pub avatar_asset_id: Option<Option<uuid::Uuid>>,
+    /// Internal subscription ID
+    #[serde(
+        rename = "billing_subscription_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub billing_subscription_id: Option<Option<uuid::Uuid>>,
+    /// Number of consumed seats (member count)
+    #[serde(rename = "consumed_seats")]
+    pub consumed_seats: i32,
     /// Display name
     #[serde(
         rename = "display_name",
@@ -41,12 +55,36 @@ pub struct SessionAccount {
     pub owner_user_id: uuid::Uuid,
     #[serde(rename = "permissions")]
     pub permissions: Box<models::SessionAccountPermissions>,
+    /// Active billing plan slug
+    #[serde(
+        rename = "plan_slug",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub plan_slug: Option<Option<String>>,
     /// User's roles in this account
     #[serde(rename = "roles")]
     pub roles: Vec<Roles>,
     /// Account slug
     #[serde(rename = "slug")]
     pub slug: String,
+    /// Stripe price ID of the active subscription
+    #[serde(
+        rename = "stripe_price_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub stripe_price_id: Option<Option<String>>,
+    /// Stripe subscription ID
+    #[serde(
+        rename = "stripe_subscription_id",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub stripe_subscription_id: Option<Option<String>>,
     /// Account type
     #[serde(rename = "type")]
     pub r#type: Type,
@@ -56,6 +94,8 @@ impl SessionAccount {
     /// Account information for user session
     pub fn new(
         __typename: Typename,
+        available_seats: i32,
+        consumed_seats: i32,
         guid: String,
         owner_user_id: uuid::Uuid,
         permissions: models::SessionAccountPermissions,
@@ -65,13 +105,19 @@ impl SessionAccount {
     ) -> SessionAccount {
         SessionAccount {
             __typename,
+            available_seats,
             avatar_asset_id: None,
+            billing_subscription_id: None,
+            consumed_seats,
             display_name: None,
             guid,
             owner_user_id,
             permissions: Box::new(permissions),
+            plan_slug: None,
             roles,
             slug,
+            stripe_price_id: None,
+            stripe_subscription_id: None,
             r#type,
         }
     }

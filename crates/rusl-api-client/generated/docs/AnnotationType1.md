@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **description** | Option<**String**> | Annotation type description | [optional]
 **guid** | **String** | Global ID |
 **id** | **String** | Annotation type ID |
+**identifier** | **String** | Full identifier in account_slug/annotation-types/slug form |
 **inserted_at** | **String** | Created at |
 **pinned_schema_version_id** | Option<**String**> | Pinned schema version ID when schema_mode is PINNED | [optional]
 **schema_id** | **String** | Validation schema ID |
@@ -20,7 +21,6 @@ Name | Type | Description | Notes
 **slug** | **String** | Annotation type slug |
 **status** | **Status** | Annotation type lifecycle status (enum: ACTIVE, ARCHIVED) |
 **subject_description** | Option<[**models::AnnotationType1SubjectDescription**](AnnotationType1SubjectDescription.md)> |  | [optional]
-**type_identifier** | **String** | Full identifier in account_slug/annotation-types/slug form |
 **updated_at** | **String** | Updated at |
 **visibility** | **Visibility** | Annotation type visibility (enum: PUBLIC, PRIVATE) |
 

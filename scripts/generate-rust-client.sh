@@ -68,4 +68,9 @@ rm -rf "$output_dir"
 mkdir -p "$(dirname "$output_dir")"
 mv "$tmp_dir" "$output_dir"
 trap - EXIT
+
+# Raw generator output is not rustfmt-clean (e.g. single-line fn signatures),
+# so format it here to keep `cargo fmt --check` passing after a regen.
+(cd "$repo_root" && cargo fmt -p rusl-openapi-client)
+
 printf 'Generated Rust client in %s\n' "$output_dir"
