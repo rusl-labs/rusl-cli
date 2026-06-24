@@ -93,7 +93,9 @@ from the [latest GitHub release](https://github.com/rusl-labs/rusl-cli/releases/
 Project configuration lives in `rusl.config.toml` when needed:
 
 ```toml
+[output]
 schema_dir = "schemas/vendor"
+suffix = ".schema.json"
 ```
 
 Bundle dependencies live in `rusl.bundle.toml`. See

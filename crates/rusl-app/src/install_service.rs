@@ -297,6 +297,7 @@ mod tests {
         std::fs::write(
             workspace_dir.join("rusl.config.toml"),
             r#"
+[output]
 schema_dir = "schemas/vendor"
 "#,
         )

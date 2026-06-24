@@ -15,9 +15,7 @@ pub struct Config {
     #[serde(alias = "registry_url")]
     pub api_base_url: String,
     pub website_url: String,
-    /// Directory where installed schemas are linked. Defaults to `./schemas`.
-    pub schema_dir: String,
-    /// Output configuration controlling how installed schemas are written to disk.
+    /// Output configuration controlling where and how installed schemas are written to disk.
     pub output: OutputConfig,
     pub acting_account: Option<String>,
 }
@@ -25,7 +23,7 @@ pub struct Config {
 impl Config {
     /// Returns the effective schema directory.
     pub fn schema_dir(&self) -> &str {
-        &self.schema_dir
+        &self.output.schema_dir
     }
 
     /// Returns the suffix appended to schema identifiers when writing files.
@@ -42,21 +40,22 @@ impl Default for Config {
         Self {
             api_base_url: default_api.to_string(),
             website_url: default_web.to_string(),
-            schema_dir: DEFAULT_SCHEMA_DIR.to_string(),
             output: OutputConfig::default(),
             acting_account: None,
         }
     }
 }
 
-/// Output configuration paired with [`Config::schema_dir`] that controls how
-/// installed schemas are materialized on disk.
+/// Output configuration that controls where and how installed schemas are
+/// materialized on disk.
 ///
 /// Schemas are written to `{schema_dir}/{identifier}{suffix}`, where
 /// `identifier` is the canonical registry path (e.g. `acme/schemas/payment`).
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(default)]
 pub struct OutputConfig {
+    /// Directory where installed schemas are linked. Defaults to `./schemas`.
+    pub schema_dir: String,
     /// Suffix appended to the schema identifier when writing the file.
     /// Defaults to `.schema.json`.
     pub suffix: String,
@@ -65,6 +64,7 @@ pub struct OutputConfig {
 impl Default for OutputConfig {
     fn default() -> Self {
         Self {
+            schema_dir: DEFAULT_SCHEMA_DIR.to_string(),
             suffix: DEFAULT_SCHEMA_SUFFIX.to_string(),
         }
     }
@@ -77,7 +77,6 @@ struct PartialConfig {
     #[serde(alias = "registry_url")]
     pub api_base_url: Option<String>,
     pub website_url: Option<String>,
-    pub schema_dir: Option<String>,
     pub output: Option<PartialOutputConfig>,
     pub acting_account: Option<String>,
 }
@@ -85,6 +84,7 @@ struct PartialConfig {
 #[derive(Debug, Deserialize, Default)]
 #[serde(default)]
 struct PartialOutputConfig {
+    pub schema_dir: Option<String>,
     pub suffix: Option<String>,
 }
 
@@ -139,7 +139,7 @@ pub fn load() -> anyhow::Result<Config> {
 fn apply_partial(
     config: &mut Config,
     partial: PartialConfig,
-    schema_dir_base: Option<&std::path::Path>,
+    output_base: Option<&std::path::Path>,
 ) {
     if let Some(url) = partial.api_base_url {
         config.api_base_url = url;
@@ -147,13 +147,13 @@ fn apply_partial(
     if let Some(url) = partial.website_url {
         config.website_url = url;
     }
-    if let Some(schema_dir) = partial.schema_dir {
-        config.schema_dir = resolve_schema_dir(schema_dir, schema_dir_base);
-    }
-    if let Some(output) = partial.output
-        && let Some(suffix) = output.suffix
-    {
-        config.output.suffix = suffix;
+    if let Some(output) = partial.output {
+        if let Some(schema_dir) = output.schema_dir {
+            config.output.schema_dir = resolve_schema_dir(schema_dir, output_base);
+        }
+        if let Some(suffix) = output.suffix {
+            config.output.suffix = suffix;
+        }
     }
     if let Some(acting_account) = partial.acting_account {
         config.acting_account = Some(acting_account);
@@ -265,6 +265,8 @@ mod tests {
             r#"
 api_base_url = "https://global-api.example"
 website_url = "https://global-web.example"
+
+[output]
 schema_dir = "global-schemas"
 "#,
         )
@@ -274,9 +276,9 @@ schema_dir = "global-schemas"
             workspace_dir.join("rusl.config.toml"),
             r#"
 website_url = "https://project-web.example"
-schema_dir = "project-schemas"
 
 [output]
+schema_dir = "project-schemas"
 suffix = ".json"
 "#,
         )
