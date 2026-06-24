@@ -7,11 +7,11 @@ Name | Type | Description | Notes
 **__typename** | **Typename** | Type discriminator (enum: bundles) |
 **account_slug** | **String** | Account Slug |
 **archived_at** | Option<**String**> | Archived At | [optional]
-**bundle_identifier** | **String** | Full identifier in account_slug/bundles/slug form |
 **current_version** | Option<[**models::BundleVersion1**](BundleVersion1.md)> |  | [optional]
 **description** | Option<**String**> | Bundle Description | [optional]
 **guid** | Option<**String**> | Global ID | [optional]
 **id** | **String** | Bundle ID |
+**identifier** | **String** | Full identifier in account_slug/bundles/slug form |
 **inserted_at** | **String** | Inserted At |
 **resource_origins** | Option<[**Vec<models::ResourceOrigin1>**](ResourceOrigin1.md)> | Durable provenance edges for this bundle | [optional]
 **slug** | **String** | Bundle Slug |

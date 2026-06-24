@@ -101,6 +101,8 @@ mod tests {
             "accounts": {
                 "zeta": {
                     "__typename": "accounts",
+                    "available_seats": 5,
+                    "consumed_seats": 3,
                     "guid": "account_zeta",
                     "owner_user_id": "00000000-0000-0000-0000-000000000000",
                     "permissions": {},
@@ -110,6 +112,8 @@ mod tests {
                 },
                 "alpha": {
                     "__typename": "accounts",
+                    "available_seats": 1,
+                    "consumed_seats": 1,
                     "guid": "account_alpha",
                     "owner_user_id": "00000000-0000-0000-0000-000000000000",
                     "permissions": {},

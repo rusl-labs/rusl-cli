@@ -460,7 +460,7 @@ fn map_schema(schema: models::Schema1) -> SchemaOutput {
     SchemaOutput {
         id: schema.id,
         guid: schema.guid,
-        schema_identifier: format!("{}/{}", schema.account_slug, schema.slug),
+        schema_identifier: schema.identifier,
         account_slug: schema.account_slug,
         schema_slug: schema.slug,
         description: schema.description.flatten(),

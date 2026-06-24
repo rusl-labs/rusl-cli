@@ -28,9 +28,6 @@ pub struct Bundle1 {
         skip_serializing_if = "Option::is_none"
     )]
     pub archived_at: Option<Option<String>>,
-    /// Full identifier in account_slug/bundles/slug form
-    #[serde(rename = "bundle_identifier")]
-    pub bundle_identifier: String,
     #[serde(
         rename = "current_version",
         default,
@@ -52,6 +49,9 @@ pub struct Bundle1 {
     /// Bundle ID
     #[serde(rename = "id")]
     pub id: String,
+    /// Full identifier in account_slug/bundles/slug form
+    #[serde(rename = "identifier")]
+    pub identifier: String,
     /// Inserted At
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
@@ -84,8 +84,8 @@ impl Bundle1 {
     pub fn new(
         __typename: Typename,
         account_slug: String,
-        bundle_identifier: String,
         id: String,
+        identifier: String,
         inserted_at: String,
         slug: String,
         status: Status,
@@ -95,11 +95,11 @@ impl Bundle1 {
             __typename,
             account_slug,
             archived_at: None,
-            bundle_identifier,
             current_version: None,
             description: None,
             guid: None,
             id,
+            identifier,
             inserted_at,
             resource_origins: None,
             slug,

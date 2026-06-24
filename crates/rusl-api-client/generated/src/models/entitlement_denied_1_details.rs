@@ -25,13 +25,14 @@ pub struct EntitlementDenied1Details {
     /// The entitlement gate that denied the request
     #[serde(rename = "gate")]
     pub gate: String,
+    /// The limit value for a quota gate. `-1` means unlimited; non-negative integers are the cap. `null` for non-quota gates (feature / rate limit).
     #[serde(
         rename = "limit",
         default,
         with = "::serde_with::rust::double_option",
         skip_serializing_if = "Option::is_none"
     )]
-    pub limit: Option<Option<Box<models::EntitlementDenied1DetailsLimit>>>,
+    pub limit: Option<Option<i32>>,
     /// Plan slug of the account that was checked
     #[serde(rename = "plan")]
     pub plan: String,

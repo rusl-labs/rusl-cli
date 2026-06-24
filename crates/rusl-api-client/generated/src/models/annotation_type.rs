@@ -48,6 +48,9 @@ pub struct AnnotationType {
     /// Annotation type ID
     #[serde(rename = "id")]
     pub id: String,
+    /// Full identifier in account_slug/annotation-types/slug form
+    #[serde(rename = "identifier")]
+    pub identifier: String,
     /// Created at
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
@@ -86,9 +89,6 @@ pub struct AnnotationType {
         skip_serializing_if = "Option::is_none"
     )]
     pub subject_description: Option<Option<Box<models::AnnotationType1SubjectDescription>>>,
-    /// Full identifier in account_slug/annotation-types/slug form
-    #[serde(rename = "type_identifier")]
-    pub type_identifier: String,
     /// Updated at
     #[serde(rename = "updated_at")]
     pub updated_at: String,
@@ -106,12 +106,12 @@ impl AnnotationType {
         content_immutable: bool,
         guid: String,
         id: String,
+        identifier: String,
         inserted_at: String,
         schema_id: String,
         schema_mode: SchemaMode,
         slug: String,
         status: Status,
-        type_identifier: String,
         updated_at: String,
         visibility: Visibility,
     ) -> AnnotationType {
@@ -124,6 +124,7 @@ impl AnnotationType {
             description: None,
             guid,
             id,
+            identifier,
             inserted_at,
             pinned_schema_version_id: None,
             schema_id,
@@ -132,7 +133,6 @@ impl AnnotationType {
             slug,
             status,
             subject_description: None,
-            type_identifier,
             updated_at,
             visibility,
         }

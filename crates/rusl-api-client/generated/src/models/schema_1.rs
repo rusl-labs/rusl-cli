@@ -49,6 +49,9 @@ pub struct Schema1 {
     /// Schema ID
     #[serde(rename = "id")]
     pub id: String,
+    /// Full identifier in account_slug/schemas/slug form
+    #[serde(rename = "identifier")]
+    pub identifier: String,
     /// Inserted At
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
@@ -58,9 +61,6 @@ pub struct Schema1 {
     /// Schema format
     #[serde(rename = "schema_format")]
     pub schema_format: SchemaFormat,
-    /// Full identifier in account_slug/schemas/slug form
-    #[serde(rename = "schema_identifier")]
-    pub schema_identifier: String,
     /// Schema Slug
     #[serde(rename = "slug")]
     pub slug: String,
@@ -88,9 +88,9 @@ impl Schema1 {
         __typename: Typename,
         account_slug: String,
         id: String,
+        identifier: String,
         inserted_at: String,
         schema_format: SchemaFormat,
-        schema_identifier: String,
         slug: String,
         status: Status,
         updated_at: String,
@@ -103,10 +103,10 @@ impl Schema1 {
             description: None,
             guid: None,
             id,
+            identifier,
             inserted_at,
             resource_origins: None,
             schema_format,
-            schema_identifier,
             slug,
             status,
             subject_description: None,
