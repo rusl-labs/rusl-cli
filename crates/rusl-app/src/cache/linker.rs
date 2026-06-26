@@ -1,4 +1,6 @@
 use crate::config::DEFAULT_SCHEMA_DIR;
+use crate::resource_identifier::RegistryResource;
+use crate::schema_naming::{NamingConvention, installed_schema_path};
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
@@ -12,16 +14,23 @@ pub struct Linker {
     schema_dir: PathBuf,
     /// Suffix appended to schema identifiers when writing files (e.g. `.schema.json`).
     suffix: String,
+    naming_convention: NamingConvention,
     /// When true, copy files instead of symlinking (for committable output).
     copy_mode: bool,
 }
 
 impl Linker {
-    pub fn new(cwd: PathBuf, schema_dir: &str, suffix: &str) -> Self {
+    pub fn new(
+        cwd: PathBuf,
+        schema_dir: &str,
+        suffix: &str,
+        naming_convention: NamingConvention,
+    ) -> Self {
         let copy_mode = schema_dir != DEFAULT_SCHEMA_DIR;
         Self {
             schema_dir: cwd.join(schema_dir),
             suffix: suffix.to_string(),
+            naming_convention,
             copy_mode,
         }
     }
@@ -40,13 +49,16 @@ impl Linker {
     /// Maps a global schema directly into the local working directory namespace.
     /// This uses OS-native symbolic linking to guarantee zero-copy, instantly mirrored files.
     ///
-    /// The target structure is `{schema_dir}/{identifier}{suffix}`, where `identifier`
-    /// is the canonical registry path (e.g. `acme/schemas/payment`). Intermediate
-    /// directories are created as needed.
-    pub fn link_schema(&self, identifier: &str, cas_path: &Path) -> Result<PathBuf> {
-        let local_file = self
-            .schema_dir
-            .join(format!("{}{}", identifier, self.suffix));
+    /// The target structure is `{schema_dir}/{relative_path}{suffix}`, where
+    /// `relative_path` is derived from the resource identifier according to the
+    /// configured naming convention.
+    pub fn link_schema(&self, resource: &RegistryResource, cas_path: &Path) -> Result<PathBuf> {
+        let local_file = installed_schema_path(
+            &self.schema_dir,
+            self.naming_convention,
+            resource,
+            &self.suffix,
+        );
 
         if let Some(parent) = local_file.parent()
             && !parent.exists()

@@ -1,56 +1,56 @@
 version = "1"
 
 [dependencies."bundle:rusl/bundles/feedback-schemas"]
-version = "0.1.1"
+version = "0.1.0"
 integrity = ""
-source = "http://localhost:4000"
+source = "https://hassox.rusl-api.ngrok.io"
 dependencies = [
-    "schema:rusl/schemas/usage-report",
-    "schema:rusl/schemas/context-loading-hint",
-    "schema:rusl/schemas/trust-signal",
-    "schema:rusl/schemas/migration-guide",
     "schema:rusl/schemas/context-request",
-    "schema:rusl/schemas/semantic-link",
+    "schema:rusl/schemas/context-loading-hint",
+    "schema:rusl/schemas/usage-report",
     "schema:rusl/schemas/domain-interpretation",
     "schema:rusl/schemas/source-attestation",
+    "schema:rusl/schemas/trust-signal",
+    "schema:rusl/schemas/semantic-link",
+    "schema:rusl/schemas/migration-guide",
 ]
 
 [dependencies."schema:rusl/schemas/context-loading-hint"]
 version = "0.1.0"
-integrity = "7ab7198f50ab57381f9d4b1bbe3d3c47b1a1e979e22b724b5f4f0719eb8bed06"
-source = "http://localhost:4000"
+integrity = "9bb2aa29b9a8078e584ae9f4c8bfb309d9f6a5777bb3f0a3abfffe7eb37e0cd6"
+source = "https://hassox.rusl-api.ngrok.io"
 
 [dependencies."schema:rusl/schemas/context-request"]
 version = "0.1.0"
-integrity = "137605563988a5cbd6bbb4413ac30e05f71f950259cd737dbdd7c3a93f6f5f9d"
-source = "http://localhost:4000"
+integrity = "9cee643ca098eaf2489ce4b1fb5af4e6a6fba0b4a7feecd9cd5470e5298adeb9"
+source = "https://hassox.rusl-api.ngrok.io"
 
 [dependencies."schema:rusl/schemas/domain-interpretation"]
 version = "0.1.0"
-integrity = "25917b197d59555ee2557c2523ef1ed757132681c3003498087f8fbf25246961"
-source = "http://localhost:4000"
+integrity = "324dc7dc6b09199e078499dd4ecc678340ea36bd38b71c067684d882b8688aff"
+source = "https://hassox.rusl-api.ngrok.io"
 
 [dependencies."schema:rusl/schemas/migration-guide"]
 version = "0.1.0"
-integrity = "cf091e08bdf46450d7c82a4f47cebb4801e5cfe96c413a1d138e64f01ccb2014"
-source = "http://localhost:4000"
+integrity = "cc67f17fcffb685b75da937b342c8c34dae611ca49c2ee758a2a900470a317be"
+source = "https://hassox.rusl-api.ngrok.io"
 
 [dependencies."schema:rusl/schemas/semantic-link"]
 version = "0.1.0"
-integrity = "36ecc223cce68ba11e0ce208572ed0f4401f6e5d6d5e6c09956da23ef7a0f6a5"
-source = "http://localhost:4000"
+integrity = "7eddc385ed8d72446560f1ce83089262e030c3a92e22d33da5c9868aa3e2277d"
+source = "https://hassox.rusl-api.ngrok.io"
 
 [dependencies."schema:rusl/schemas/source-attestation"]
 version = "0.1.0"
-integrity = "c6fa94720e1ece581ca352b6a12ea33f526d3a20e0c34c0d76b0bb8214ea88b5"
-source = "http://localhost:4000"
+integrity = "61f111c20863bf182d69c0995dd434357970dc63fbb807f732c2afa1d3bd6b17"
+source = "https://hassox.rusl-api.ngrok.io"
 
 [dependencies."schema:rusl/schemas/trust-signal"]
 version = "0.1.0"
-integrity = "7f981f79e000a2ceb98b72af9f99775e6cf254f520932fbc36382e8012637d41"
-source = "http://localhost:4000"
+integrity = "02652de29a6b8543989e84bc757506880008bc4ad78fe03be64b7ca846ea782a"
+source = "https://hassox.rusl-api.ngrok.io"
 
 [dependencies."schema:rusl/schemas/usage-report"]
 version = "0.1.0"
-integrity = "bbeb88b6b8294b2ee068a96f132b9b0a2e9b5700dbd57f587544ce3f31aae58b"
-source = "http://localhost:4000"
+integrity = "1aa3274ef5f43bb37ae6b00b8ccfe44f9bb48ec5efa1fdacd95818ddbc898771"
+source = "https://hassox.rusl-api.ngrok.io"

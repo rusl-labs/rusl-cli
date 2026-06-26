@@ -30,7 +30,7 @@ Installed or vendored registry snapshots may live below that tree, for example:
 schemas/vendor/
 ```
 
-The configured `output.schema_dir` decides where Rusl installs resolved schema files. The built-in default is `./schemas`.
+The configured `output.schema_dir` decides where Rusl installs resolved schema files. The built-in default is `./schemas`. The relative path within that directory is controlled by `output.naming_convention` (`normal` by default; see `docs/configuration.md`).
 
 ## Definition Standard
 
