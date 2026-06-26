@@ -1,16 +1,13 @@
-use crate::cli::{DepType, RemoveArgs};
+use crate::cli::RemoveArgs;
 use anyhow::Result;
 use colored::Colorize;
-use rusl_app::dependency_service::{
-    self, DependencyKind, RemoveDependencyRequest, RemoveDependencyResult,
-};
+use rusl_app::dependency_service::{self, RemoveDependencyRequest, RemoveDependencyResult};
 use rusl_app::resolver::graph::ProgressReporter;
 
 pub async fn run(args: RemoveArgs) -> Result<()> {
     let progress = CliDependencyProgress::new();
     let request = RemoveDependencyRequest {
-        kind: map_dependency_kind(args.kind),
-        slug: args.slug,
+        identifier: args.identifier,
     };
 
     match dependency_service::remove_dependency(request, &progress).await? {
@@ -61,12 +58,5 @@ impl ProgressReporter for CliDependencyProgress {
 
     fn println(&self, message: String) {
         self.spinner.println(message);
-    }
-}
-
-fn map_dependency_kind(kind: DepType) -> DependencyKind {
-    match kind {
-        DepType::Schema => DependencyKind::Schema,
-        DepType::Bundle => DependencyKind::Bundle,
     }
 }

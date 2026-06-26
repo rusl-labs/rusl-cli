@@ -1,8 +1,7 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::manifest::lock::LockManifest;
 use crate::resource_identifier::{
-    RegistryResource, ResourceKind, display_package_key, package_key_for,
-    package_key_from_identifier,
+    ResourceKind, display_package_key, package_key_for, package_key_from_identifier,
 };
 use anyhow::{Context, Result, bail};
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -70,18 +69,6 @@ pub fn load_dependency_paths(package: &str) -> Result<WhyOutput> {
         .resources
         .keys()
         .filter_map(|identifier| package_key_from_identifier(identifier))
-        .chain(
-            manifest
-                .schemas
-                .keys()
-                .filter_map(|name| package_key_for(ResourceKind::Schema, name)),
-        )
-        .chain(
-            manifest
-                .bundles
-                .keys()
-                .filter_map(|name| package_key_for(ResourceKind::Bundle, name)),
-        )
         .collect();
     root_deps.sort();
     root_deps.dedup();
@@ -110,7 +97,11 @@ pub fn load_dependency_paths(package: &str) -> Result<WhyOutput> {
             .dependencies
             .get(&target)
             .map(|dep| dep.version.clone()),
-        root_name: display_optional_bundle_identifier(manifest.bundle.name.as_deref()),
+        root_name: manifest
+            .bundle
+            .name
+            .clone()
+            .unwrap_or_else(|| LOCAL_BUNDLE_NAME.to_string()),
         root_version: manifest
             .bundle
             .version
@@ -149,18 +140,6 @@ fn display_name(key: &str) -> String {
     display_package_key(key)
 }
 
-fn display_bundle_identifier(identifier: &str) -> String {
-    RegistryResource::bundle(identifier)
-        .map(|resource| resource.identifier())
-        .unwrap_or_else(|| identifier.to_string())
-}
-
-fn display_optional_bundle_identifier(identifier: Option<&str>) -> String {
-    identifier
-        .map(display_bundle_identifier)
-        .unwrap_or_else(|| LOCAL_BUNDLE_NAME.to_string())
-}
-
 fn resolve_search_key(search: &str, lock: &LockManifest) -> Option<String> {
     if lock.dependencies.contains_key(search) {
         return Some(search.to_string());
@@ -172,19 +151,7 @@ fn resolve_search_key(search: &str, lock: &LockManifest) -> Option<String> {
         return Some(schema_key);
     }
 
-    let legacy_schema_key = format!("schema:{search}");
-    if lock.dependencies.contains_key(&legacy_schema_key) {
-        return Some(legacy_schema_key);
-    }
-
     if let Some(bundle_key) = package_key_for(ResourceKind::Bundle, search)
-        && lock.dependencies.contains_key(&bundle_key)
-    {
-        return Some(bundle_key);
-    }
-
-    if let Some(legacy_bundle_display) = search.strip_prefix("bundles/")
-        && let Some(bundle_key) = package_key_for(ResourceKind::Bundle, legacy_bundle_display)
         && lock.dependencies.contains_key(&bundle_key)
     {
         return Some(bundle_key);
@@ -232,7 +199,6 @@ mod tests {
 
     #[test]
     fn display_name_formats_bundle_and_schema_keys() {
-        assert_eq!(display_name("bundle:hassox/demo"), "hassox/bundles/demo");
         assert_eq!(
             display_name("bundle:hassox/bundles/demo"),
             "hassox/bundles/demo"
@@ -260,10 +226,6 @@ mod tests {
 
         assert_eq!(
             resolve_search_key("hassox/bundles/demo", &lock),
-            Some("bundle:hassox/bundles/demo".to_string())
-        );
-        assert_eq!(
-            resolve_search_key("bundles/hassox/demo", &lock),
             Some("bundle:hassox/bundles/demo".to_string())
         );
     }
