@@ -98,6 +98,7 @@ Example:
 [output]
 schema_dir = "schemas/vendor"
 suffix = ".schema.json"
+naming_convention = "normal"
 ```
 
 ### Config Resolution
@@ -117,12 +118,21 @@ The bundle manifest itself is not searched upward. Run bundle commands from the 
 | --- | --- | --- | --- |
 | `api_base_url` | string | `https://resources.rusl.com` | Rusl API server. |
 | `website_url` | string | `https://rusl.com` | Rusl website used for browser-based flows. |
-| `output.schema_dir` | string | `./schemas` | Directory where resolved schema files are written, using `<schema_dir>/<identifier><suffix>`. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the command's current working directory. |
-| `output.suffix` | string | `.schema.json` | Suffix appended to the schema identifier when writing the file. |
+| `output.schema_dir` | string | `./schemas` | Directory where resolved schema files are written. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the command's current working directory. |
+| `output.suffix` | string | `.schema.json` | Suffix appended to the schema file name when writing the file. |
+| `output.naming_convention` | string | `normal` | How canonical schema identifiers map to relative paths within `schema_dir`. One of `full`, `normal`, or `flat`. |
 
 #### `[output]`
 
-Controls where and how installed schemas are materialized on disk. Schemas are written to `{schema_dir}/{identifier}{suffix}`, where `identifier` is the canonical registry path (e.g. `acme/schemas/payment` resolves to `./schemas/acme/schemas/payment.schema.json` by default).
+Controls where and how installed schemas are materialized on disk. Schemas are written to `{schema_dir}/{relative_path}{suffix}`, where `relative_path` is derived from the canonical registry identifier according to `naming_convention`.
+
+| Convention | Relative path for `rusl/schemas/common` | Example on disk (default `schema_dir`) |
+| --- | --- | --- |
+| `full` | mirror identifier | `./schemas/rusl/schemas/common.schema.json` |
+| `normal` | strip `/schemas/` segment | `./schemas/rusl/common.schema.json` |
+| `flat` | `{account}_{slug}` | `./schemas/rusl_common.schema.json` |
+
+Use `flat` when all schema files must live in a single directory (for example Go package embedding). Use `full` when downstream tooling expects the canonical registry path mirrored on disk.
 
 When `schema_dir` is the default `./schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.
 

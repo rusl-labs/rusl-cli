@@ -1,3 +1,5 @@
+use crate::resource_identifier::RegistryResource;
+use crate::schema_naming::installed_schema_path;
 use crate::{config, registry::client::RegistryClient};
 use anyhow::{Context, Result, bail};
 use rusl_api_client::{models, rusl_user_agent_with_context};
@@ -224,9 +226,14 @@ fn map_annotation(annotation: models::Annotation) -> AnnotationOutput {
 fn feedback_schema_path(kind: FeedbackAnnotationKind) -> Result<PathBuf> {
     let config = config::load().context("Failed to load schema configuration")?;
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let identifier = format!("rusl/schemas/{}", kind.slug());
-    let schema_file = format!("{}{}", identifier, config.output_suffix());
-    Ok(cwd.join(config.schema_dir()).join(schema_file))
+    let resource = RegistryResource::schema(&format!("rusl/schemas/{}", kind.slug()))
+        .context("Feedback schema identifier is invalid")?;
+    Ok(installed_schema_path(
+        &cwd.join(config.schema_dir()),
+        config.naming_convention(),
+        &resource,
+        config.output_suffix(),
+    ))
 }
 
 fn missing_feedback_schema_message(kind: FeedbackAnnotationKind, path: &std::path::Path) -> String {
@@ -271,8 +278,32 @@ mod tests {
     use std::{ffi::OsString, path::PathBuf};
     use tempfile::TempDir;
 
-    const CONTEXT_REQUEST_SCHEMA: &str =
-        include_str!("../../../schemas/vendor/rusl/context-request.json");
+    const CONTEXT_REQUEST_SCHEMA: &str = r#"{
+  "$id": "https://resources.rusl.com/resources/rusl/schemas/context-request",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A request for better explanation when a subject is ambiguous enough to block a task.",
+  "properties": {
+    "error_received": {
+      "description": "Optional exact validation, tool, or runtime error.",
+      "type": "string"
+    },
+    "failing_task": {
+      "description": "Task that was blocked or made unsafe by missing context.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "suspected_ambiguity": {
+      "description": "Question or point of confusion that should be clarified.",
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": ["failing_task", "suspected_ambiguity"],
+  "title": "Context Request",
+  "type": "object",
+  "version": "0.1.0"
+}"#;
 
     struct SchemaWorkspaceGuard {
         previous_home: Option<OsString>,
@@ -287,7 +318,7 @@ mod tests {
             let temp_dir = TempDir::new().expect("create temp dir");
             let home_dir = temp_dir.path().join("home");
             let workspace_dir = temp_dir.path().join("workspace");
-            let schema_dir = workspace_dir.join("schemas").join("rusl").join("schemas");
+            let schema_dir = workspace_dir.join("schemas").join("rusl");
             std::fs::create_dir_all(&home_dir).expect("create home dir");
             std::fs::create_dir_all(&schema_dir).expect("create schema dir");
             std::fs::write(

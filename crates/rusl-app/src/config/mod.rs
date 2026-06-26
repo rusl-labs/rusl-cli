@@ -1,3 +1,4 @@
+use crate::schema_naming::NamingConvention;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
@@ -30,6 +31,11 @@ impl Config {
     pub fn output_suffix(&self) -> &str {
         &self.output.suffix
     }
+
+    /// Returns the naming convention used when materializing schema files on disk.
+    pub fn naming_convention(&self) -> NamingConvention {
+        self.output.naming_convention
+    }
 }
 
 impl Default for Config {
@@ -49,8 +55,10 @@ impl Default for Config {
 /// Output configuration that controls where and how installed schemas are
 /// materialized on disk.
 ///
-/// Schemas are written to `{schema_dir}/{identifier}{suffix}`, where
-/// `identifier` is the canonical registry path (e.g. `acme/schemas/payment`).
+/// Schemas are written to `{schema_dir}/{relative_path}{suffix}`, where
+/// `relative_path` is derived from the canonical registry identifier according
+/// to `naming_convention` (e.g. `acme/schemas/payment` → `acme/payment` with
+/// the default `normal` convention).
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(default)]
 pub struct OutputConfig {
@@ -59,6 +67,9 @@ pub struct OutputConfig {
     /// Suffix appended to the schema identifier when writing the file.
     /// Defaults to `.schema.json`.
     pub suffix: String,
+    /// How schema identifiers are mapped to relative paths within `schema_dir`.
+    /// Defaults to `normal`.
+    pub naming_convention: NamingConvention,
 }
 
 impl Default for OutputConfig {
@@ -66,6 +77,7 @@ impl Default for OutputConfig {
         Self {
             schema_dir: DEFAULT_SCHEMA_DIR.to_string(),
             suffix: DEFAULT_SCHEMA_SUFFIX.to_string(),
+            naming_convention: NamingConvention::default(),
         }
     }
 }
@@ -86,6 +98,7 @@ struct PartialConfig {
 struct PartialOutputConfig {
     pub schema_dir: Option<String>,
     pub suffix: Option<String>,
+    pub naming_convention: Option<NamingConvention>,
 }
 
 /// Load config using the standard precedence order.
@@ -154,6 +167,9 @@ fn apply_partial(
         if let Some(suffix) = output.suffix {
             config.output.suffix = suffix;
         }
+        if let Some(naming_convention) = output.naming_convention {
+            config.output.naming_convention = naming_convention;
+        }
     }
     if let Some(acting_account) = partial.acting_account {
         config.acting_account = Some(acting_account);
@@ -178,6 +194,7 @@ mod tests {
         Config, DEFAULT_API_BASE_URL, DEFAULT_SCHEMA_DIR, DEFAULT_SCHEMA_SUFFIX,
         DEFAULT_WEBSITE_URL, load,
     };
+    use crate::schema_naming::NamingConvention;
     use serial_test::serial;
     use std::{ffi::OsString, path::PathBuf};
     use tempfile::TempDir;
@@ -240,6 +257,14 @@ mod tests {
     }
 
     #[test]
+    fn naming_convention_defaults_to_normal() {
+        assert_eq!(
+            Config::default().naming_convention(),
+            NamingConvention::Normal
+        );
+    }
+
+    #[test]
     fn output_suffix_defaults_to_schema_json() {
         assert_eq!(DEFAULT_SCHEMA_SUFFIX, ".schema.json");
         assert_eq!(Config::default().output_suffix(), ".schema.json");
@@ -280,6 +305,7 @@ website_url = "https://project-web.example"
 [output]
 schema_dir = "project-schemas"
 suffix = ".json"
+naming_convention = "flat"
 "#,
         )
         .expect("write project config");
@@ -291,6 +317,7 @@ suffix = ".json"
         assert_eq!(config.api_base_url, "https://env-api.example");
         assert_eq!(config.website_url, "https://project-web.example");
         assert_eq!(config.output_suffix(), ".json");
+        assert_eq!(config.naming_convention(), NamingConvention::Flat);
         assert_eq!(
             std::path::PathBuf::from(config.schema_dir()),
             workspace_dir

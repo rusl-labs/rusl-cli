@@ -28,7 +28,12 @@ where
         .context("Failed to initialize CAS store")?;
 
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let linker = Linker::new(cwd.clone(), config.schema_dir(), config.output_suffix());
+    let linker = Linker::new(
+        cwd.clone(),
+        config.schema_dir(),
+        config.output_suffix(),
+        config.naming_convention(),
+    );
     let manifest_path = cwd.join("rusl.bundle.toml");
 
     if !manifest_path.exists() {
@@ -84,7 +89,7 @@ where
 
         let (integrity, cas_path) = store.put(&blob).await?;
         integrity_map.insert(package_key.clone(), integrity);
-        linker.link_schema(&resource.identifier(), &cas_path)?;
+        linker.link_schema(&resource, &cas_path)?;
         schema_count += 1;
     }
 
@@ -286,28 +291,62 @@ mod tests {
         std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
         let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
 
-        std::fs::write(
-            workspace_dir.join("rusl.bundle.toml"),
-            r#"
-[rusl.resources]
-"hassox/schemas/root" = ">=1.0.0"
-"#,
-        )
-        .expect("write manifest");
-        std::fs::write(
-            workspace_dir.join("rusl.config.toml"),
-            r#"
-[output]
-schema_dir = "schemas/vendor"
-"#,
-        )
-        .expect("write config");
+        write_install_fixtures(&workspace_dir, None);
 
         let result = install_project(&TestProgress)
             .await
             .expect("install project");
 
         assert_eq!(result.schema_count, 2);
+
+        let root_schema = workspace_dir
+            .join("schemas")
+            .join("vendor")
+            .join("hassox")
+            .join("root.schema.json");
+        let dep_schema = workspace_dir
+            .join("schemas")
+            .join("vendor")
+            .join("hassox")
+            .join("dep.schema.json");
+        assert_eq!(
+            std::fs::read_to_string(&root_schema).expect("root schema"),
+            r#"{"title":"root","type":"object"}"#
+        );
+        assert_eq!(
+            std::fs::read_to_string(&dep_schema).expect("dep schema"),
+            r#"{"title":"dep","type":"object"}"#
+        );
+
+        assert_lockfile(&workspace_dir, &server.base_url);
+        assert_recorded_requests(&server).await;
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn installs_schemas_with_full_naming_convention() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        write_install_fixtures(
+            &workspace_dir,
+            Some(
+                r#"
+[output]
+schema_dir = "schemas/vendor"
+naming_convention = "full"
+"#,
+            ),
+        );
+
+        install_project(&TestProgress)
+            .await
+            .expect("install project");
 
         let root_schema = workspace_dir
             .join("schemas")
@@ -321,15 +360,68 @@ schema_dir = "schemas/vendor"
             .join("hassox")
             .join("schemas")
             .join("dep.schema.json");
-        assert_eq!(
-            std::fs::read_to_string(&root_schema).expect("root schema"),
-            r#"{"title":"root","type":"object"}"#
-        );
-        assert_eq!(
-            std::fs::read_to_string(&dep_schema).expect("dep schema"),
-            r#"{"title":"dep","type":"object"}"#
+        assert!(root_schema.is_file());
+        assert!(dep_schema.is_file());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn installs_schemas_with_flat_naming_convention() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        write_install_fixtures(
+            &workspace_dir,
+            Some(
+                r#"
+[output]
+schema_dir = "schemas/vendor"
+naming_convention = "flat"
+"#,
+            ),
         );
 
+        install_project(&TestProgress)
+            .await
+            .expect("install project");
+
+        let root_schema = workspace_dir
+            .join("schemas")
+            .join("vendor")
+            .join("hassox_root.schema.json");
+        let dep_schema = workspace_dir
+            .join("schemas")
+            .join("vendor")
+            .join("hassox_dep.schema.json");
+        assert!(root_schema.is_file());
+        assert!(dep_schema.is_file());
+    }
+
+    fn write_install_fixtures(workspace_dir: &std::path::Path, config_toml: Option<&str>) {
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = ">=1.0.0"
+"#,
+        )
+        .expect("write manifest");
+
+        let config = config_toml.unwrap_or(
+            r#"
+[output]
+schema_dir = "schemas/vendor"
+"#,
+        );
+        std::fs::write(workspace_dir.join("rusl.config.toml"), config).expect("write config");
+    }
+
+    fn assert_lockfile(workspace_dir: &std::path::Path, base_url: &str) {
         let lock: LockManifest = toml::from_str(
             &std::fs::read_to_string(workspace_dir.join("rusl.lock")).expect("read lockfile"),
         )
@@ -341,7 +433,7 @@ schema_dir = "schemas/vendor"
         );
         assert_eq!(
             lock.dependencies["schema:hassox/schemas/root"].source,
-            server.base_url
+            base_url
         );
         assert!(
             !lock.dependencies["schema:hassox/schemas/root"]
@@ -353,7 +445,9 @@ schema_dir = "schemas/vendor"
                 .integrity
                 .is_empty()
         );
+    }
 
+    async fn assert_recorded_requests(server: &TestServer) {
         assert_eq!(
             server.recorded_requests().await,
             vec![
