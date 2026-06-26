@@ -95,7 +95,7 @@ impl RuslApiClient {
         let response: models::AccessTokenResponse1 = self
             .execute_json(self.request(
                 reqwest::Method::POST,
-                "/api/tokens/exchange",
+                "/api/v1/tokens/exchange",
                 Some(refresh_token.to_string()),
             ))
             .await?;
@@ -110,7 +110,7 @@ impl RuslApiClient {
     ) -> Result<CliTokenExchange, ApiError> {
         self.post_json(
             None,
-            "/api/auth/cli/token",
+            "/api/v1/auth/cli/token",
             &Some(models::CliTokenExchangeRequest1 {
                 code,
                 code_verifier,
@@ -139,7 +139,7 @@ impl RuslApiClient {
         self.with_session(session, |access_token| {
             let request = request.clone();
             async move {
-                self.post_json(access_token, "/api/schemas/search", &Some(request))
+                self.post_json(access_token, "/api/v1/schemas/search", &Some(request))
                     .await
             }
         })
@@ -154,7 +154,7 @@ impl RuslApiClient {
         self.with_session(session, |access_token| {
             let request = request.clone();
             async move {
-                self.post_json(access_token, "/api/bundles/search", &Some(request))
+                self.post_json(access_token, "/api/v1/bundles/search", &Some(request))
                     .await
             }
         })
@@ -169,8 +169,12 @@ impl RuslApiClient {
         self.with_session(session, |access_token| {
             let request = request.clone();
             async move {
-                self.post_json(access_token, "/api/annotation-types/search", &Some(request))
-                    .await
+                self.post_json(
+                    access_token,
+                    "/api/v1/annotation-types/search",
+                    &Some(request),
+                )
+                .await
             }
         })
         .await
@@ -184,7 +188,7 @@ impl RuslApiClient {
         self.with_session(session, |access_token| {
             let request = request.clone();
             async move {
-                self.post_json(access_token, "/api/annotations/search", &Some(request))
+                self.post_json(access_token, "/api/v1/annotations/search", &Some(request))
                     .await
             }
         })
@@ -561,7 +565,8 @@ impl RuslApiClient {
         &self,
         access_token: Option<String>,
     ) -> Result<models::MeResponse, ApiError> {
-        self.get_json(access_token, "/api/auth/sessions/me").await
+        self.get_json(access_token, "/api/v1/auth/sessions/me")
+            .await
     }
 
     async fn request_search(
@@ -570,7 +575,7 @@ impl RuslApiClient {
         request: models::GlobalSearchRequest,
     ) -> Result<models::SearchResponse, ApiError> {
         // Search is public but auth-enhanced, so bearer injection has to remain in this boundary.
-        self.post_json(access_token, "/api/search", &Some(request))
+        self.post_json(access_token, "/api/v1/search", &Some(request))
             .await
     }
 
@@ -763,7 +768,7 @@ fn create_annotation_path(account_slug: &str) -> String {
 
 fn endorse_annotation_path(annotation_id: &str) -> String {
     format!(
-        "/api/annotations/{}/endorse",
+        "/api/v1/annotations/{}/endorse",
         generated::apis::urlencode(annotation_id)
     )
 }
@@ -810,7 +815,7 @@ fn annotation_type_path(account_slug: &str, annotation_type_slug: &str) -> Strin
 
 fn annotation_path(annotation_id: &str) -> String {
     format!(
-        "/api/annotations/{}",
+        "/api/v1/annotations/{}",
         generated::apis::urlencode(annotation_id)
     )
 }
@@ -922,7 +927,7 @@ mod tests {
         );
         assert_eq!(
             endorse_annotation_path("annotations.123/456"),
-            "/api/annotations/annotations.123%2F456/endorse"
+            "/api/v1/annotations/annotations.123%2F456/endorse"
         );
         assert_eq!(
             schema_path("hass ox", "common/schema"),
@@ -946,7 +951,7 @@ mod tests {
         );
         assert_eq!(
             annotation_path("annotations.123/456"),
-            "/api/annotations/annotations.123%2F456"
+            "/api/v1/annotations/annotations.123%2F456"
         );
         assert_eq!(create_schema_path("hass ox"), "/api/hass+ox/schemas");
         assert_eq!(

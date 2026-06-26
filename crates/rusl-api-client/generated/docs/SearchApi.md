@@ -4,16 +4,16 @@ All URIs are relative to *http://localhost:4000*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**rusl_web_api_search_controller_annotation_types**](SearchApi.md#rusl_web_api_search_controller_annotation_types) | **POST** /api/annotation-types/search | Search annotation types
-[**rusl_web_api_search_controller_annotation_types_0**](SearchApi.md#rusl_web_api_search_controller_annotation_types_0) | **POST** /api/annotation-types/search | Search annotation types
-[**rusl_web_api_search_controller_annotations**](SearchApi.md#rusl_web_api_search_controller_annotations) | **POST** /api/annotations/search | Search annotations
-[**rusl_web_api_search_controller_annotations_0**](SearchApi.md#rusl_web_api_search_controller_annotations_0) | **POST** /api/annotations/search | Search annotations
-[**rusl_web_api_search_controller_bundles**](SearchApi.md#rusl_web_api_search_controller_bundles) | **POST** /api/bundles/search | Search bundles
-[**rusl_web_api_search_controller_bundles_0**](SearchApi.md#rusl_web_api_search_controller_bundles_0) | **POST** /api/bundles/search | Search bundles
-[**rusl_web_api_search_controller_global**](SearchApi.md#rusl_web_api_search_controller_global) | **POST** /api/search | Search schemas, bundles, annotation types, and annotations
-[**rusl_web_api_search_controller_global_0**](SearchApi.md#rusl_web_api_search_controller_global_0) | **POST** /api/search | Search schemas, bundles, annotation types, and annotations
-[**rusl_web_api_search_controller_schemas**](SearchApi.md#rusl_web_api_search_controller_schemas) | **POST** /api/schemas/search | Search schemas
-[**rusl_web_api_search_controller_schemas_0**](SearchApi.md#rusl_web_api_search_controller_schemas_0) | **POST** /api/schemas/search | Search schemas
+[**rusl_web_api_search_controller_annotation_types**](SearchApi.md#rusl_web_api_search_controller_annotation_types) | **POST** /api/v1/annotation-types/search | Search annotation types
+[**rusl_web_api_search_controller_annotation_types_0**](SearchApi.md#rusl_web_api_search_controller_annotation_types_0) | **POST** /api/v1/annotation-types/search | Search annotation types
+[**rusl_web_api_search_controller_annotations**](SearchApi.md#rusl_web_api_search_controller_annotations) | **POST** /api/v1/annotations/search | Search annotations
+[**rusl_web_api_search_controller_annotations_0**](SearchApi.md#rusl_web_api_search_controller_annotations_0) | **POST** /api/v1/annotations/search | Search annotations
+[**rusl_web_api_search_controller_bundles**](SearchApi.md#rusl_web_api_search_controller_bundles) | **POST** /api/v1/bundles/search | Search bundles
+[**rusl_web_api_search_controller_bundles_0**](SearchApi.md#rusl_web_api_search_controller_bundles_0) | **POST** /api/v1/bundles/search | Search bundles
+[**rusl_web_api_search_controller_global**](SearchApi.md#rusl_web_api_search_controller_global) | **POST** /api/v1/search | Search schemas, bundles, annotation types, and annotations
+[**rusl_web_api_search_controller_global_0**](SearchApi.md#rusl_web_api_search_controller_global_0) | **POST** /api/v1/search | Search schemas, bundles, annotation types, and annotations
+[**rusl_web_api_search_controller_schemas**](SearchApi.md#rusl_web_api_search_controller_schemas) | **POST** /api/v1/schemas/search | Search schemas
+[**rusl_web_api_search_controller_schemas_0**](SearchApi.md#rusl_web_api_search_controller_schemas_0) | **POST** /api/v1/schemas/search | Search schemas
 
 
 

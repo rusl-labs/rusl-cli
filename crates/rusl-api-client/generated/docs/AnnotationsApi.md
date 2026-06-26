@@ -6,10 +6,10 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**rusl_web_api_annotation_controller_create**](AnnotationsApi.md#rusl_web_api_annotation_controller_create) | **POST** /api/{account_slug}/annotations | Create an annotation
 [**rusl_web_api_annotation_controller_create_0**](AnnotationsApi.md#rusl_web_api_annotation_controller_create_0) | **POST** /api/{account_slug}/annotations | Create an annotation
-[**rusl_web_api_annotation_controller_endorse**](AnnotationsApi.md#rusl_web_api_annotation_controller_endorse) | **POST** /api/annotations/{id}/endorse | Endorse an annotation
-[**rusl_web_api_annotation_controller_endorse_0**](AnnotationsApi.md#rusl_web_api_annotation_controller_endorse_0) | **POST** /api/annotations/{id}/endorse | Endorse an annotation
-[**rusl_web_api_annotation_controller_show**](AnnotationsApi.md#rusl_web_api_annotation_controller_show) | **GET** /api/annotations/{id} | Get a single annotation
-[**rusl_web_api_annotation_controller_show_0**](AnnotationsApi.md#rusl_web_api_annotation_controller_show_0) | **GET** /api/annotations/{id} | Get a single annotation
+[**rusl_web_api_annotation_controller_endorse**](AnnotationsApi.md#rusl_web_api_annotation_controller_endorse) | **POST** /api/v1/annotations/{id}/endorse | Endorse an annotation
+[**rusl_web_api_annotation_controller_endorse_0**](AnnotationsApi.md#rusl_web_api_annotation_controller_endorse_0) | **POST** /api/v1/annotations/{id}/endorse | Endorse an annotation
+[**rusl_web_api_annotation_controller_show**](AnnotationsApi.md#rusl_web_api_annotation_controller_show) | **GET** /api/v1/annotations/{id} | Get a single annotation
+[**rusl_web_api_annotation_controller_show_0**](AnnotationsApi.md#rusl_web_api_annotation_controller_show_0) | **GET** /api/v1/annotations/{id} | Get a single annotation
 
 
 

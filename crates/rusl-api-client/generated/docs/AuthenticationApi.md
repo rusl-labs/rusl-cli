@@ -4,12 +4,12 @@ All URIs are relative to *http://localhost:4000*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**rusl_web_api_cli_auth_controller_exchange**](AuthenticationApi.md#rusl_web_api_cli_auth_controller_exchange) | **POST** /api/auth/cli/token | Exchange CLI authorization code
-[**rusl_web_api_cli_auth_controller_exchange_0**](AuthenticationApi.md#rusl_web_api_cli_auth_controller_exchange_0) | **POST** /api/auth/cli/token | Exchange CLI authorization code
-[**rusl_web_api_session_controller_me**](AuthenticationApi.md#rusl_web_api_session_controller_me) | **GET** /api/auth/sessions/me | Get current session info
-[**rusl_web_api_session_controller_me_0**](AuthenticationApi.md#rusl_web_api_session_controller_me_0) | **GET** /api/auth/sessions/me | Get current session info
-[**rusl_web_api_tokens_controller_exchange**](AuthenticationApi.md#rusl_web_api_tokens_controller_exchange) | **POST** /api/tokens/exchange | Exchange Token
-[**rusl_web_api_tokens_controller_exchange_0**](AuthenticationApi.md#rusl_web_api_tokens_controller_exchange_0) | **POST** /api/tokens/exchange | Exchange Token
+[**rusl_web_api_cli_auth_controller_exchange**](AuthenticationApi.md#rusl_web_api_cli_auth_controller_exchange) | **POST** /api/v1/auth/cli/token | Exchange CLI authorization code
+[**rusl_web_api_cli_auth_controller_exchange_0**](AuthenticationApi.md#rusl_web_api_cli_auth_controller_exchange_0) | **POST** /api/v1/auth/cli/token | Exchange CLI authorization code
+[**rusl_web_api_session_controller_me**](AuthenticationApi.md#rusl_web_api_session_controller_me) | **GET** /api/v1/auth/sessions/me | Get current session info
+[**rusl_web_api_session_controller_me_0**](AuthenticationApi.md#rusl_web_api_session_controller_me_0) | **GET** /api/v1/auth/sessions/me | Get current session info
+[**rusl_web_api_tokens_controller_exchange**](AuthenticationApi.md#rusl_web_api_tokens_controller_exchange) | **POST** /api/v1/tokens/exchange | Exchange Token
+[**rusl_web_api_tokens_controller_exchange_0**](AuthenticationApi.md#rusl_web_api_tokens_controller_exchange_0) | **POST** /api/v1/tokens/exchange | Exchange Token
 
 
 

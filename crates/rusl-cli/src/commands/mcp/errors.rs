@@ -17,13 +17,13 @@ mod tests {
     fn mcp_errors_include_the_full_cause_chain() {
         let error = anyhow::anyhow!("socket closed")
             .context("Rusl API request failed before receiving a response")
-            .context("Failed to search registry at https://example.test/api/search");
+            .context("Failed to search registry at https://example.test/api/v1/search");
 
         let message = mcp_error_message(&error);
 
         assert_eq!(
             message,
-            "Failed to search registry at https://example.test/api/search: Rusl API request failed before receiving a response: socket closed"
+            "Failed to search registry at https://example.test/api/v1/search: Rusl API request failed before receiving a response: socket closed"
         );
     }
 }

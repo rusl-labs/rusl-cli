@@ -195,7 +195,7 @@ pub async fn rusl_web_api_annotation_controller_endorse(
     let p_path_id = id;
 
     let uri_str = format!(
-        "{}/api/annotations/{id}/endorse",
+        "{}/api/v1/annotations/{id}/endorse",
         configuration.base_path,
         id = crate::apis::urlencode(p_path_id)
     );
@@ -252,7 +252,7 @@ pub async fn rusl_web_api_annotation_controller_endorse_0(
     let p_path_id = id;
 
     let uri_str = format!(
-        "{}/api/annotations/{id}/endorse",
+        "{}/api/v1/annotations/{id}/endorse",
         configuration.base_path,
         id = crate::apis::urlencode(p_path_id)
     );
@@ -306,7 +306,7 @@ pub async fn rusl_web_api_annotation_controller_show(
     let p_path_id = id;
 
     let uri_str = format!(
-        "{}/api/annotations/{id}",
+        "{}/api/v1/annotations/{id}",
         configuration.base_path,
         id = crate::apis::urlencode(p_path_id)
     );
@@ -355,7 +355,7 @@ pub async fn rusl_web_api_annotation_controller_show_0(
     let p_path_id = id;
 
     let uri_str = format!(
-        "{}/api/annotations/{id}",
+        "{}/api/v1/annotations/{id}",
         configuration.base_path,
         id = crate::apis::urlencode(p_path_id)
     );

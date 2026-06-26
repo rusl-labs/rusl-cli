@@ -101,8 +101,8 @@ impl TestServer {
         };
 
         let app = Router::new()
-            .route("/api/tokens/exchange", post(exchange_handler))
-            .route("/api/auth/sessions/me", get(me_handler))
+            .route("/api/v1/tokens/exchange", post(exchange_handler))
+            .route("/api/v1/auth/sessions/me", get(me_handler))
             .with_state(state);
 
         let listener = TcpListener::bind("127.0.0.1:0")
@@ -145,7 +145,7 @@ async fn exchange_handler(
     State(state): State<TestState>,
     headers: HeaderMap,
 ) -> (StatusCode, Json<Value>) {
-    record_request(&state, "POST", "/api/tokens/exchange", &headers).await;
+    record_request(&state, "POST", "/api/v1/tokens/exchange", &headers).await;
     let response = next_response(&state.exchange_responses).await;
     (response.status, Json(response.body))
 }
@@ -154,7 +154,7 @@ async fn me_handler(
     State(state): State<TestState>,
     headers: HeaderMap,
 ) -> (StatusCode, Json<Value>) {
-    record_request(&state, "GET", "/api/auth/sessions/me", &headers).await;
+    record_request(&state, "GET", "/api/v1/auth/sessions/me", &headers).await;
     let response = next_response(&state.me_responses).await;
     (response.status, Json(response.body))
 }
@@ -219,13 +219,13 @@ async fn exchanges_refresh_token_before_request_when_access_token_is_missing() {
         vec![
             RecordedRequest::new(
                 "POST",
-                "/api/tokens/exchange",
+                "/api/v1/tokens/exchange",
                 Some("Bearer refresh-token"),
                 Some("rusl-test")
             ),
             RecordedRequest::new(
                 "GET",
-                "/api/auth/sessions/me",
+                "/api/v1/auth/sessions/me",
                 Some("Bearer fresh-access"),
                 Some("rusl-test")
             ),
@@ -255,14 +255,14 @@ async fn sends_rusl_agent_header_on_session_and_refresh_requests() {
         vec![
             RecordedRequest::new_with_agent(
                 "POST",
-                "/api/tokens/exchange",
+                "/api/v1/tokens/exchange",
                 Some("Bearer refresh-token"),
                 Some("rusl-test"),
                 Some("mcp")
             ),
             RecordedRequest::new_with_agent(
                 "GET",
-                "/api/auth/sessions/me",
+                "/api/v1/auth/sessions/me",
                 Some("Bearer fresh-access"),
                 Some("rusl-test"),
                 Some("mcp")
@@ -302,19 +302,19 @@ async fn refreshes_and_retries_once_after_an_unauthorized_response() {
         vec![
             RecordedRequest::new(
                 "GET",
-                "/api/auth/sessions/me",
+                "/api/v1/auth/sessions/me",
                 Some("Bearer stale-access"),
                 Some("rusl-test")
             ),
             RecordedRequest::new(
                 "POST",
-                "/api/tokens/exchange",
+                "/api/v1/tokens/exchange",
                 Some("Bearer refresh-token"),
                 Some("rusl-test")
             ),
             RecordedRequest::new(
                 "GET",
-                "/api/auth/sessions/me",
+                "/api/v1/auth/sessions/me",
                 Some("Bearer fresh-access"),
                 Some("rusl-test")
             ),
@@ -348,11 +348,11 @@ async fn clears_tokens_and_continues_unauthenticated_when_preflight_refresh_fail
         vec![
             RecordedRequest::new(
                 "POST",
-                "/api/tokens/exchange",
+                "/api/v1/tokens/exchange",
                 Some("Bearer expired-refresh"),
                 Some("rusl-test")
             ),
-            RecordedRequest::new("GET", "/api/auth/sessions/me", None, Some("rusl-test")),
+            RecordedRequest::new("GET", "/api/v1/auth/sessions/me", None, Some("rusl-test")),
         ]
     );
 }
@@ -389,17 +389,17 @@ async fn clears_tokens_and_retries_unauthenticated_when_refresh_after_401_fails(
         vec![
             RecordedRequest::new(
                 "GET",
-                "/api/auth/sessions/me",
+                "/api/v1/auth/sessions/me",
                 Some("Bearer stale-access"),
                 Some("rusl-test")
             ),
             RecordedRequest::new(
                 "POST",
-                "/api/tokens/exchange",
+                "/api/v1/tokens/exchange",
                 Some("Bearer expired-refresh"),
                 Some("rusl-test")
             ),
-            RecordedRequest::new("GET", "/api/auth/sessions/me", None, Some("rusl-test")),
+            RecordedRequest::new("GET", "/api/v1/auth/sessions/me", None, Some("rusl-test")),
         ]
     );
 }
@@ -429,19 +429,19 @@ async fn retries_only_once_after_refreshing_the_access_token() {
         vec![
             RecordedRequest::new(
                 "GET",
-                "/api/auth/sessions/me",
+                "/api/v1/auth/sessions/me",
                 Some("Bearer stale-access"),
                 Some("rusl-test")
             ),
             RecordedRequest::new(
                 "POST",
-                "/api/tokens/exchange",
+                "/api/v1/tokens/exchange",
                 Some("Bearer refresh-token"),
                 Some("rusl-test")
             ),
             RecordedRequest::new(
                 "GET",
-                "/api/auth/sessions/me",
+                "/api/v1/auth/sessions/me",
                 Some("Bearer fresh-access"),
                 Some("rusl-test")
             ),

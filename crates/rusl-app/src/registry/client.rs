@@ -716,9 +716,9 @@ mod tests {
             };
 
             let app = Router::new()
-                .route("/api/auth/sessions/me", get(me_handler))
-                .route("/api/tokens/exchange", post(exchange_handler))
-                .route("/api/search", post(search_handler))
+                .route("/api/v1/auth/sessions/me", get(me_handler))
+                .route("/api/v1/tokens/exchange", post(exchange_handler))
+                .route("/api/v1/search", post(search_handler))
                 .with_state(state);
 
             let listener = TcpListener::bind("127.0.0.1:0")
@@ -832,17 +832,17 @@ mod tests {
             vec![
                 RecordedRequest {
                     method: "GET",
-                    path: "/api/auth/sessions/me",
+                    path: "/api/v1/auth/sessions/me",
                     authorization: Some("Bearer stale-access".to_string()),
                 },
                 RecordedRequest {
                     method: "POST",
-                    path: "/api/tokens/exchange",
+                    path: "/api/v1/tokens/exchange",
                     authorization: Some("Bearer refresh-token".to_string()),
                 },
                 RecordedRequest {
                     method: "GET",
-                    path: "/api/auth/sessions/me",
+                    path: "/api/v1/auth/sessions/me",
                     authorization: Some("Bearer fresh-access".to_string()),
                 },
             ]
@@ -884,12 +884,12 @@ mod tests {
             vec![
                 RecordedRequest {
                     method: "POST",
-                    path: "/api/tokens/exchange",
+                    path: "/api/v1/tokens/exchange",
                     authorization: Some("Bearer expired-refresh".to_string()),
                 },
                 RecordedRequest {
                     method: "GET",
-                    path: "/api/auth/sessions/me",
+                    path: "/api/v1/auth/sessions/me",
                     authorization: None,
                 },
             ]
@@ -973,7 +973,7 @@ mod tests {
         State(state): State<TestState>,
         headers: HeaderMap,
     ) -> (StatusCode, Json<Value>) {
-        record_request(&state, "GET", "/api/auth/sessions/me", &headers).await;
+        record_request(&state, "GET", "/api/v1/auth/sessions/me", &headers).await;
         let response = next_response(&state.me_responses).await;
         (response.status, Json(response.body))
     }
@@ -982,7 +982,7 @@ mod tests {
         State(state): State<TestState>,
         headers: HeaderMap,
     ) -> (StatusCode, Json<Value>) {
-        record_request(&state, "POST", "/api/tokens/exchange", &headers).await;
+        record_request(&state, "POST", "/api/v1/tokens/exchange", &headers).await;
         let response = next_response(&state.exchange_responses).await;
         (response.status, Json(response.body))
     }

@@ -913,7 +913,7 @@ fn non_empty<T>(values: Vec<T>) -> Option<Vec<T>> {
 }
 
 fn registry_search_url(api_base_url: &str) -> String {
-    format!("{}/api/search", api_base_url.trim_end_matches('/'))
+    format!("{}/api/v1/search", api_base_url.trim_end_matches('/'))
 }
 
 #[cfg(test)]
@@ -1225,7 +1225,7 @@ mod tests {
     fn builds_registry_search_url_without_duplicate_slashes() {
         assert_eq!(
             registry_search_url("https://hassox.rusl-api.ngrok.io/"),
-            "https://hassox.rusl-api.ngrok.io/api/search"
+            "https://hassox.rusl-api.ngrok.io/api/v1/search"
         );
     }
 

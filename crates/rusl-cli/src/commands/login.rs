@@ -182,8 +182,8 @@ mod tests {
             };
 
             let app = Router::new()
-                .route("/api/auth/cli/token", post(token_handler))
-                .route("/api/tokens/exchange", post(exchange_handler))
+                .route("/api/v1/auth/cli/token", post(token_handler))
+                .route("/api/v1/tokens/exchange", post(exchange_handler))
                 .with_state(state);
 
             let listener = TcpListener::bind("127.0.0.1:0")
@@ -332,12 +332,12 @@ mod tests {
         let requests = server.recorded_requests().await;
         assert_eq!(requests.len(), 2);
         assert_eq!(requests[0].method, "POST");
-        assert_eq!(requests[0].path, "/api/auth/cli/token");
+        assert_eq!(requests[0].path, "/api/v1/auth/cli/token");
         assert_eq!(requests[0].authorization, None);
         assert!(requests[0].body.contains("\"code\":\"browser-code\""));
         assert!(requests[0].body.contains("\"code_verifier\":\""));
         assert_eq!(requests[1].method, "POST");
-        assert_eq!(requests[1].path, "/api/tokens/exchange");
+        assert_eq!(requests[1].path, "/api/v1/tokens/exchange");
         assert_eq!(
             requests[1].authorization.as_deref(),
             Some("Bearer refresh-token")
@@ -457,7 +457,7 @@ mod tests {
 
         let requests = server.recorded_requests().await;
         assert_eq!(requests.len(), 1);
-        assert_eq!(requests[0].path, "/api/auth/cli/token");
+        assert_eq!(requests[0].path, "/api/v1/auth/cli/token");
     }
 
     async fn token_handler(
@@ -468,7 +468,7 @@ mod tests {
         record_request(
             &state,
             "POST",
-            "/api/auth/cli/token",
+            "/api/v1/auth/cli/token",
             &headers,
             String::from_utf8(body.to_vec()).expect("utf8 request body"),
         )
@@ -487,7 +487,7 @@ mod tests {
         record_request(
             &state,
             "POST",
-            "/api/tokens/exchange",
+            "/api/v1/tokens/exchange",
             &headers,
             String::new(),
         )
