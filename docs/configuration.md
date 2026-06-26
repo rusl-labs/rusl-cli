@@ -41,7 +41,7 @@ Resource keys identify registry resources:
 | Schema | `account/schemas/slug` | `acme/schemas/user-profile` |
 | Bundle | `account/bundles/slug` | `acme/bundles/common` |
 
-When a key appears in `[rusl.resources]`, Rusl infers the resource type from that shape. Use canonical `account/schemas/slug` and `account/bundles/slug` forms. Shorter schema and bundle forms accepted for compatibility are normalized before they are written.
+When a key appears in `[rusl.resources]`, Rusl infers the resource type from that shape. Keys must use the canonical `account/schemas/slug` and `account/bundles/slug` forms.
 
 ### Version Requirements
 
@@ -75,16 +75,7 @@ The supported dependency table for new manifests.
 | --- | --- | --- | --- |
 | resource identifier keys | string map | empty | Direct schema and bundle dependencies. Keys are canonical resource identifiers, and values are version requirement strings. |
 
-`rusl add` creates `[rusl.resources]` if it is missing. `rusl remove` removes entries from this table first.
-
-### Compatibility Tables
-
-Rusl still reads older manifest tables for compatibility:
-
-| Table | Status | Meaning |
-| --- | --- | --- |
-| `[schemas]` | legacy | Schema dependencies as `account/slug = "version requirement"`. Prefer `[rusl.resources]`. |
-| `[bundles]` | legacy | Bundle dependencies as `account/bundles/slug = "version requirement"`. Prefer `[rusl.resources]`. |
+Keys must be canonical resource identifiers (`account/schemas/name` or `account/bundles/name`); the kind is inferred from the identifier. `rusl add` creates `[rusl.resources]` if it is missing, and `rusl remove` removes entries from it.
 
 The manifest parser also accepts `[external]` and `[overrides]`, but current install and resolution flows do not act on them. Do not use them in public manifests yet.
 

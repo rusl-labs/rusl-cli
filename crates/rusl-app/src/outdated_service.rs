@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn formats_registry_display_names() {
         assert_eq!(
-            display_package_key("bundle:acme/common"),
+            display_package_key("bundle:acme/bundles/common"),
             "acme/bundles/common"
         );
         assert_eq!(
@@ -149,7 +149,8 @@ mod tests {
 
     #[test]
     fn parses_registry_targets() {
-        let target = parse_registry_target("bundle:acme/common").expect("target should parse");
+        let target =
+            parse_registry_target("bundle:acme/bundles/common").expect("target should parse");
 
         assert_eq!(target.account, "acme");
         assert_eq!(target.slug, "common");

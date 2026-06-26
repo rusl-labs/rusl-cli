@@ -51,18 +51,10 @@ pub struct LogoutArgs {}
 #[derive(Parser, Debug)]
 pub struct WhoamiArgs {}
 
-#[derive(clap::ValueEnum, Clone, Debug)]
-pub enum DepType {
-    Schema,
-    Bundle,
-}
-
 #[derive(Parser, Debug)]
 pub struct AddArgs {
-    /// The mathematical category to index the dependency inside
-    pub kind: DepType,
-    /// The unique package identifier (e.g., rusl/schemas/common)
-    pub slug: String,
+    /// The canonical resource identifier (e.g. acme/schemas/payment or acme/bundles/billing)
+    pub identifier: String,
     /// An optional specific version requirement (e.g. >= 1.0.0). Defaults to latest if omitted.
     #[arg(long, short)]
     pub version: Option<String>,
@@ -70,10 +62,8 @@ pub struct AddArgs {
 
 #[derive(Parser, Debug)]
 pub struct RemoveArgs {
-    /// The mathematical category to drop the dependency from
-    pub kind: DepType,
-    /// The unique package identifier (e.g., rusl/schemas/common)
-    pub slug: String,
+    /// The canonical resource identifier (e.g. acme/schemas/payment or acme/bundles/billing)
+    pub identifier: String,
 }
 
 #[derive(Parser, Debug)]

@@ -12,14 +12,6 @@ pub struct BundleManifest {
     #[serde(default)]
     pub rusl: RuslManifest,
 
-    /// The schemas directly required by this project
-    #[serde(default)]
-    pub schemas: HashMap<String, String>,
-
-    /// The nested bundles directly required by this project
-    #[serde(default)]
-    pub bundles: HashMap<String, String>,
-
     /// External schemas pulled by pure HTTP(S) URL
     #[serde(default)]
     pub external: HashMap<String, String>,

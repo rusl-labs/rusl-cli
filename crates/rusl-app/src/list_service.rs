@@ -1,9 +1,6 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::manifest::lock::LockManifest;
-use crate::resource_identifier::{
-    RegistryResource, ResourceKind, display_package_key, package_key_for,
-    package_key_from_identifier,
-};
+use crate::resource_identifier::{display_package_key, package_key_from_identifier};
 use anyhow::{Context, Result, bail};
 use std::collections::HashSet;
 use std::env;
@@ -106,18 +103,6 @@ fn build_tree_view(cwd: &std::path::Path, lock: &LockManifest) -> Result<ListTre
         .resources
         .keys()
         .filter_map(|identifier| package_key_from_identifier(identifier))
-        .chain(
-            manifest
-                .schemas
-                .keys()
-                .filter_map(|name| package_key_for(ResourceKind::Schema, name)),
-        )
-        .chain(
-            manifest
-                .bundles
-                .keys()
-                .filter_map(|name| package_key_for(ResourceKind::Bundle, name)),
-        )
         .collect::<Vec<_>>();
     root_deps.sort();
     root_deps.dedup();
@@ -129,7 +114,11 @@ fn build_tree_view(cwd: &std::path::Path, lock: &LockManifest) -> Result<ListTre
         .collect();
 
     Ok(ListTreeView {
-        root_name: display_optional_bundle_identifier(manifest.bundle.name.as_deref()),
+        root_name: manifest
+            .bundle
+            .name
+            .clone()
+            .unwrap_or_else(|| LOCAL_BUNDLE_NAME.to_string()),
         root_version: manifest
             .bundle
             .version
@@ -176,18 +165,6 @@ fn is_external_source(source: &str) -> bool {
         .any(|marker| source.contains(marker))
 }
 
-fn display_bundle_identifier(identifier: &str) -> String {
-    RegistryResource::bundle(identifier)
-        .map(|resource| resource.identifier())
-        .unwrap_or_else(|| identifier.to_string())
-}
-
-fn display_optional_bundle_identifier(identifier: Option<&str>) -> String {
-    identifier
-        .map(display_bundle_identifier)
-        .unwrap_or_else(|| LOCAL_BUNDLE_NAME.to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
@@ -206,7 +183,7 @@ mod tests {
     #[test]
     fn formats_dependency_display_names() {
         assert_eq!(
-            display_package_key("bundle:acme/common"),
+            display_package_key("bundle:acme/bundles/common"),
             "acme/bundles/common"
         );
         assert_eq!(

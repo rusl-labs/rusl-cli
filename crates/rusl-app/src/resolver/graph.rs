@@ -1,7 +1,7 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::registry::client::RegistryClient;
 use crate::resource_identifier::{
-    RegistryResource, ResourceKind, package_key_for, package_key_from_identifier, parse_package_key,
+    RegistryResource, ResourceKind, package_key_from_identifier, parse_package_key,
 };
 use anyhow::{Context, Result};
 use pubgrub::{
@@ -52,12 +52,9 @@ where
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
 
-    let root_pkg = manifest
-        .bundle
-        .name
-        .as_deref()
-        .and_then(|name| package_key_for(ResourceKind::Bundle, name))
-        .unwrap_or_else(|| format!("bundle:{LOCAL_ROOT_PACKAGE}"));
+    // The local project is anonymous to the resolver. `[bundle].name` is a free-form local label,
+    // not a published bundle identifier, so the root node is always the local sentinel.
+    let root_pkg = format!("bundle:{LOCAL_ROOT_PACKAGE}");
     let root_version: SemanticVersion = manifest
         .bundle
         .version
@@ -74,30 +71,6 @@ where
             progress.println(format!(
                 "Warning: Invalid resource identifier: {identifier}"
             ));
-            continue;
-        };
-        let range = parse_version_range(req).unwrap_or(Ranges::full());
-        root_deps.push((key.clone(), range));
-        if visited.insert(key.clone()) {
-            queue.push_back(key);
-        }
-    }
-
-    for (name, req) in &manifest.schemas {
-        let Some(key) = package_key_for(ResourceKind::Schema, name) else {
-            progress.println(format!("Warning: Invalid schema identifier: {name}"));
-            continue;
-        };
-        let range = parse_version_range(req).unwrap_or(Ranges::full());
-        root_deps.push((key.clone(), range));
-        if visited.insert(key.clone()) {
-            queue.push_back(key);
-        }
-    }
-
-    for (name, req) in &manifest.bundles {
-        let Some(key) = package_key_for(ResourceKind::Bundle, name) else {
-            progress.println(format!("Warning: Invalid bundle identifier: {name}"));
             continue;
         };
         let range = parse_version_range(req).unwrap_or(Ranges::full());

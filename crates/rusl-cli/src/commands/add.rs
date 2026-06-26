@@ -1,14 +1,13 @@
-use crate::cli::{AddArgs, DepType};
+use crate::cli::AddArgs;
 use anyhow::Result;
 use colored::Colorize;
-use rusl_app::dependency_service::{self, AddDependencyRequest, DependencyKind};
+use rusl_app::dependency_service::{self, AddDependencyRequest};
 use rusl_app::resolver::graph::ProgressReporter;
 
 pub async fn run(args: AddArgs) -> Result<()> {
     let progress = CliDependencyProgress::new();
     let request = AddDependencyRequest {
-        kind: map_dependency_kind(args.kind),
-        slug: args.slug,
+        identifier: args.identifier,
         version_requirement: args.version,
     };
 
@@ -46,12 +45,5 @@ impl ProgressReporter for CliDependencyProgress {
 
     fn println(&self, message: String) {
         self.spinner.println(message);
-    }
-}
-
-fn map_dependency_kind(kind: DepType) -> DependencyKind {
-    match kind {
-        DepType::Schema => DependencyKind::Schema,
-        DepType::Bundle => DependencyKind::Bundle,
     }
 }

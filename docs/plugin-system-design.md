@@ -448,7 +448,7 @@ rusl/gen-response@1.0.0   — JSON Schema for the generation response
 
 ### Benefits
 
-1. **Plugin authors** can `rusl add schema rusl/gen-request` and use their own typescript/python/go generator to create typed bindings for the protocol
+1. **Plugin authors** can `rusl add rusl/schemas/gen-request` and use their own typescript/python/go generator to create typed bindings for the protocol
 2. **rusl CLI itself** uses these schemas — the Rust types for the protocol are generated from the schemas using rusl's own codegen (true dogfooding)
 3. **Validation** — rusl can validate plugin output against `rusl/gen-response` before writing files
 4. **Versioning** — protocol changes are tracked as schema version bumps with semver
