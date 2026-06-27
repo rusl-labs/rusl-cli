@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd "$script_dir/.." && pwd)
-spec_url=${RUSL_OPENAPI_URL:-http://localhost:4000/api/openapi/cli}
+spec_url=${RUSL_OPENAPI_URL:-http://localhost:4000/api/v1/openapi/cli}
 output_path=${1:-$repo_root/openapi/rusl-openapi.json}
 
 echo "Fetching OpenAPI spec from $spec_url..."

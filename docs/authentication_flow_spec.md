@@ -39,7 +39,7 @@ When the browser redirects to `http://127.0.0.1:14321/callback`:
 2. The CLI immediately destroys the local HTTP server and prints "Login Successful" to the browser.
 3. The CLI makes a secure **POST** request directly to the Backend API:
 ```http
-POST /api/auth/token
+POST /api/v1/auth/token
 Content-Type: application/json
 
 {
@@ -51,7 +51,7 @@ Content-Type: application/json
 ---
 
 ## 4. The Verification & Credential Storage (Backend Action)
-When the Backend receives the `POST /api/auth/token`:
+When the Backend receives the `POST /api/v1/auth/token`:
 1. The Backend manually hashes the plaintext `code_verifier` provided by the CLI using `SHA-256`.
 2. The Backend compares this hash to the `<HASH>` it saved earlier in Step 2.
 3. **If they completely match:** The Backend has cryptographic proof that the process making the HTTP request is the exact same process that initiated the browser session, completely thwarting malware interception!

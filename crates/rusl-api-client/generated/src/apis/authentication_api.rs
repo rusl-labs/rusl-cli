@@ -84,7 +84,7 @@ pub async fn rusl_web_api_cli_auth_controller_exchange(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_cli_token_exchange_request1 = cli_token_exchange_request1;
 
-    let uri_str = format!("{}/api/auth/cli/token", configuration.base_path);
+    let uri_str = format!("{}/api/v1/auth/cli/token", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -131,7 +131,7 @@ pub async fn rusl_web_api_cli_auth_controller_exchange_0(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_cli_token_exchange_request1 = cli_token_exchange_request1;
 
-    let uri_str = format!("{}/api/auth/cli/token", configuration.base_path);
+    let uri_str = format!("{}/api/v1/auth/cli/token", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -175,7 +175,7 @@ pub async fn rusl_web_api_cli_auth_controller_exchange_0(
 pub async fn rusl_web_api_session_controller_me(
     configuration: &configuration::Configuration,
 ) -> Result<models::MeResponse, Error<RuslWebApiSessionControllerMeError>> {
-    let uri_str = format!("{}/api/auth/sessions/me", configuration.base_path);
+    let uri_str = format!("{}/api/v1/auth/sessions/me", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref user_agent) = configuration.user_agent {
@@ -216,7 +216,7 @@ pub async fn rusl_web_api_session_controller_me(
 pub async fn rusl_web_api_session_controller_me_0(
     configuration: &configuration::Configuration,
 ) -> Result<models::MeResponse, Error<RuslWebApiSessionControllerMe0Error>> {
-    let uri_str = format!("{}/api/auth/sessions/me", configuration.base_path);
+    let uri_str = format!("{}/api/v1/auth/sessions/me", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref user_agent) = configuration.user_agent {
@@ -257,7 +257,7 @@ pub async fn rusl_web_api_session_controller_me_0(
 pub async fn rusl_web_api_tokens_controller_exchange(
     configuration: &configuration::Configuration,
 ) -> Result<models::AccessTokenResponse1, Error<RuslWebApiTokensControllerExchangeError>> {
-    let uri_str = format!("{}/api/tokens/exchange", configuration.base_path);
+    let uri_str = format!("{}/api/v1/tokens/exchange", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -303,7 +303,7 @@ pub async fn rusl_web_api_tokens_controller_exchange(
 pub async fn rusl_web_api_tokens_controller_exchange_0(
     configuration: &configuration::Configuration,
 ) -> Result<models::AccessTokenResponse1, Error<RuslWebApiTokensControllerExchange0Error>> {
-    let uri_str = format!("{}/api/tokens/exchange", configuration.base_path);
+    let uri_str = format!("{}/api/v1/tokens/exchange", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);

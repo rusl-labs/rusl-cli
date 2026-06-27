@@ -161,7 +161,7 @@ pub async fn rusl_web_api_search_controller_annotation_types(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_annotation_type_search_request = annotation_type_search_request;
 
-    let uri_str = format!("{}/api/annotation-types/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/annotation-types/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -209,7 +209,7 @@ pub async fn rusl_web_api_search_controller_annotation_types_0(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_annotation_type_search_request = annotation_type_search_request;
 
-    let uri_str = format!("{}/api/annotation-types/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/annotation-types/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -257,7 +257,7 @@ pub async fn rusl_web_api_search_controller_annotations(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_annotation_search_request = annotation_search_request;
 
-    let uri_str = format!("{}/api/annotations/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/annotations/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -305,7 +305,7 @@ pub async fn rusl_web_api_search_controller_annotations_0(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_annotation_search_request = annotation_search_request;
 
-    let uri_str = format!("{}/api/annotations/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/annotations/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -353,7 +353,7 @@ pub async fn rusl_web_api_search_controller_bundles(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_bundle_search_request = bundle_search_request;
 
-    let uri_str = format!("{}/api/bundles/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/bundles/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -401,7 +401,7 @@ pub async fn rusl_web_api_search_controller_bundles_0(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_bundle_search_request = bundle_search_request;
 
-    let uri_str = format!("{}/api/bundles/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/bundles/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -449,7 +449,7 @@ pub async fn rusl_web_api_search_controller_global(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_global_search_request = global_search_request;
 
-    let uri_str = format!("{}/api/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -497,7 +497,7 @@ pub async fn rusl_web_api_search_controller_global_0(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_global_search_request = global_search_request;
 
-    let uri_str = format!("{}/api/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -545,7 +545,7 @@ pub async fn rusl_web_api_search_controller_schemas(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_schema_search_request = schema_search_request;
 
-    let uri_str = format!("{}/api/schemas/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/schemas/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -593,7 +593,7 @@ pub async fn rusl_web_api_search_controller_schemas_0(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_schema_search_request = schema_search_request;
 
-    let uri_str = format!("{}/api/schemas/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/schemas/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);

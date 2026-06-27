@@ -400,7 +400,7 @@ pub async fn rusl_web_api_annotation_controller_endorse(
     let p_path_id = id;
 
     let uri_str = format!(
-        "{}/api/annotations/{id}/endorse",
+        "{}/api/v1/annotations/{id}/endorse",
         configuration.base_path,
         id = crate::apis::urlencode(p_path_id)
     );
@@ -454,7 +454,7 @@ pub async fn rusl_web_api_annotation_controller_show(
     let p_path_id = id;
 
     let uri_str = format!(
-        "{}/api/annotations/{id}",
+        "{}/api/v1/annotations/{id}",
         configuration.base_path,
         id = crate::apis::urlencode(p_path_id)
     );
@@ -669,7 +669,7 @@ pub async fn rusl_web_api_cli_auth_controller_exchange(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_cli_token_exchange_request1 = cli_token_exchange_request1;
 
-    let uri_str = format!("{}/api/auth/cli/token", configuration.base_path);
+    let uri_str = format!("{}/api/v1/auth/cli/token", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -1420,7 +1420,7 @@ pub async fn rusl_web_api_search_controller_annotation_types(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_annotation_type_search_request = annotation_type_search_request;
 
-    let uri_str = format!("{}/api/annotation-types/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/annotation-types/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -1468,7 +1468,7 @@ pub async fn rusl_web_api_search_controller_annotations(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_annotation_search_request = annotation_search_request;
 
-    let uri_str = format!("{}/api/annotations/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/annotations/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -1516,7 +1516,7 @@ pub async fn rusl_web_api_search_controller_bundles(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_bundle_search_request = bundle_search_request;
 
-    let uri_str = format!("{}/api/bundles/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/bundles/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -1564,7 +1564,7 @@ pub async fn rusl_web_api_search_controller_global(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_global_search_request = global_search_request;
 
-    let uri_str = format!("{}/api/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -1612,7 +1612,7 @@ pub async fn rusl_web_api_search_controller_schemas(
     // add a prefix to parameters to efficiently prevent name collisions
     let p_body_schema_search_request = schema_search_request;
 
-    let uri_str = format!("{}/api/schemas/search", configuration.base_path);
+    let uri_str = format!("{}/api/v1/schemas/search", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);
@@ -1656,7 +1656,7 @@ pub async fn rusl_web_api_search_controller_schemas(
 pub async fn rusl_web_api_session_controller_me(
     configuration: &configuration::Configuration,
 ) -> Result<models::MeResponse, Error<RuslWebApiSessionControllerMeError>> {
-    let uri_str = format!("{}/api/auth/sessions/me", configuration.base_path);
+    let uri_str = format!("{}/api/v1/auth/sessions/me", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref user_agent) = configuration.user_agent {
@@ -1697,7 +1697,7 @@ pub async fn rusl_web_api_session_controller_me(
 pub async fn rusl_web_api_tokens_controller_exchange(
     configuration: &configuration::Configuration,
 ) -> Result<models::AccessTokenResponse1, Error<RuslWebApiTokensControllerExchangeError>> {
-    let uri_str = format!("{}/api/tokens/exchange", configuration.base_path);
+    let uri_str = format!("{}/api/v1/tokens/exchange", configuration.base_path);
     let mut req_builder = configuration
         .client
         .request(reqwest::Method::POST, &uri_str);

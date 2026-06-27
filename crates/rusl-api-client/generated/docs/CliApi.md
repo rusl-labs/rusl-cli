@@ -5,12 +5,12 @@ All URIs are relative to *http://localhost:4000*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**rusl_web_api_annotation_controller_create**](CliApi.md#rusl_web_api_annotation_controller_create) | **POST** /api/{account_slug}/annotations | Create an annotation
-[**rusl_web_api_annotation_controller_endorse**](CliApi.md#rusl_web_api_annotation_controller_endorse) | **POST** /api/annotations/{id}/endorse | Endorse an annotation
-[**rusl_web_api_annotation_controller_show**](CliApi.md#rusl_web_api_annotation_controller_show) | **GET** /api/annotations/{id} | Get a single annotation
+[**rusl_web_api_annotation_controller_endorse**](CliApi.md#rusl_web_api_annotation_controller_endorse) | **POST** /api/v1/annotations/{id}/endorse | Endorse an annotation
+[**rusl_web_api_annotation_controller_show**](CliApi.md#rusl_web_api_annotation_controller_show) | **GET** /api/v1/annotations/{id} | Get a single annotation
 [**rusl_web_api_annotation_type_controller_show**](CliApi.md#rusl_web_api_annotation_type_controller_show) | **GET** /api/{account_slug}/annotation_types/{annotation_type_slug} | Fetch a registered annotation type
 [**rusl_web_api_bundle_controller_show**](CliApi.md#rusl_web_api_bundle_controller_show) | **GET** /api/{account_slug}/bundles/{bundle_slug} | Fetch a bundle
 [**rusl_web_api_bundle_version_controller_show**](CliApi.md#rusl_web_api_bundle_version_controller_show) | **GET** /api/{account_slug}/bundles/{bundle_slug}/versions/{version} | Fetch a bundle version
-[**rusl_web_api_cli_auth_controller_exchange**](CliApi.md#rusl_web_api_cli_auth_controller_exchange) | **POST** /api/auth/cli/token | Exchange CLI authorization code
+[**rusl_web_api_cli_auth_controller_exchange**](CliApi.md#rusl_web_api_cli_auth_controller_exchange) | **POST** /api/v1/auth/cli/token | Exchange CLI authorization code
 [**rusl_web_api_proposal_controller_create**](CliApi.md#rusl_web_api_proposal_controller_create) | **POST** /api/{account_slug}/schemas/{schema_slug}/proposals | Create proposals
 [**rusl_web_api_proposal_controller_show**](CliApi.md#rusl_web_api_proposal_controller_show) | **GET** /api/{account_slug}/schemas/{schema_slug}/proposals/{proposal_number} | Show a proposal
 [**rusl_web_api_proposal_controller_update**](CliApi.md#rusl_web_api_proposal_controller_update) | **PATCH** /api/{account_slug}/schemas/{schema_slug}/proposals/{proposal_number} | Update a proposal
@@ -21,13 +21,13 @@ Method | HTTP request | Description
 [**rusl_web_api_schema_controller_show**](CliApi.md#rusl_web_api_schema_controller_show) | **GET** /api/{account_slug}/schemas/{schema_slug} | Fetch a schema
 [**rusl_web_api_schema_version_controller_example_data_index**](CliApi.md#rusl_web_api_schema_version_controller_example_data_index) | **GET** /api/{account_slug}/schemas/{schema_slug}/example_data | List schema example data
 [**rusl_web_api_schema_version_controller_show**](CliApi.md#rusl_web_api_schema_version_controller_show) | **GET** /api/{account_slug}/schemas/{schema_slug}/versions/{version} | Show a Schema Version
-[**rusl_web_api_search_controller_annotation_types**](CliApi.md#rusl_web_api_search_controller_annotation_types) | **POST** /api/annotation-types/search | Search annotation types
-[**rusl_web_api_search_controller_annotations**](CliApi.md#rusl_web_api_search_controller_annotations) | **POST** /api/annotations/search | Search annotations
-[**rusl_web_api_search_controller_bundles**](CliApi.md#rusl_web_api_search_controller_bundles) | **POST** /api/bundles/search | Search bundles
-[**rusl_web_api_search_controller_global**](CliApi.md#rusl_web_api_search_controller_global) | **POST** /api/search | Search schemas, bundles, annotation types, and annotations
-[**rusl_web_api_search_controller_schemas**](CliApi.md#rusl_web_api_search_controller_schemas) | **POST** /api/schemas/search | Search schemas
-[**rusl_web_api_session_controller_me**](CliApi.md#rusl_web_api_session_controller_me) | **GET** /api/auth/sessions/me | Get current session info
-[**rusl_web_api_tokens_controller_exchange**](CliApi.md#rusl_web_api_tokens_controller_exchange) | **POST** /api/tokens/exchange | Exchange Token
+[**rusl_web_api_search_controller_annotation_types**](CliApi.md#rusl_web_api_search_controller_annotation_types) | **POST** /api/v1/annotation-types/search | Search annotation types
+[**rusl_web_api_search_controller_annotations**](CliApi.md#rusl_web_api_search_controller_annotations) | **POST** /api/v1/annotations/search | Search annotations
+[**rusl_web_api_search_controller_bundles**](CliApi.md#rusl_web_api_search_controller_bundles) | **POST** /api/v1/bundles/search | Search bundles
+[**rusl_web_api_search_controller_global**](CliApi.md#rusl_web_api_search_controller_global) | **POST** /api/v1/search | Search schemas, bundles, annotation types, and annotations
+[**rusl_web_api_search_controller_schemas**](CliApi.md#rusl_web_api_search_controller_schemas) | **POST** /api/v1/schemas/search | Search schemas
+[**rusl_web_api_session_controller_me**](CliApi.md#rusl_web_api_session_controller_me) | **GET** /api/v1/auth/sessions/me | Get current session info
+[**rusl_web_api_tokens_controller_exchange**](CliApi.md#rusl_web_api_tokens_controller_exchange) | **POST** /api/v1/tokens/exchange | Exchange Token
 [**rusl_web_raw_bundle_metadata_controller_show**](CliApi.md#rusl_web_raw_bundle_metadata_controller_show) | **GET** /resources/{account_slug}/bundles/{bundle_slug}/metadata | Bundle resolution metadata index
 [**rusl_web_raw_schema_controller_show**](CliApi.md#rusl_web_raw_schema_controller_show) | **GET** /resources/{account_slug}/schemas/{schema_slug_and_version} | Serve raw JSON schema content
 [**rusl_web_raw_schema_metadata_controller_show**](CliApi.md#rusl_web_raw_schema_metadata_controller_show) | **GET** /resources/{account_slug}/schemas/{schema_slug}/metadata | Schema resolution metadata index
