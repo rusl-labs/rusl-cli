@@ -1,6 +1,6 @@
 use crate::resource_identifier::RegistryResource;
 use crate::schema_naming::installed_schema_path;
-use crate::{config, registry::client::RegistryClient};
+use crate::{config, feedback_schemas, registry::client::RegistryClient};
 use anyhow::{Context, Result, bail};
 use rusl_api_client::{models, rusl_user_agent_with_context};
 use serde::{Deserialize, Serialize};
@@ -141,11 +141,17 @@ pub async fn endorse_with_user_agent_context(
 }
 
 pub fn feedback_content_schema(kind: FeedbackAnnotationKind) -> Result<Value> {
-    let path = feedback_schema_path(kind)?;
-    let contents = std::fs::read_to_string(&path)
-        .with_context(|| missing_feedback_schema_message(kind, &path))?;
-    serde_json::from_str(&contents)
-        .with_context(|| format!("Failed to parse feedback schema at {}", path.display()))
+    if let Ok(path) = feedback_schema_path(kind)
+        && let Ok(contents) = std::fs::read_to_string(&path)
+    {
+        return serde_json::from_str(&contents)
+            .with_context(|| format!("Failed to parse feedback schema at {}", path.display()));
+    }
+
+    let embedded = feedback_schemas::embedded_feedback_schema_json(kind.slug())
+        .with_context(|| format!("Feedback schema {} is not available", kind.slug()))?;
+    serde_json::from_str(embedded)
+        .with_context(|| format!("Failed to parse embedded feedback schema {}", kind.slug()))
 }
 
 pub fn validate_feedback_content(kind: FeedbackAnnotationKind, content: &Value) -> Result<()> {
@@ -234,14 +240,6 @@ fn feedback_schema_path(kind: FeedbackAnnotationKind) -> Result<PathBuf> {
         &resource,
         config.output_suffix(),
     ))
-}
-
-fn missing_feedback_schema_message(kind: FeedbackAnnotationKind, path: &std::path::Path) -> String {
-    format!(
-        "Feedback schema {} is not installed at {}. Add rusl/bundles/feedback-schemas to rusl.bundle.toml and run `rusl install` to install the schema snapshot.",
-        kind.slug(),
-        path.display()
-    )
 }
 
 fn annotation_id_from_guid(subject_guid: &str) -> String {

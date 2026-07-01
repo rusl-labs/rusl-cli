@@ -2,6 +2,12 @@ use reqwest::StatusCode;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::future::Future;
 
+pub mod handwritten;
+
+pub use handwritten::{
+    AcceptSchemaProposalRequest, CreateAnnotationTypeRequest, CreateBundleRequest,
+    CreateBundleVersionRequest,
+};
 pub use rusl_openapi_client as generated;
 pub use rusl_openapi_client::models;
 
@@ -367,6 +373,84 @@ impl RuslApiClient {
             let path = path.clone();
             let request = request.clone();
             async move { self.patch_json(access_token, &path, &Some(request)).await }
+        })
+        .await
+    }
+
+    pub async fn accept_schema_proposal(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        request: AcceptSchemaProposalRequest,
+    ) -> Result<models::RuslWebApiProposalControllerCreate201Response, ApiError> {
+        let path = schema_proposal_accept_path(account_slug, schema_slug, proposal_number);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &request).await }
+        })
+        .await
+    }
+
+    pub async fn create_bundle(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        request: CreateBundleRequest,
+    ) -> Result<models::RuslWebApiBundleControllerShow200Response, ApiError> {
+        let path = create_bundle_path(account_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &request).await }
+        })
+        .await
+    }
+
+    pub async fn create_annotation_type(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        request: CreateAnnotationTypeRequest,
+    ) -> Result<models::RuslWebApiAnnotationTypeControllerShow200Response, ApiError> {
+        let path = create_annotation_type_path(account_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &request).await }
+        })
+        .await
+    }
+
+    pub async fn create_bundle_version(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        bundle_slug: &str,
+        request: CreateBundleVersionRequest,
+    ) -> Result<models::RuslWebApiBundleVersionControllerShow200Response, ApiError> {
+        let path = create_bundle_versions_path(account_slug, bundle_slug);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            let request = request.clone();
+            async move { self.post_json(access_token, &path, &request).await }
+        })
+        .await
+    }
+
+    pub async fn publish_bundle_version(
+        &self,
+        session: &mut SessionTokens,
+        account_slug: &str,
+        bundle_slug: &str,
+        version: &str,
+    ) -> Result<models::RuslWebApiBundleVersionControllerShow200Response, ApiError> {
+        let path = publish_bundle_version_path(account_slug, bundle_slug, version);
+        self.with_session(session, |access_token| {
+            let path = path.clone();
+            async move { self.post_empty(access_token, &path).await }
         })
         .await
     }
@@ -840,6 +924,39 @@ fn schema_proposal_path(account_slug: &str, schema_slug: &str, proposal_number: 
     )
 }
 
+fn schema_proposal_accept_path(
+    account_slug: &str,
+    schema_slug: &str,
+    proposal_number: i32,
+) -> String {
+    format!(
+        "{}/accept",
+        schema_proposal_path(account_slug, schema_slug, proposal_number)
+    )
+}
+
+fn create_bundle_path(account_slug: &str) -> String {
+    format!("/api/{}/bundles", generated::apis::urlencode(account_slug))
+}
+
+fn create_annotation_type_path(account_slug: &str) -> String {
+    format!(
+        "/api/{}/annotation_types",
+        generated::apis::urlencode(account_slug)
+    )
+}
+
+fn create_bundle_versions_path(account_slug: &str, bundle_slug: &str) -> String {
+    format!("{}/versions", bundle_path(account_slug, bundle_slug))
+}
+
+fn publish_bundle_version_path(account_slug: &str, bundle_slug: &str, version: &str) -> String {
+    format!(
+        "{}/publish",
+        bundle_version_path(account_slug, bundle_slug, version)
+    )
+}
+
 fn proposal_review_threads_path(
     account_slug: &str,
     schema_slug: &str,
@@ -878,11 +995,13 @@ fn schema_examples_path(account_slug: &str, schema_slug: &str) -> String {
 mod tests {
     use super::{
         annotation_path, annotation_type_path, bundle_path, bundle_version_path,
-        create_annotation_path, create_schema_path, endorse_annotation_path, normalize_base_url,
-        proposal_review_thread_comments_path, proposal_review_threads_path,
-        raw_bundle_metadata_path, raw_schema_document_path, raw_schema_metadata_path,
-        rusl_user_agent, rusl_user_agent_with_context, schema_examples_path, schema_path,
-        schema_proposal_path, schema_proposals_path, schema_version_path,
+        create_annotation_path, create_annotation_type_path, create_bundle_path,
+        create_bundle_versions_path, create_schema_path, endorse_annotation_path,
+        normalize_base_url, proposal_review_thread_comments_path, proposal_review_threads_path,
+        publish_bundle_version_path, raw_bundle_metadata_path, raw_schema_document_path,
+        raw_schema_metadata_path, rusl_user_agent, rusl_user_agent_with_context,
+        schema_examples_path, schema_path, schema_proposal_accept_path, schema_proposal_path,
+        schema_proposals_path, schema_version_path,
     };
 
     #[test]
@@ -973,6 +1092,23 @@ mod tests {
         assert_eq!(
             schema_examples_path("hass ox", "common/schema"),
             "/api/hass+ox/schemas/common%2Fschema/example_data"
+        );
+        assert_eq!(
+            schema_proposal_accept_path("hass ox", "common/schema", 1),
+            "/api/hass+ox/schemas/common%2Fschema/proposals/1/accept"
+        );
+        assert_eq!(create_bundle_path("hass ox"), "/api/hass+ox/bundles");
+        assert_eq!(
+            create_annotation_type_path("hass ox"),
+            "/api/hass+ox/annotation_types"
+        );
+        assert_eq!(
+            create_bundle_versions_path("hass ox", "bundle/main"),
+            "/api/hass+ox/bundles/bundle%2Fmain/versions"
+        );
+        assert_eq!(
+            publish_bundle_version_path("hass ox", "bundle/main", "1.0.0"),
+            "/api/hass+ox/bundles/bundle%2Fmain/versions/1.0.0/publish"
         );
     }
 }

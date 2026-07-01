@@ -1,9 +1,12 @@
 pub mod account_service;
 pub mod annotation_service;
+pub mod annotation_type_service;
+pub mod bundle_service;
 pub mod cache;
 pub mod cache_service;
 pub mod config;
 pub mod dependency_service;
+pub mod feedback_schemas;
 pub mod install_service;
 pub mod list_service;
 pub mod login_service;

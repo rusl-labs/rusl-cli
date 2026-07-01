@@ -23,7 +23,7 @@ struct RuslMcpServer;
 impl McpHandler for RuslMcpServer {
     fn server_info(&self) -> ServerInfo {
         ServerInfo::new("rusl", env!("CARGO_PKG_VERSION"))
-            .with_description("Search visible Rusl resources, fetch full resource records, inspect examples, manage proposals, and create feedback annotations. Search is a discovery surface; use get_schema, get_bundle, get_annotation_type, or get_annotation when full content is needed.")
+            .with_description("Search visible Rusl resources, fetch full resource records, inspect examples, manage proposals and bundles, register annotation types, and create feedback annotations. Search is a discovery surface; use get_schema, get_bundle, get_annotation_type, or get_annotation when full content is needed.")
     }
 
     fn list_tools(&self) -> Vec<Tool> {
@@ -31,6 +31,8 @@ impl McpHandler for RuslMcpServer {
         tools.extend(tools::resource::definitions());
         tools.extend(tools::feedback::definitions());
         tools.extend(tools::proposal::definitions());
+        tools.extend(tools::bundle::definitions());
+        tools.push(tools::annotation_type::definition());
         tools.push(tools::schema_examples::definition());
         tools
     }
@@ -63,6 +65,12 @@ impl McpHandler for RuslMcpServer {
                         tools::proposal::kind_for_tool(resource_or_proposal_tool)
                     {
                         tools::proposal::call(kind, args).await
+                    } else if let Some(kind) =
+                        tools::bundle::kind_for_tool(resource_or_proposal_tool)
+                    {
+                        tools::bundle::call(kind, args).await
+                    } else if tools::annotation_type::is_tool(resource_or_proposal_tool) {
+                        tools::annotation_type::call(args).await
                     } else if let Some(kind) =
                         tools::feedback::kind_for_tool(resource_or_proposal_tool)
                     {
