@@ -1,4 +1,30 @@
+use crate::models;
 use serde::{Deserialize, Serialize};
+
+/// Response envelope for `POST /api/{account_slug}/annotations`.
+///
+/// The Phoenix API always wraps single-resource responses in `{data:
+/// ...}`, and every other create-flavoured endpoint has a generated
+/// `RuslWebApi*Controller*200Response` model to match. The annotation
+/// controller lacks one in the current OpenAPI snapshot — the
+/// generator emits `Result<models::Annotation, _>` directly, which
+/// then fails to decode against the `{data: ...}` wrapper the server
+/// actually sends.
+///
+/// This envelope is a stopgap: when the upstream OpenAPI spec is
+/// updated to describe a `RuslWebApiAnnotationControllerCreate201Response`
+/// (mirroring the annotation-type / bundle / schema ones), regenerate
+/// and delete this struct.
+#[derive(Debug, Clone, Deserialize)]
+pub struct AnnotationEnvelope {
+    /// Present on success. The controller returns the created (or
+    /// pre-existing, for cardinality-1 types) annotation.
+    #[serde(default)]
+    pub data: Option<Box<models::Annotation>>,
+    /// Present on structured error responses.
+    #[serde(default)]
+    pub errors: Option<Vec<models::Error2>>,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct AcceptSchemaProposalRequest {

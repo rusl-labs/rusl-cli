@@ -33,6 +33,7 @@ impl McpHandler for RuslMcpServer {
         tools.extend(tools::proposal::definitions());
         tools.extend(tools::bundle::definitions());
         tools.push(tools::annotation_type::definition());
+        tools.push(tools::annotation::definition());
         tools.push(tools::schema_examples::definition());
         tools
     }
@@ -71,6 +72,8 @@ impl McpHandler for RuslMcpServer {
                         tools::bundle::call(kind, args).await
                     } else if tools::annotation_type::is_tool(resource_or_proposal_tool) {
                         tools::annotation_type::call(args).await
+                    } else if tools::annotation::is_tool(resource_or_proposal_tool) {
+                        tools::annotation::call(args).await
                     } else if let Some(kind) =
                         tools::feedback::kind_for_tool(resource_or_proposal_tool)
                     {
@@ -228,6 +231,7 @@ mod tests {
         );
 
         assert!(tools.iter().any(|tool| tool.name == "endorse"));
+        assert!(tools.iter().any(|tool| tool.name == "create_annotation"));
         assert!(tools.iter().any(|tool| tool.name == "get_schema"));
         assert!(tools.iter().any(|tool| tool.name == "get_bundle"));
         assert!(tools.iter().any(|tool| tool.name == "get_annotation_type"));
