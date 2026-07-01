@@ -433,6 +433,101 @@ impl RegistryClient {
         Ok(response)
     }
 
+    pub async fn accept_schema_proposal(
+        &self,
+        account_slug: &str,
+        schema_slug: &str,
+        proposal_number: i32,
+        request: rusl_api_client::AcceptSchemaProposalRequest,
+    ) -> Result<models::RuslWebApiProposalControllerCreate201Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .accept_schema_proposal(
+                &mut session,
+                account_slug,
+                schema_slug,
+                proposal_number,
+                request,
+            )
+            .await
+            .map_err(map_api_error)
+            .context("Failed to accept schema proposal")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn create_bundle(
+        &self,
+        account_slug: &str,
+        request: rusl_api_client::CreateBundleRequest,
+    ) -> Result<models::RuslWebApiBundleControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_bundle(&mut session, account_slug, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to create bundle")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn create_annotation_type(
+        &self,
+        account_slug: &str,
+        request: rusl_api_client::CreateAnnotationTypeRequest,
+    ) -> Result<models::RuslWebApiAnnotationTypeControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_annotation_type(&mut session, account_slug, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to create annotation type")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn create_bundle_version(
+        &self,
+        account_slug: &str,
+        bundle_slug: &str,
+        request: rusl_api_client::CreateBundleVersionRequest,
+    ) -> Result<models::RuslWebApiBundleVersionControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .create_bundle_version(&mut session, account_slug, bundle_slug, request)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to create bundle version")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
+    pub async fn publish_bundle_version(
+        &self,
+        account_slug: &str,
+        bundle_slug: &str,
+        version: &str,
+    ) -> Result<models::RuslWebApiBundleVersionControllerShow200Response> {
+        let (mut credentials, mut session) = self.load_session()?;
+        let response = self
+            .api
+            .publish_bundle_version(&mut session, account_slug, bundle_slug, version)
+            .await
+            .map_err(map_api_error)
+            .context("Failed to publish bundle version")?;
+
+        self.persist_session(&mut credentials, &session)?;
+        Ok(response)
+    }
+
     pub async fn list_proposal_review_threads(
         &self,
         account_slug: &str,

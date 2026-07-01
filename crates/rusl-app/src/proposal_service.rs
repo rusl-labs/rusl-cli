@@ -36,6 +36,15 @@ pub struct GetSchemaProposalRequest {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct AcceptSchemaProposalRequest {
+    pub account_slug: String,
+    pub schema_slug: String,
+    pub proposal_number: i32,
+    pub version: Option<String>,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct UpdateSchemaProposalRequest {
     pub account_slug: String,
     pub schema_slug: String,
@@ -250,6 +259,28 @@ pub async fn update_schema_proposal_with_user_agent_context(
     Ok(map_proposal(*proposal))
 }
 
+pub async fn accept_schema_proposal_with_user_agent_context(
+    request: AcceptSchemaProposalRequest,
+    context: &str,
+) -> Result<ProposalOutput> {
+    require_login()?;
+    let config = config::load().context("Failed to load network configurations")?;
+    let user_agent = rusl_user_agent_with_context(env!("CARGO_PKG_VERSION"), context);
+    let client = RegistryClient::with_user_agent_and_rusl_agent(config, user_agent, context);
+    let account_slug = request.account_slug.clone();
+    let schema_slug = request.schema_slug.clone();
+    let proposal_number = request.proposal_number;
+    let api_request = to_api_accept_schema_proposal_request(request);
+    let response = client
+        .accept_schema_proposal(&account_slug, &schema_slug, proposal_number, api_request)
+        .await?;
+    let Some(proposal) = response.data else {
+        bail!("Rusl API did not return accepted proposal data");
+    };
+
+    Ok(map_proposal(*proposal))
+}
+
 pub async fn list_proposal_review_threads_with_user_agent_context(
     request: ProposalReviewThreadsRequest,
     context: &str,
@@ -426,6 +457,15 @@ fn to_api_update_schema_proposal_request(
     );
     api_request.description = request.description;
     api_request
+}
+
+fn to_api_accept_schema_proposal_request(
+    request: AcceptSchemaProposalRequest,
+) -> rusl_api_client::AcceptSchemaProposalRequest {
+    rusl_api_client::AcceptSchemaProposalRequest {
+        version: request.version,
+        description: request.description,
+    }
 }
 
 fn to_api_create_review_thread_request(

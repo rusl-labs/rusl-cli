@@ -1,9 +1,9 @@
 use crate::commands::mcp::{MCP_AGENT, errors::to_mcp_error};
 use rusl_app::proposal_service::{
-    self, CreateProposalReviewThreadRequest, CreateSchemaProposalRequest, CreateSchemaRequest,
-    ExampleDataInput, GetProposalReviewThreadRequest, GetSchemaProposalRequest,
-    ProposalReviewThreadsRequest, ReplyToProposalReviewThreadRequest, SchemaVisibility,
-    UpdateSchemaProposalRequest,
+    self, AcceptSchemaProposalRequest, CreateProposalReviewThreadRequest,
+    CreateSchemaProposalRequest, CreateSchemaRequest, ExampleDataInput,
+    GetProposalReviewThreadRequest, GetSchemaProposalRequest, ProposalReviewThreadsRequest,
+    ReplyToProposalReviewThreadRequest, SchemaVisibility, UpdateSchemaProposalRequest,
 };
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -27,6 +27,7 @@ pub(in crate::commands::mcp) enum ProposalToolKind {
     GetReviewThread,
     CreateReviewThread,
     ReplyToReviewThread,
+    AcceptSchemaProposal,
 }
 
 const PROPOSAL_TOOLS: &[ProposalToolSpec] = &[
@@ -69,6 +70,11 @@ const PROPOSAL_TOOLS: &[ProposalToolSpec] = &[
         name: "reply_to_proposal_review_thread",
         description: "Use to respond in an existing proposal review thread after reading the relevant thread context. Omit parent_comment_id to reply to the root comment.",
         kind: ProposalToolKind::ReplyToReviewThread,
+    },
+    ProposalToolSpec {
+        name: "accept_schema_proposal",
+        description: "Use after review to accept a pending schema proposal and publish its content as a new schema version. Requires user authorization.",
+        kind: ProposalToolKind::AcceptSchemaProposal,
     },
 ];
 
@@ -178,6 +184,17 @@ pub(in crate::commands::mcp) async fn call(
             .map_err(to_mcp_error)?;
             json_result(&output, "reply to proposal review thread")
         }
+        ProposalToolKind::AcceptSchemaProposal => {
+            let request: AcceptSchemaProposalToolRequest =
+                deserialize_request(args, "accept_schema_proposal")?;
+            let output = proposal_service::accept_schema_proposal_with_user_agent_context(
+                request.into_service_request()?,
+                MCP_AGENT,
+            )
+            .await
+            .map_err(to_mcp_error)?;
+            json_result(&output, "accept schema proposal")
+        }
     }
 }
 
@@ -195,6 +212,7 @@ fn input_schema(kind: ProposalToolKind) -> ToolInputSchema {
         ProposalToolKind::ReplyToReviewThread => {
             schema_for::<ReplyToProposalReviewThreadToolRequest>()
         }
+        ProposalToolKind::AcceptSchemaProposal => schema_for::<AcceptSchemaProposalToolRequest>(),
     };
 
     ToolInputSchema::from_value(value)
@@ -475,6 +493,34 @@ impl ReplyToProposalReviewThreadToolRequest {
     }
 }
 
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+struct AcceptSchemaProposalToolRequest {
+    #[schemars(description = "Account slug that owns the schema.")]
+    account_slug: String,
+    #[schemars(description = "Schema slug for the proposal.")]
+    schema_slug: String,
+    #[schemars(description = "Proposal number within the schema.")]
+    proposal_number: i32,
+    #[schemars(
+        description = "Optional version override. Must be greater than or equal to the proposal's proposed version."
+    )]
+    version: Option<String>,
+    #[schemars(description = "Optional description override for the created schema version.")]
+    description: Option<String>,
+}
+
+impl AcceptSchemaProposalToolRequest {
+    fn into_service_request(self) -> McpResult<AcceptSchemaProposalRequest> {
+        Ok(AcceptSchemaProposalRequest {
+            account_slug: self.account_slug,
+            schema_slug: self.schema_slug,
+            proposal_number: positive_proposal_number(self.proposal_number)?,
+            version: self.version,
+            description: self.description,
+        })
+    }
+}
+
 fn positive_proposal_number(value: i32) -> McpResult<i32> {
     if value < 1 {
         return Err(McpError::invalid_params(
@@ -506,6 +552,7 @@ mod tests {
         assert!(tool_names.contains(&"get_proposal_review_thread"));
         assert!(tool_names.contains(&"create_proposal_review_thread"));
         assert!(tool_names.contains(&"reply_to_proposal_review_thread"));
+        assert!(tool_names.contains(&"accept_schema_proposal"));
         assert!(kind_for_tool("list_proposal_review_threads").is_some());
     }
 
