@@ -105,8 +105,8 @@ These rules are mechanical. Follow them unless the user explicitly overrides a s
 ## Editing Discipline
 
 15. **Re-read before edit**
-    - Re-read files before editing them.
-    - Re-read after editing to confirm the actual final state.
+    - Re-read a file before editing if it may have changed since you last read it.
+    - Trust successful edit results; re-read only when a later change may have altered the file.
 
 16. **Do not leave architectural drift behind**
     - If you touch a boundary, move the code toward the intended layer instead of adding more leakage.
