@@ -336,7 +336,16 @@ impl RegistryClient {
             .context("Failed to create annotation")?;
 
         self.persist_session(&mut credentials, &session)?;
-        Ok(response)
+
+        // The API wraps the created annotation in a `{data: ...}`
+        // envelope like every other create endpoint. `AnnotationEnvelope`
+        // is a stopgap for the missing generated response model — see
+        // `rusl_api_client::handwritten::AnnotationEnvelope`. Callers
+        // expect a bare `Annotation`, so unwrap here.
+        response
+            .data
+            .map(|boxed| *boxed)
+            .ok_or_else(|| anyhow!("Rusl API returned no annotation data"))
     }
 
     pub async fn endorse_annotation(

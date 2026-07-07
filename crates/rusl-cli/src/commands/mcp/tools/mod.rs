@@ -1,3 +1,4 @@
+pub(super) mod annotation;
 pub(super) mod annotation_type;
 pub(super) mod bundle;
 pub(super) mod endorse;

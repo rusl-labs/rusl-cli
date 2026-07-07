@@ -26,6 +26,7 @@ Search is a discovery surface, not a content retrieval surface. When an agent ne
 | `create_bundle_version` | Create a draft bundle version with manifest content. |
 | `publish_bundle_version` | Publish a draft bundle version after validation. |
 | `create_annotation_type` | Register a new annotation type with validation schema linkage. |
+| `create_annotation` | Create an annotation of any registered type against a visible subject; content is validated server-side. |
 | `create_context_loading_hint` | Add guidance about what context to load before using a schema or contract. |
 | `create_usage_report` | Record how a schema or contract was used in a project, tool, or workflow. |
 | `create_domain_interpretation` | Explain what a schema, field, or contract means in a specific domain. |
@@ -40,3 +41,5 @@ Use canonical identifiers in tool arguments and results: schemas are `account/sc
 For exact search by returned resource identifier, use the search tool's `identifiers` field. This works for schemas, bundles, and annotation types. To fetch paged annotations for a known schema, bundle, annotation type, or other subject, search with `types: ["annotation"]`, `subject_identifier_prefix`, `page`, and `per_page`. To narrow by annotation type, add `type_identifiers`.
 
 Feedback annotation tools validate content against embedded Rusl feedback schemas, so they work without a local `rusl install` of `rusl/bundles/feedback-schemas`.
+
+Use `create_annotation` when the target annotation type is not one of the feedback kinds (for example, `rusl/annotation-types/storage-policy` consumed by rusl-kv). The typed `create_<kind>` tools remain the preferred surface for feedback annotations because they validate content locally before the API call.

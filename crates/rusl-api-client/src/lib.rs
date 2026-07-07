@@ -5,8 +5,8 @@ use std::future::Future;
 pub mod handwritten;
 
 pub use handwritten::{
-    AcceptSchemaProposalRequest, CreateAnnotationTypeRequest, CreateBundleRequest,
-    CreateBundleVersionRequest,
+    AcceptSchemaProposalRequest, AnnotationEnvelope, CreateAnnotationTypeRequest,
+    CreateBundleRequest, CreateBundleVersionRequest,
 };
 pub use rusl_openapi_client as generated;
 pub use rusl_openapi_client::models;
@@ -291,7 +291,7 @@ impl RuslApiClient {
         session: &mut SessionTokens,
         account_slug: &str,
         request: models::RuslWebApiAnnotationControllerCreateRequest,
-    ) -> Result<models::Annotation, ApiError> {
+    ) -> Result<AnnotationEnvelope, ApiError> {
         let path = create_annotation_path(account_slug);
         self.with_session(session, |access_token| {
             let path = path.clone();
