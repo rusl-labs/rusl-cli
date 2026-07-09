@@ -11,7 +11,7 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Install and link schemas defined in the rusl.bundle.toml
+    /// Install schemas defined in rusl.bundle.toml as portable project files
     Install(InstallArgs),
     /// Add a dependency into the local `rusl.bundle.toml` and instantly install it
     Add(AddArgs),
@@ -268,7 +268,7 @@ pub struct WhyArgs {
 
 #[derive(Parser, Debug)]
 pub struct CacheArgs {
-    /// Remove the global content cache and local linked schema cache
+    /// Remove the global content cache and local installed schema files
     #[arg(long)]
     pub clear: bool,
 }

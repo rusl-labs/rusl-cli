@@ -301,12 +301,10 @@ mod tests {
 
         let root_schema = workspace_dir
             .join("schemas")
-            .join("vendor")
             .join("hassox")
             .join("root.schema.json");
         let dep_schema = workspace_dir
             .join("schemas")
-            .join("vendor")
             .join("hassox")
             .join("dep.schema.json");
         assert_eq!(
@@ -317,9 +315,61 @@ mod tests {
             std::fs::read_to_string(&dep_schema).expect("dep schema"),
             r#"{"title":"dep","type":"object"}"#
         );
+        assert_portable_regular_file(&root_schema);
+        assert_portable_regular_file(&dep_schema);
 
         assert_lockfile(&workspace_dir, &server.base_url);
         assert_recorded_requests(&server).await;
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn reinstall_replaces_absolute_symlinks_with_portable_copies() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        write_install_fixtures(&workspace_dir, None);
+
+        let stale_dir = workspace_dir.join("schemas").join("hassox");
+        std::fs::create_dir_all(&stale_dir).expect("create stale schema dir");
+        let stale_path = stale_dir.join("root.schema.json");
+        let missing_store = workspace_dir
+            .join("Application Support")
+            .join("rusl")
+            .join("store")
+            .join("oldhash")
+            .join("schema.json");
+
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink(&missing_store, &stale_path)
+                .expect("create absolute stale symlink");
+            assert!(
+                std::fs::symlink_metadata(&stale_path)
+                    .expect("stale metadata")
+                    .file_type()
+                    .is_symlink()
+            );
+        }
+        #[cfg(not(unix))]
+        {
+            std::fs::write(&stale_path, r#"{"title":"stale"}"#).expect("write stale file");
+        }
+
+        install_project(&TestProgress)
+            .await
+            .expect("install project");
+
+        assert_portable_regular_file(&stale_path);
+        assert_eq!(
+            std::fs::read_to_string(&stale_path).expect("root schema"),
+            r#"{"title":"root","type":"object"}"#
+        );
     }
 
     #[tokio::test]
@@ -412,13 +462,27 @@ naming_convention = "flat"
         )
         .expect("write manifest");
 
-        let config = config_toml.unwrap_or(
-            r#"
-[output]
-schema_dir = "schemas/vendor"
-"#,
+        match config_toml {
+            Some(config) => {
+                std::fs::write(workspace_dir.join("rusl.config.toml"), config)
+                    .expect("write config");
+            }
+            None => {
+                // Default install path is ./schemas with no project config.
+            }
+        }
+    }
+
+    fn assert_portable_regular_file(path: &std::path::Path) {
+        let metadata = std::fs::symlink_metadata(path).expect("read file metadata");
+        assert!(
+            metadata.file_type().is_file(),
+            "expected regular file at {path:?}"
         );
-        std::fs::write(workspace_dir.join("rusl.config.toml"), config).expect("write config");
+        assert!(
+            !metadata.file_type().is_symlink(),
+            "expected no symlink at {path:?}"
+        );
     }
 
     fn assert_lockfile(workspace_dir: &std::path::Path, base_url: &str) {
