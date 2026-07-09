@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | **serde_json::Value** | JSON Schema example data for verification |
+**data** | Option<**serde_json::Value**> | Example instance data (any valid JSON value) for verification |
 **id** | **String** | Example data ID |
 **inserted_at** | **String** | Inserted At |
 **position** | **i32** | 1-based order within the schema version |

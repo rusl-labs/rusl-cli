@@ -22,6 +22,11 @@ pub enum NamingConvention {
 
 impl SchemaPathNaming for NamingConvention {
     fn relative_path(&self, resource: &RegistryResource) -> String {
+        // `resource.slug` is the final identifier segment, treated opaquely. For a
+        // packaged schema it is the compound `package.leaf` (e.g.
+        // `payments.checkout`) and therefore contains dots — the dots become part
+        // of the file stem, and the compound keeps same-leaf schemas in different
+        // packages from colliding under every convention.
         match self {
             Self::Full => resource.identifier(),
             Self::Normal => format!("{}/{}", resource.account, resource.slug),
@@ -105,6 +110,47 @@ mod tests {
             NamingConvention::Flat.relative_path(&resource),
             "acme_user-profile"
         );
+    }
+
+    #[test]
+    fn packaged_compound_slug_is_preserved_in_paths() {
+        let resource =
+            RegistryResource::schema("acme/schemas/payments.checkout").expect("schema resource");
+        assert_eq!(
+            NamingConvention::Full.relative_path(&resource),
+            "acme/schemas/payments.checkout"
+        );
+        assert_eq!(
+            NamingConvention::Normal.relative_path(&resource),
+            "acme/payments.checkout"
+        );
+        assert_eq!(
+            NamingConvention::Flat.relative_path(&resource),
+            "acme_payments.checkout"
+        );
+    }
+
+    #[test]
+    fn same_leaf_in_different_packages_never_collides() {
+        // Two schemas share the leaf `checkout` but live in different packages.
+        // The compound final segment must keep their install paths distinct under
+        // every naming convention, or one would overwrite the other on disk.
+        let payments =
+            RegistryResource::schema("acme/schemas/payments.checkout").expect("schema resource");
+        let billing =
+            RegistryResource::schema("acme/schemas/billing.checkout").expect("schema resource");
+
+        for convention in [
+            NamingConvention::Full,
+            NamingConvention::Normal,
+            NamingConvention::Flat,
+        ] {
+            assert_ne!(
+                convention.relative_path(&payments),
+                convention.relative_path(&billing),
+                "{convention:?} collided two same-leaf schemas from different packages"
+            );
+        }
     }
 
     #[test]

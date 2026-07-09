@@ -90,10 +90,17 @@ Keys in `[rusl.resources]` identify registry resources:
 | Resource | Format | Example |
 | --- | --- | --- |
 | Schema | `account/schemas/slug` | `acme/schemas/user-profile` |
+| Schema (packaged) | `account/schemas/package.slug` | `acme/schemas/payments.checkout` |
 | Bundle | `account/bundles/slug` | `acme/bundles/common` |
 
 Identifiers must use the canonical forms above; the resource kind is inferred from the
 `schemas`/`bundles` segment.
+
+A schema can live under a package: a dotted namespace folded into the final identifier
+segment (`acme/schemas/payments.checkout` is the `checkout` schema in the `payments`
+package). Treat the final segment as opaque — pass the identifier through verbatim and
+never split the package from the leaf. A schema without a package is simply not packaged
+and its identifier is unchanged.
 
 #### Version requirements
 

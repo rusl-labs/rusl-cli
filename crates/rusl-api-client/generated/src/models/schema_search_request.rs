@@ -36,6 +36,15 @@ pub struct SchemaSearchRequest {
     /// Optional response groups to add to the selected view.
     #[serde(rename = "include", skip_serializing_if = "Option::is_none")]
     pub include: Option<Vec<Include>>,
+    /// Restrict results to a package path and its whole subtree (the node itself plus every descendant). Dot-anchored, so `payments` does not match `payments2`.
+    #[serde(
+        rename = "package_descendants",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub package_descendants: Option<String>,
+    /// Restrict results to schemas directly in any of these exact package paths (direct members only, not their subtrees). Example: `payments.checkout`.
+    #[serde(rename = "package_paths", skip_serializing_if = "Option::is_none")]
+    pub package_paths: Option<Vec<String>>,
     #[serde(rename = "page", skip_serializing_if = "Option::is_none")]
     pub page: Option<i32>,
     #[serde(rename = "per_page", skip_serializing_if = "Option::is_none")]
@@ -61,6 +70,8 @@ impl SchemaSearchRequest {
             identifier_prefix: None,
             identifiers: None,
             include: None,
+            package_descendants: None,
+            package_paths: None,
             page: None,
             per_page: None,
             q: None,

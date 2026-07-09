@@ -98,6 +98,9 @@ pub struct Annotation {
         skip_serializing_if = "Option::is_none"
     )]
     pub validation_schema_identifier: Option<Option<String>>,
+    /// Annotation visibility. Defaults to the annotation type's visibility; PRIVATE on a public subject is readable only by the annotator's account members (paid capability)
+    #[serde(rename = "visibility")]
+    pub visibility: Visibility,
 }
 
 impl Annotation {
@@ -113,6 +116,7 @@ impl Annotation {
         subject_guid: String,
         r#type: String,
         type_cardinality: TypeCardinality,
+        visibility: Visibility,
     ) -> Annotation {
         Annotation {
             __typename,
@@ -134,6 +138,7 @@ impl Annotation {
             updated_at: None,
             validated_at_version: None,
             validation_schema_identifier: None,
+            visibility,
         }
     }
 }
@@ -177,5 +182,19 @@ pub enum TypeCardinality {
 impl Default for TypeCardinality {
     fn default() -> TypeCardinality {
         Self::OnePerSubjectPerAccount
+    }
+}
+/// Annotation visibility. Defaults to the annotation type's visibility; PRIVATE on a public subject is readable only by the annotator's account members (paid capability)
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Visibility {
+    #[serde(rename = "PUBLIC")]
+    Public,
+    #[serde(rename = "PRIVATE")]
+    Private,
+}
+
+impl Default for Visibility {
+    fn default() -> Visibility {
+        Self::Public
     }
 }

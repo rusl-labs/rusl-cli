@@ -28,6 +28,6 @@ Name | Type | Description | Notes
 **schema_version_id** | Option<**String**> | Schema version created from this proposal | [optional]
 **status** | **Status** | Proposal Status (enum: PENDING, ACCEPTED, REJECTED, CLOSED) | [default to Pending]
 **updated_at** | **String** | Updated At |
-**valid_data** | [**Vec<models::ExampleData1>**](ExampleData1.md) | Valid Data |
+**valid_data** | [**Vec<models::ExampleData1>**](ExampleData1.md) | Valid Data (may be empty for schemas that are not object- or array-rooted) |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

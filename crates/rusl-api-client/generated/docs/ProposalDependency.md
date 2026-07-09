@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **__typename** | Option<**Typename**> | Type discriminator (enum: proposal_dependencies) | [optional]
 **account_slug** | Option<**String**> | Account slug if parseable | [optional]
+**identifier** | Option<**String**> | Canonical schema identifier (account_slug/schemas/slug) if parseable | [optional]
 **kind** | **Kind** | MANAGED if resolvable to a Rusl schema, UNMANAGED otherwise (enum: MANAGED, UNMANAGED) |
 **ref_url** | **String** | The $ref URL |
 **schema_id** | Option<**String**> | Schema ID if MANAGED | [optional]

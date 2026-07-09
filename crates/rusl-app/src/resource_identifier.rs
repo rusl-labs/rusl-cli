@@ -126,6 +126,27 @@ mod tests {
     }
 
     #[test]
+    fn parses_deep_compound_package_identifiers_and_round_trips() {
+        // The package path folds into the final identifier segment; the slug is
+        // the whole compound (`payments.cards.checkout`), treated opaquely — the
+        // parser never splits the package off from the leaf.
+        let resource = RegistryResource::schema("acme/schemas/payments.cards.checkout")
+            .expect("deep-compound schema identifier");
+
+        assert_eq!(resource.kind, ResourceKind::Schema);
+        assert_eq!(resource.account, "acme");
+        assert_eq!(resource.slug, "payments.cards.checkout");
+        assert_eq!(
+            resource.identifier(),
+            "acme/schemas/payments.cards.checkout"
+        );
+        assert_eq!(
+            package_key_from_identifier("acme/schemas/payments.cards.checkout"),
+            Some("schema:acme/schemas/payments.cards.checkout".to_string())
+        );
+    }
+
+    #[test]
     fn parses_canonical_bundle_identifiers() {
         let resource = RegistryResource::bundle("acme/bundles/billing").expect("bundle identifier");
 

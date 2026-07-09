@@ -1111,4 +1111,28 @@ mod tests {
             "/api/hass+ox/bundles/bundle%2Fmain/versions/1.0.0/publish"
         );
     }
+
+    #[test]
+    fn packaged_compound_slugs_keep_dots_in_paths() {
+        // A packaged schema's path segment is the compound `package.leaf`. Dots
+        // are unreserved in URLs, so `urlencode` must leave them literal — the
+        // backend routes on the compound verbatim. (Encoding them as `%2E` would
+        // 404.) The compound is passed through as-is; it is never re-encoded.
+        assert_eq!(
+            schema_path("acme", "payments.checkout"),
+            "/api/acme/schemas/payments.checkout"
+        );
+        assert_eq!(
+            schema_version_path("acme", "payments.checkout", "1.2.3"),
+            "/api/acme/schemas/payments.checkout/versions/1.2.3"
+        );
+        assert_eq!(
+            schema_proposals_path("acme", "payments.cards.checkout"),
+            "/api/acme/schemas/payments.cards.checkout/proposals"
+        );
+        assert_eq!(
+            schema_examples_path("acme", "payments.checkout"),
+            "/api/acme/schemas/payments.checkout/example_data"
+        );
+    }
 }

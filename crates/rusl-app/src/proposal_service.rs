@@ -1,4 +1,7 @@
-use crate::{config, config::credentials::Credentials, registry::client::RegistryClient};
+use crate::{
+    config, config::credentials::Credentials, registry::client::RegistryClient,
+    resource_identifier::RegistryResource,
+};
 use anyhow::{Context, Result, bail};
 use rusl_api_client::{models, rusl_user_agent_with_context};
 use serde::{Deserialize, Serialize};
@@ -14,7 +17,12 @@ pub enum SchemaVisibility {
 #[derive(Debug, Clone, PartialEq)]
 pub struct CreateSchemaRequest {
     pub account_slug: String,
+    /// Leaf slug for the new schema (never contains dots).
     pub schema_slug: String,
+    /// Optional dotted package path. `None` leaves the schema not packaged; the
+    /// field is omitted from the request entirely rather than sent as an empty
+    /// string (which the server rejects).
+    pub package: Option<String>,
     pub description: Option<String>,
     pub visibility: SchemaVisibility,
 }
@@ -429,6 +437,13 @@ async fn root_comment_id_for_thread(
 fn to_api_create_schema_request(request: CreateSchemaRequest) -> models::OpenApiSchema1 {
     let mut api_request = models::OpenApiSchema1::new(request.schema_slug);
     api_request.description = request.description.map(Some);
+    // Omit `package` unless a non-blank path was supplied — only omission means
+    // "not packaged"; an empty string is a server-side 422.
+    api_request.package = request
+        .package
+        .map(|package| package.trim().to_string())
+        .filter(|package| !package.is_empty())
+        .map(Some);
     api_request.schema_format = Some(models::open_api_schema_1::SchemaFormat::JsonSchema);
     api_request.visibility = Some(match request.visibility {
         SchemaVisibility::Public => models::open_api_schema_1::Visibility::Public,
@@ -440,10 +455,8 @@ fn to_api_create_schema_request(request: CreateSchemaRequest) -> models::OpenApi
 fn to_api_create_schema_proposal_request(
     request: CreateSchemaProposalRequest,
 ) -> models::OpenApiSchema2 {
-    let mut api_request = models::OpenApiSchema2::new(
-        request.content,
-        request.valid_data.into_iter().map(Into::into).collect(),
-    );
+    let mut api_request = models::OpenApiSchema2::new(request.content);
+    api_request.valid_data = Some(request.valid_data.into_iter().map(Into::into).collect());
     api_request.description = request.description;
     api_request
 }
@@ -451,10 +464,8 @@ fn to_api_create_schema_proposal_request(
 fn to_api_update_schema_proposal_request(
     request: UpdateSchemaProposalRequest,
 ) -> models::OpenApiSchema3 {
-    let mut api_request = models::OpenApiSchema3::new(
-        request.content,
-        request.valid_data.into_iter().map(Into::into).collect(),
-    );
+    let mut api_request = models::OpenApiSchema3::new(request.content);
+    api_request.valid_data = Some(request.valid_data.into_iter().map(Into::into).collect());
     api_request.description = request.description;
     api_request
 }
@@ -490,19 +501,27 @@ fn to_api_create_review_comment_request(
 
 impl From<ExampleDataInput> for models::ExampleData1 {
     fn from(input: ExampleDataInput) -> Self {
-        let mut example = models::ExampleData1::new(input.data);
+        let mut example = models::ExampleData1::new(Some(input.data));
         example.title = input.title;
         example
     }
 }
 
 fn map_schema(schema: models::Schema1) -> SchemaOutput {
+    // Path params key off the final identifier segment — the compound
+    // `package.leaf` for packaged schemas — never the API response `slug`, which
+    // is leaf-only and 404s once a schema lives in a package. The API `slug`
+    // stays leaf-only for display; downstream proposal/version/example calls
+    // reuse `schema_slug` as a `{schema_slug}` path param.
+    let schema_slug = RegistryResource::from_identifier(&schema.identifier)
+        .map(|resource| resource.slug)
+        .unwrap_or_else(|| schema.slug.clone());
     SchemaOutput {
         id: schema.id,
         guid: schema.guid,
         identifier: schema.identifier,
         account_slug: schema.account_slug,
-        schema_slug: schema.slug,
+        schema_slug,
         description: schema.description.flatten(),
         schema_format: schema_format_label(schema.schema_format).to_string(),
         status: schema_status_label(schema.status).to_string(),
@@ -556,7 +575,7 @@ fn map_proposal_detail(proposal: models::Proposal1) -> ProposalDetailOutput {
 
 fn map_example_data(example: models::ExampleData1) -> ExampleDataOutput {
     ExampleDataOutput {
-        data: example.data,
+        data: example.data.unwrap_or(Value::Null),
         title: example.title,
     }
 }
@@ -658,7 +677,8 @@ fn review_comment_depth_value(depth: models::review_comment_1::Depth) -> i32 {
 mod tests {
     use super::{
         CreateSchemaRequest, ExampleDataInput, SchemaVisibility, UpdateSchemaProposalRequest,
-        map_review_thread, to_api_create_schema_request, to_api_update_schema_proposal_request,
+        map_review_thread, map_schema, to_api_create_schema_request,
+        to_api_update_schema_proposal_request,
     };
     use rusl_api_client::models;
     use serde_json::json;
@@ -668,6 +688,7 @@ mod tests {
         let request = to_api_create_schema_request(CreateSchemaRequest {
             account_slug: "hassox".to_string(),
             schema_slug: "contracts/thing".to_string(),
+            package: None,
             description: Some("A thing contract".to_string()),
             visibility: SchemaVisibility::Private,
         });
@@ -681,6 +702,106 @@ mod tests {
             request.visibility,
             Some(models::open_api_schema_1::Visibility::Private)
         );
+    }
+
+    #[test]
+    fn create_schema_request_omits_package_when_not_provided() {
+        let request = to_api_create_schema_request(CreateSchemaRequest {
+            account_slug: "hassox".to_string(),
+            schema_slug: "checkout".to_string(),
+            package: None,
+            description: None,
+            visibility: SchemaVisibility::Public,
+        });
+
+        // `None` (outer) omits the field entirely — only omission means "not
+        // packaged". Serialization must not emit a `package` key at all.
+        assert_eq!(request.package, None);
+        let body = serde_json::to_value(&request).expect("request serializes");
+        assert!(
+            body.get("package").is_none(),
+            "not-packaged create must omit `package`, got {body}"
+        );
+    }
+
+    #[test]
+    fn create_schema_request_sends_package_when_present() {
+        let request = to_api_create_schema_request(CreateSchemaRequest {
+            account_slug: "hassox".to_string(),
+            schema_slug: "checkout".to_string(),
+            package: Some("payments.orders".to_string()),
+            description: None,
+            visibility: SchemaVisibility::Public,
+        });
+
+        assert_eq!(request.package, Some(Some("payments.orders".to_string())));
+        // The leaf slug still carries no package prefix; the package travels in
+        // its own field, and the server folds them into the identifier.
+        assert_eq!(request.slug, "checkout");
+        let body = serde_json::to_value(&request).expect("request serializes");
+        assert_eq!(body.get("package"), Some(&json!("payments.orders")));
+    }
+
+    #[test]
+    fn create_schema_request_treats_blank_package_as_not_packaged() {
+        let request = to_api_create_schema_request(CreateSchemaRequest {
+            account_slug: "hassox".to_string(),
+            schema_slug: "checkout".to_string(),
+            package: Some("   ".to_string()),
+            description: None,
+            visibility: SchemaVisibility::Public,
+        });
+
+        // A blank string is not a package — normalize it to omission rather than
+        // forwarding an empty string the server would reject with a 422.
+        assert_eq!(request.package, None);
+    }
+
+    #[test]
+    fn map_schema_path_segment_uses_compound_identifier_not_leaf_slug() {
+        // The API response carries the leaf `slug` (`checkout`) plus the full
+        // identifier folding in the package path. `schema_slug` — the field that
+        // feeds `{schema_slug}` path params — must be the compound
+        // (`payments.checkout`), or every downstream proposal/version/example
+        // call 404s for a packaged schema.
+        let mut schema = models::Schema1::new(
+            models::schema_1::Typename::Schemas,
+            "acme".to_string(),
+            "schema-1".to_string(),
+            "acme/schemas/payments.checkout".to_string(),
+            "2026-05-20T00:00:00Z".to_string(),
+            vec!["payments".to_string()],
+            models::schema_1::SchemaFormat::JsonSchema,
+            "checkout".to_string(),
+            models::schema_1::Status::Active,
+            "2026-05-20T00:00:00Z".to_string(),
+        );
+        schema.package_path = Some(Some("payments".to_string()));
+
+        let output = map_schema(schema);
+
+        assert_eq!(output.schema_slug, "payments.checkout");
+        assert_eq!(output.identifier, "acme/schemas/payments.checkout");
+    }
+
+    #[test]
+    fn map_schema_path_segment_equals_leaf_for_unpackaged_schema() {
+        let schema = models::Schema1::new(
+            models::schema_1::Typename::Schemas,
+            "acme".to_string(),
+            "schema-1".to_string(),
+            "acme/schemas/checkout".to_string(),
+            "2026-05-20T00:00:00Z".to_string(),
+            vec![],
+            models::schema_1::SchemaFormat::JsonSchema,
+            "checkout".to_string(),
+            models::schema_1::Status::Active,
+            "2026-05-20T00:00:00Z".to_string(),
+        );
+
+        let output = map_schema(schema);
+
+        assert_eq!(output.schema_slug, "checkout");
     }
 
     #[test]
@@ -725,11 +846,9 @@ mod tests {
 
         assert_eq!(request.content, json!({ "type": "object" }));
         assert_eq!(request.description, Some("Revised shape".to_string()));
-        assert_eq!(request.valid_data.len(), 1);
-        assert_eq!(
-            request.valid_data[0].title,
-            Some("empty object".to_string())
-        );
+        let valid_data = request.valid_data.expect("valid_data is sent");
+        assert_eq!(valid_data.len(), 1);
+        assert_eq!(valid_data[0].title, Some("empty object".to_string()));
     }
 
     fn review_thread_with_comments() -> models::ReviewThread1 {

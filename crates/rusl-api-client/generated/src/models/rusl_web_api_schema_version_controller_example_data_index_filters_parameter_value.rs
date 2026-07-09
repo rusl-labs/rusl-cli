@@ -19,18 +19,22 @@ pub struct RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValu
     /// Filter operation
     #[serde(rename = "op")]
     pub op: Op,
-    /// Value to filter on
     #[serde(rename = "value")]
-    pub value: String,
+    pub value:
+        Box<models::RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValueValue>,
 }
 
 impl RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue {
     pub fn new(
         field: Field,
         op: Op,
-        value: String,
+        value: models::RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValueValue,
     ) -> RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue {
-        RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue { field, op, value }
+        RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue {
+            field,
+            op,
+            value: Box::new(value),
+        }
     }
 }
 /// Field to filter on

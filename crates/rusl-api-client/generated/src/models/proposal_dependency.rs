@@ -25,6 +25,14 @@ pub struct ProposalDependency {
         skip_serializing_if = "Option::is_none"
     )]
     pub account_slug: Option<Option<String>>,
+    /// Canonical schema identifier (account_slug/schemas/slug) if parseable
+    #[serde(
+        rename = "identifier",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub identifier: Option<Option<String>>,
     /// MANAGED if resolvable to a Rusl schema, UNMANAGED otherwise
     #[serde(rename = "kind")]
     pub kind: Kind,
@@ -55,6 +63,7 @@ impl ProposalDependency {
         ProposalDependency {
             __typename: None,
             account_slug: None,
+            identifier: None,
             kind,
             ref_url,
             schema_id: None,

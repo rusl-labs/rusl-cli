@@ -39,9 +39,12 @@ Resource keys identify registry resources:
 | Resource | Format | Example |
 | --- | --- | --- |
 | Schema | `account/schemas/slug` | `acme/schemas/user-profile` |
+| Schema (packaged) | `account/schemas/package.slug` | `acme/schemas/payments.checkout` |
 | Bundle | `account/bundles/slug` | `acme/bundles/common` |
 
 When a key appears in `[rusl.resources]`, Rusl infers the resource type from that shape. Keys must use the canonical `account/schemas/slug` and `account/bundles/slug` forms.
+
+A schema may live under a package — an organizational namespace expressed as a dotted prefix folded into the final identifier segment. `acme/schemas/payments.checkout` is the `checkout` schema in the `payments` package; `acme/schemas/platform.billing.invoicing.checkout` nests three levels deep. Treat the whole final segment as an opaque handle: pass identifiers through verbatim and never split the package off the leaf yourself. A schema without a package (e.g. `acme/schemas/user-profile`) is simply not packaged; its identifier is unchanged.
 
 ### Version Requirements
 
@@ -124,6 +127,8 @@ Controls where and how installed schemas are materialized on disk. Schemas are w
 | `flat` | `{account}_{slug}` | `./schemas/rusl_common.schema.json` |
 
 Use `flat` when all schema files must live in a single directory (for example Go package embedding). Use `full` when downstream tooling expects the canonical registry path mirrored on disk.
+
+For a packaged schema the final identifier segment is the dotted compound (`package.slug`), and it carries into the file stem under every convention — `acme/schemas/payments.checkout` becomes `acme/schemas/payments.checkout.schema.json` under `full`, `acme/payments.checkout.schema.json` under `normal`, and `acme_payments.checkout.schema.json` under `flat`. Because the compound is preserved, two schemas that share a leaf in different packages (`payments.checkout` and `billing.checkout`) never collide on disk.
 
 When `schema_dir` is the default `./schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.
 

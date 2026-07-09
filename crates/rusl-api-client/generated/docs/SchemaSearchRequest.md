@@ -10,6 +10,8 @@ Name | Type | Description | Notes
 **identifier_prefix** | Option<**String**> | Restrict results to identifiers beginning with this prefix. | [optional]
 **identifiers** | Option<**Vec<String>**> | Restrict results to exact schema identifiers. | [optional]
 **include** | Option<**Vec<Include>**> | Optional response groups to add to the selected view. (enum: metrics) | [optional]
+**package_descendants** | Option<**String**> | Restrict results to a package path and its whole subtree (the node itself plus every descendant). Dot-anchored, so `payments` does not match `payments2`. | [optional]
+**package_paths** | Option<**Vec<String>**> | Restrict results to schemas directly in any of these exact package paths (direct members only, not their subtrees). Example: `payments.checkout`. | [optional]
 **page** | Option<**i32**> |  | [optional][default to 1]
 **per_page** | Option<**i32**> |  | [optional][default to 20]
 **q** | Option<**String**> | Search text. Omit for all visible schemas. | [optional]

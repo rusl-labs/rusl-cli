@@ -54,6 +54,9 @@ pub struct AnnotationType1 {
     /// Created at
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
+    /// When true, annotations of this type may not override the type's visibility (protects public-integrity types from private carve-outs)
+    #[serde(rename = "lock_visibility", skip_serializing_if = "Option::is_none")]
+    pub lock_visibility: Option<bool>,
     /// Pinned schema version ID when schema_mode is PINNED
     #[serde(
         rename = "pinned_schema_version_id",
@@ -126,6 +129,7 @@ impl AnnotationType1 {
             id,
             identifier,
             inserted_at,
+            lock_visibility: None,
             pinned_schema_version_id: None,
             schema_id,
             schema_identifier: None,

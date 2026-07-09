@@ -144,7 +144,7 @@ pub struct Proposal1 {
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
-    /// Valid Data
+    /// Valid Data (may be empty for schemas that are not object- or array-rooted)
     #[serde(rename = "valid_data")]
     pub valid_data: Vec<models::ExampleData1>,
 }
