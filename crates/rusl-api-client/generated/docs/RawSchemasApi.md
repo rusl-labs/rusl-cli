@@ -24,7 +24,7 @@ Serves the raw JSON schema content at the schema's canonical `/resources/{accoun
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug_and_version** | **String** | Schema slug, optionally with pinned version (e.g. `us-address` or `us-address@v1.2.3`) | [required] |
+**schema_slug_and_version** | **String** | Schema slug — the final identifier segment, opaque and possibly a dotted package compound — optionally with a pinned version (e.g. `us-address`, `payments.checkout`, or `payments.checkout@v1.2.3`). The `@v` suffix splits off first; the rest is passed through verbatim, never split into package and slug. | [required] |
 **disposition** | Option<**String**> | Optional response disposition. Omit or use `inline` to inspect the raw content; use `attachment` to force a file download. |  |
 
 ### Return type
@@ -56,7 +56,7 @@ Serves the raw JSON schema content at the schema's canonical `/resources/{accoun
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug_and_version** | **String** | Schema slug, optionally with pinned version (e.g. `us-address` or `us-address@v1.2.3`) | [required] |
+**schema_slug_and_version** | **String** | Schema slug — the final identifier segment, opaque and possibly a dotted package compound — optionally with a pinned version (e.g. `us-address`, `payments.checkout`, or `payments.checkout@v1.2.3`). The `@v` suffix splits off first; the rest is passed through verbatim, never split into package and slug. | [required] |
 **disposition** | Option<**String**> | Optional response disposition. Omit or use `inline` to inspect the raw content; use `attachment` to force a file download. |  |
 
 ### Return type
@@ -88,7 +88,7 @@ Returns every resolvable version of a schema and its dependency constraints in a
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment, opaque and possibly a dotted package compound (e.g. `us-address` or `payments.checkout`). Any `@v` suffix is ignored for metadata lookup; the rest is passed through verbatim, never split into package and slug. | [required] |
 
 ### Return type
 
@@ -119,7 +119,7 @@ Returns every resolvable version of a schema and its dependency constraints in a
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment, opaque and possibly a dotted package compound (e.g. `us-address` or `payments.checkout`). Any `@v` suffix is ignored for metadata lookup; the rest is passed through verbatim, never split into package and slug. | [required] |
 
 ### Return type
 

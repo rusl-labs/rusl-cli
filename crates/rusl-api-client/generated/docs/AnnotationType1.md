@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **id** | **String** | Annotation type ID |
 **identifier** | **String** | Full identifier in account_slug/annotation-types/slug form |
 **inserted_at** | **String** | Created at |
+**lock_visibility** | Option<**bool**> | When true, annotations of this type may not override the type's visibility (protects public-integrity types from private carve-outs) | [optional]
 **pinned_schema_version_id** | Option<**String**> | Pinned schema version ID when schema_mode is PINNED | [optional]
 **schema_id** | **String** | Validation schema ID |
 **schema_identifier** | Option<**String**> | Validation schema identifier | [optional]

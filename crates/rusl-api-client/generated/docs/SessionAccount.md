@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **billing_subscription_id** | Option<**uuid::Uuid**> | Internal subscription ID | [optional]
 **consumed_seats** | **i32** | Number of consumed seats (member count) |
 **display_name** | Option<**String**> | Display name | [optional]
+**entitlements** | [**models::SessionAccountEntitlements**](SessionAccountEntitlements.md) |  |
 **guid** | **String** | Account global ID |
 **owner_user_id** | **uuid::Uuid** | Owner user ID |
 **permissions** | [**models::SessionAccountPermissions**](SessionAccountPermissions.md) |  |

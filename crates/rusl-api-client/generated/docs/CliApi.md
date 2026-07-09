@@ -252,7 +252,7 @@ Create proposals
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **open_api_schema2** | Option<[**OpenApiSchema2**](OpenApiSchema2.md)> | Create Schema Proposal Request |  |
 
 ### Return type
@@ -283,7 +283,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -315,7 +315,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **open_api_schema3** | Option<[**OpenApiSchema3**](OpenApiSchema3.md)> | Update Schema Proposal Request |  |
 
 ### Return type
@@ -347,7 +347,7 @@ Name | Type | Description  | Required | Notes
 **proposal_number** | **i32** | Proposal number | [required] |
 **thread_id** | **String** | Review thread ID | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **create_review_comment_request1** | Option<[**CreateReviewCommentRequest1**](CreateReviewCommentRequest1.md)> | Create Review Comment Request |  |
 
 ### Return type
@@ -378,7 +378,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **create_review_thread_request1** | Option<[**CreateReviewThreadRequest1**](CreateReviewThreadRequest1.md)> | Create Review Thread Request |  |
 
 ### Return type
@@ -409,7 +409,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -467,7 +467,7 @@ Fetch a schema
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -498,7 +498,7 @@ Paginate committed example data for a schema across all committed versions.  Sup
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **version** | Option<**String**> | Version filter - supports prefix matching (e.g., '1' matches 1.*.*, '1.2' matches 1.2.*, '1.2.3' matches exactly) |  |
 **filters** | Option<[**std::collections::HashMap<String, models::RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue>**](Models__RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue.md)> | Flop filters for example data fields. See https://hexdocs.pm/flop/readme.html#parameter-format |  |
 **order_by** | Option<[**Vec<String>**](String.md)> | Fields to order by |  |
@@ -542,7 +542,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **version** | **String** | Version string (e.g., '1.2.3') | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -808,7 +808,7 @@ Serves the raw JSON schema content at the schema's canonical `/resources/{accoun
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug_and_version** | **String** | Schema slug, optionally with pinned version (e.g. `us-address` or `us-address@v1.2.3`) | [required] |
+**schema_slug_and_version** | **String** | Schema slug — the final identifier segment, opaque and possibly a dotted package compound — optionally with a pinned version (e.g. `us-address`, `payments.checkout`, or `payments.checkout@v1.2.3`). The `@v` suffix splits off first; the rest is passed through verbatim, never split into package and slug. | [required] |
 **disposition** | Option<**String**> | Optional response disposition. Omit or use `inline` to inspect the raw content; use `attachment` to force a file download. |  |
 
 ### Return type
@@ -840,7 +840,7 @@ Returns every resolvable version of a schema and its dependency constraints in a
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment, opaque and possibly a dotted package compound (e.g. `us-address` or `payments.checkout`). Any `@v` suffix is ignored for metadata lookup; the rest is passed through verbatim, never split into package and slug. | [required] |
 
 ### Return type
 

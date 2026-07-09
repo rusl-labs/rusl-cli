@@ -26,7 +26,7 @@ Name | Type | Description  | Required | Notes
 **proposal_number** | **i32** | Proposal number | [required] |
 **thread_id** | **String** | Review thread ID | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **create_review_comment_request1** | Option<[**CreateReviewCommentRequest1**](CreateReviewCommentRequest1.md)> | Create Review Comment Request |  |
 
 ### Return type
@@ -58,7 +58,7 @@ Name | Type | Description  | Required | Notes
 **proposal_number** | **i32** | Proposal number | [required] |
 **thread_id** | **String** | Review thread ID | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **create_review_comment_request1** | Option<[**CreateReviewCommentRequest1**](CreateReviewCommentRequest1.md)> | Create Review Comment Request |  |
 
 ### Return type
@@ -89,7 +89,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **create_review_thread_request1** | Option<[**CreateReviewThreadRequest1**](CreateReviewThreadRequest1.md)> | Create Review Thread Request |  |
 
 ### Return type
@@ -120,7 +120,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **create_review_thread_request1** | Option<[**CreateReviewThreadRequest1**](CreateReviewThreadRequest1.md)> | Create Review Thread Request |  |
 
 ### Return type
@@ -151,7 +151,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -181,7 +181,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 

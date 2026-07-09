@@ -24,7 +24,7 @@ Create proposals
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **open_api_schema2** | Option<[**OpenApiSchema2**](OpenApiSchema2.md)> | Create Schema Proposal Request |  |
 
 ### Return type
@@ -54,7 +54,7 @@ Create proposals
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **open_api_schema2** | Option<[**OpenApiSchema2**](OpenApiSchema2.md)> | Create Schema Proposal Request |  |
 
 ### Return type
@@ -85,7 +85,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -115,7 +115,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -147,7 +147,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **open_api_schema3** | Option<[**OpenApiSchema3**](OpenApiSchema3.md)> | Update Schema Proposal Request |  |
 
 ### Return type
@@ -180,7 +180,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **proposal_number** | **i32** | Proposal number | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **open_api_schema3** | Option<[**OpenApiSchema3**](OpenApiSchema3.md)> | Update Schema Proposal Request |  |
 
 ### Return type

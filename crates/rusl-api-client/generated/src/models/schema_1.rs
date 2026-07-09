@@ -49,19 +49,30 @@ pub struct Schema1 {
     /// Schema ID
     #[serde(rename = "id")]
     pub id: String,
-    /// Full identifier in account_slug/schemas/slug form
+    /// Full opaque identifier in account_slug/schemas/leaf form; packaged schemas fold the package path into the final segment (account_slug/schemas/package.path.leaf). Route by this; never rebuild it from parts.
     #[serde(rename = "identifier")]
     pub identifier: String,
     /// Inserted At
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
+    /// Dotted package path this schema lives under, or null when the schema is not packaged. Segments never contain dots.
+    #[serde(
+        rename = "package_path",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub package_path: Option<Option<String>>,
+    /// Server-split package path segments for breadcrumbs. Empty when the schema is not packaged. Clients never split the compound themselves.
+    #[serde(rename = "package_segments")]
+    pub package_segments: Vec<String>,
     /// Durable provenance edges for this schema
     #[serde(rename = "resource_origins", skip_serializing_if = "Option::is_none")]
     pub resource_origins: Option<Vec<models::ResourceOrigin1>>,
     /// Schema format
     #[serde(rename = "schema_format")]
     pub schema_format: SchemaFormat,
-    /// Schema Slug
+    /// Leaf schema slug (never contains dots)
     #[serde(rename = "slug")]
     pub slug: String,
     /// Schema Lifecycle Status
@@ -90,6 +101,7 @@ impl Schema1 {
         id: String,
         identifier: String,
         inserted_at: String,
+        package_segments: Vec<String>,
         schema_format: SchemaFormat,
         slug: String,
         status: Status,
@@ -105,6 +117,8 @@ impl Schema1 {
             id,
             identifier,
             inserted_at,
+            package_path: None,
+            package_segments,
             resource_origins: None,
             schema_format,
             slug,

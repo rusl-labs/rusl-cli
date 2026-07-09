@@ -35,6 +35,14 @@ pub struct RuslWebApiAnnotationControllerCreateRequest {
     /// Registered annotation type identifier
     #[serde(rename = "type")]
     pub r#type: String,
+    /// Requested visibility. Defaults to the annotation type's visibility. PRIVATE on a public subject requires the private_annotations_on_public entitlement and a type that does not lock visibility.
+    #[serde(
+        rename = "visibility",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub visibility: Option<Option<Visibility>>,
 }
 
 impl RuslWebApiAnnotationControllerCreateRequest {
@@ -49,6 +57,21 @@ impl RuslWebApiAnnotationControllerCreateRequest {
             subject_description: None,
             subject_guid,
             r#type,
+            visibility: None,
         }
+    }
+}
+/// Requested visibility. Defaults to the annotation type's visibility. PRIVATE on a public subject requires the private_annotations_on_public entitlement and a type that does not lock visibility.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum Visibility {
+    #[serde(rename = "PUBLIC")]
+    Public,
+    #[serde(rename = "PRIVATE")]
+    Private,
+}
+
+impl Default for Visibility {
+    fn default() -> Visibility {
+        Self::Public
     }
 }

@@ -20,21 +20,18 @@ pub struct OpenApiSchema2 {
     /// Description
     #[serde(rename = "description", skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    /// Valid Data
-    #[serde(rename = "valid_data")]
-    pub valid_data: Vec<models::ExampleData1>,
+    /// Valid Data (required when the schema content is object- or array-rooted; optional for enum, scalar, or $defs-only schemas)
+    #[serde(rename = "valid_data", skip_serializing_if = "Option::is_none")]
+    pub valid_data: Option<Vec<models::ExampleData1>>,
 }
 
 impl OpenApiSchema2 {
     /// Create Schema Proposal Request
-    pub fn new(
-        content: serde_json::Value,
-        valid_data: Vec<models::ExampleData1>,
-    ) -> OpenApiSchema2 {
+    pub fn new(content: serde_json::Value) -> OpenApiSchema2 {
         OpenApiSchema2 {
             content,
             description: None,
-            valid_data,
+            valid_data: None,
         }
     }
 }

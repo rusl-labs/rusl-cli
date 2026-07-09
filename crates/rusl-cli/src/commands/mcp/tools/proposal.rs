@@ -246,8 +246,14 @@ fn json_result<T: serde::Serialize>(output: &T, label: &str) -> McpResult<ToolRe
 struct CreateSchemaToolRequest {
     #[schemars(description = "Account slug that will own the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug to create within the account.")]
+    #[schemars(
+        description = "Leaf schema slug to create within the account. Never contains dots — a package path is supplied separately via `package`."
+    )]
     schema_slug: String,
+    #[schemars(
+        description = "Optional dotted package path the schema lives under (e.g. `payments.checkout`). Omit to leave the schema not packaged. Segments are 3-25 chars of [a-z0-9_-], at most 5 deep; slug uniqueness is per-package."
+    )]
+    package: Option<String>,
     #[schemars(description = "Optional human-readable schema description.")]
     description: Option<String>,
     #[schemars(
@@ -277,6 +283,7 @@ impl CreateSchemaToolRequest {
         CreateSchemaRequest {
             account_slug: self.account_slug,
             schema_slug: self.schema_slug,
+            package: self.package,
             description: self.description,
             visibility: self.visibility.into_service_visibility(),
         }

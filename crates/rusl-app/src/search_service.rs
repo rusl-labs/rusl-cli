@@ -469,6 +469,10 @@ fn to_schema_api_request(request: SearchRequest) -> models::SchemaSearchRequest 
         page: request.page,
         per_page: request.per_page,
         identifier_prefix: request.identifier_prefix.and_then(non_blank),
+        // Package filters exist server-side; the CLI search surface does not
+        // expose them yet, so leave them unset.
+        package_paths: None,
+        package_descendants: None,
         status: request.status.map(map_schema_status),
         current_version_status: request
             .current_version_status

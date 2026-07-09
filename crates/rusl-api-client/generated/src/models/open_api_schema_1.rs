@@ -22,10 +22,18 @@ pub struct OpenApiSchema1 {
         skip_serializing_if = "Option::is_none"
     )]
     pub description: Option<Option<String>>,
+    /// Optional dotted package path this schema lives under (omit when the schema is not packaged). Each segment is 3-25 characters of [a-z0-9_-], at most 5 segments deep, lowercased on write. Slug uniqueness is per-package.
+    #[serde(
+        rename = "package",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub package: Option<Option<String>>,
     /// Schema format
     #[serde(rename = "schema_format", skip_serializing_if = "Option::is_none")]
     pub schema_format: Option<SchemaFormat>,
-    /// Schema Slug
+    /// Leaf schema slug (must not contain dots)
     #[serde(rename = "slug")]
     pub slug: String,
     #[serde(
@@ -46,6 +54,7 @@ impl OpenApiSchema1 {
     pub fn new(slug: String) -> OpenApiSchema1 {
         OpenApiSchema1 {
             description: None,
+            package: None,
             schema_format: None,
             slug,
             subject_description: None,

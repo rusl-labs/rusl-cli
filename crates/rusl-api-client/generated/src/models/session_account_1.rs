@@ -47,6 +47,8 @@ pub struct SessionAccount1 {
         skip_serializing_if = "Option::is_none"
     )]
     pub display_name: Option<Option<String>>,
+    #[serde(rename = "entitlements")]
+    pub entitlements: Box<models::SessionAccountEntitlements>,
     /// Account global ID
     #[serde(rename = "guid")]
     pub guid: String,
@@ -96,6 +98,7 @@ impl SessionAccount1 {
         __typename: Typename,
         available_seats: i32,
         consumed_seats: i32,
+        entitlements: models::SessionAccountEntitlements,
         guid: String,
         owner_user_id: uuid::Uuid,
         permissions: models::SessionAccountPermissions,
@@ -110,6 +113,7 @@ impl SessionAccount1 {
             billing_subscription_id: None,
             consumed_seats,
             display_name: None,
+            entitlements: Box::new(entitlements),
             guid,
             owner_user_id,
             permissions: Box::new(permissions),

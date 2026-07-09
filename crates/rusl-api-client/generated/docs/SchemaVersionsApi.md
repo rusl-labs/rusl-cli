@@ -24,7 +24,7 @@ Paginate committed example data for a schema across all committed versions.  Sup
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **version** | Option<**String**> | Version filter - supports prefix matching (e.g., '1' matches 1.*.*, '1.2' matches 1.2.*, '1.2.3' matches exactly) |  |
 **filters** | Option<[**std::collections::HashMap<String, models::RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue>**](Models__RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue.md)> | Flop filters for example data fields. See https://hexdocs.pm/flop/readme.html#parameter-format |  |
 **order_by** | Option<[**Vec<String>**](String.md)> | Fields to order by |  |
@@ -67,7 +67,7 @@ Paginate committed example data for a schema across all committed versions.  Sup
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 **version** | Option<**String**> | Version filter - supports prefix matching (e.g., '1' matches 1.*.*, '1.2' matches 1.2.*, '1.2.3' matches exactly) |  |
 **filters** | Option<[**std::collections::HashMap<String, models::RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue>**](Models__RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue.md)> | Flop filters for example data fields. See https://hexdocs.pm/flop/readme.html#parameter-format |  |
 **order_by** | Option<[**Vec<String>**](String.md)> | Fields to order by |  |
@@ -111,7 +111,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **version** | **String** | Version string (e.g., '1.2.3') | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 
@@ -143,7 +143,7 @@ Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 **version** | **String** | Version string (e.g., '1.2.3') | [required] |
 **account_slug** | **String** | Account slug | [required] |
-**schema_slug** | **String** | Schema slug | [required] |
+**schema_slug** | **String** | Schema slug — the final identifier segment. Treat as an opaque compound: for a packaged schema it carries the dotted package path plus the leaf (e.g. `payments.checkout`). Do not split it; pass it through verbatim. | [required] |
 
 ### Return type
 

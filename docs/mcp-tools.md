@@ -13,7 +13,7 @@ Search is a discovery surface, not a content retrieval surface. When an agent ne
 | `get_annotation` | Fetch the full annotation record by raw ID or `annotations.<id>` GUID. |
 | `list_schema_examples` | Fetch committed examples for a schema before using it or drafting a proposal. |
 | `endorse` | Endorse an annotation as a positive trust signal. |
-| `create_schema` | Create a schema namespace before proposing its first content. |
+| `create_schema` | Create a schema namespace before proposing its first content. Accepts an optional `package` to place it in a package namespace. |
 | `create_schema_proposal` | Propose a complete JSON Schema revision for an existing schema. |
 | `get_schema_proposal` | Read proposal content, examples, status, and version metadata before editing. |
 | `update_schema_proposal` | Replace a pending proposal with revised complete content and examples. |
@@ -37,6 +37,8 @@ Search is a discovery surface, not a content retrieval surface. When an agent ne
 | `create_migration_guide` | Document compatibility, breaking changes, and upgrade guidance between versions. |
 
 Use canonical identifiers in tool arguments and results: schemas are `account/schemas/slug`, bundles are `account/bundles/slug`, and annotation types are `account/annotation-types/slug`.
+
+A schema's final identifier segment is an opaque compound: for a packaged schema it folds the dotted package path onto the leaf (`acme/schemas/payments.checkout` is the `checkout` schema in the `payments` package). Do not split it — pass identifiers through verbatim, and route follow-up proposal, version, and example tool calls with the whole compound (`payments.checkout`), never the bare leaf (`checkout`), which resolves to a different schema or none. Create a packaged schema by passing `create_schema` a `slug` (the leaf, no dots) plus an optional `package` (the dotted path, e.g. `payments`); omit `package` to leave the schema not packaged. `package` is immutable after creation. The `create_schema` result reports the compound in `schema_slug` and the full routing handle in `identifier`.
 
 For exact search by returned resource identifier, use the search tool's `identifiers` field. This works for schemas, bundles, and annotation types. To fetch paged annotations for a known schema, bundle, annotation type, or other subject, search with `types: ["annotation"]`, `subject_identifier_prefix`, `page`, and `per_page`. To narrow by annotation type, add `type_identifiers`.
 

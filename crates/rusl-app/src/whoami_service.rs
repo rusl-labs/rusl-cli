@@ -103,6 +103,12 @@ mod tests {
                     "__typename": "accounts",
                     "available_seats": 5,
                     "consumed_seats": 3,
+                    "entitlements": {
+                        "feed_subscriptions": true,
+                        "max_private_schemas": -1,
+                        "private_annotations_on_public": true,
+                        "private_team_visibility": true
+                    },
                     "guid": "account_zeta",
                     "owner_user_id": "00000000-0000-0000-0000-000000000000",
                     "permissions": {},
@@ -114,6 +120,12 @@ mod tests {
                     "__typename": "accounts",
                     "available_seats": 1,
                     "consumed_seats": 1,
+                    "entitlements": {
+                        "feed_subscriptions": false,
+                        "max_private_schemas": 0,
+                        "private_annotations_on_public": false,
+                        "private_team_visibility": false
+                    },
                     "guid": "account_alpha",
                     "owner_user_id": "00000000-0000-0000-0000-000000000000",
                     "permissions": {},

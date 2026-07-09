@@ -14,9 +14,9 @@ use serde::{Deserialize, Serialize};
 /// ExampleData1 : Example Data
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ExampleData1 {
-    /// JSON Schema example data for verification
-    #[serde(rename = "data")]
-    pub data: serde_json::Value,
+    /// Example instance data (any valid JSON value) for verification
+    #[serde(rename = "data", deserialize_with = "Option::deserialize")]
+    pub data: Option<serde_json::Value>,
     /// Optional title for this example
     #[serde(rename = "title", skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
@@ -24,7 +24,7 @@ pub struct ExampleData1 {
 
 impl ExampleData1 {
     /// Example Data
-    pub fn new(data: serde_json::Value) -> ExampleData1 {
+    pub fn new(data: Option<serde_json::Value>) -> ExampleData1 {
         ExampleData1 { data, title: None }
     }
 }

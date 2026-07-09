@@ -86,7 +86,7 @@ fn map_schema_example(example: models::SchemaExampleData1) -> SchemaExampleOutpu
         version: example.version,
         position: example.position,
         title: example.title.flatten(),
-        data: example.data,
+        data: example.data.unwrap_or(Value::Null),
         inserted_at: example.inserted_at,
         updated_at: example.updated_at,
     }
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     fn maps_schema_examples_and_pagination_metadata() {
         let mut example = models::SchemaExampleData1::new(
-            json!({ "name": "Example" }),
+            Some(json!({ "name": "Example" })),
             "example-1".to_string(),
             "2026-05-20T00:00:00Z".to_string(),
             1,

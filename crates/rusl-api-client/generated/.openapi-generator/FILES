@@ -85,6 +85,7 @@ docs/RuslWebApiSchemaControllerCreate201Response.md
 docs/RuslWebApiSchemaVersionControllerExampleDataIndex200Response.md
 docs/RuslWebApiSchemaVersionControllerExampleDataIndex200ResponsePageInfo.md
 docs/RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValue.md
+docs/RuslWebApiSchemaVersionControllerExampleDataIndexFiltersParameterValueValue.md
 docs/RuslWebApiSchemaVersionControllerShow200Response.md
 docs/RuslWebRawBundleMetadataControllerShow200Response.md
 docs/RuslWebRawBundleMetadataControllerShow200ResponseVersionsInner.md
@@ -109,6 +110,7 @@ docs/SearchResponse.md
 docs/SearchResult.md
 docs/SessionAccount.md
 docs/SessionAccount1.md
+docs/SessionAccountEntitlements.md
 docs/SessionAccountPermissions.md
 docs/SessionAccountPermissionsSchemas.md
 docs/User.md
@@ -205,6 +207,7 @@ src/models/rusl_web_api_schema_controller_create_201_response.rs
 src/models/rusl_web_api_schema_version_controller_example_data_index_200_response.rs
 src/models/rusl_web_api_schema_version_controller_example_data_index_200_response_page_info.rs
 src/models/rusl_web_api_schema_version_controller_example_data_index_filters_parameter_value.rs
+src/models/rusl_web_api_schema_version_controller_example_data_index_filters_parameter_value_value.rs
 src/models/rusl_web_api_schema_version_controller_show_200_response.rs
 src/models/rusl_web_raw_bundle_metadata_controller_show_200_response.rs
 src/models/rusl_web_raw_bundle_metadata_controller_show_200_response_versions_inner.rs
@@ -226,6 +229,7 @@ src/models/search_response.rs
 src/models/search_result.rs
 src/models/session_account.rs
 src/models/session_account_1.rs
+src/models/session_account_entitlements.rs
 src/models/session_account_permissions.rs
 src/models/session_account_permissions_schemas.rs
 src/models/user.rs

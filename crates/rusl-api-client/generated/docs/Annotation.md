@@ -23,5 +23,6 @@ Name | Type | Description | Notes
 **updated_at** | Option<**String**> | Updated at | [optional]
 **validated_at_version** | Option<**String**> | Schema version content was validated against | [optional]
 **validation_schema_identifier** | Option<**String**> | Schema identifier used to validate content at write time | [optional]
+**visibility** | **Visibility** | Annotation visibility. Defaults to the annotation type's visibility; PRIVATE on a public subject is readable only by the annotator's account members (paid capability) (enum: PUBLIC, PRIVATE) |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
