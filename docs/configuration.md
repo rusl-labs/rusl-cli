@@ -130,6 +130,8 @@ Use `flat` when all schema files must live in a single directory (for example Go
 
 For a packaged schema the final identifier segment is the dotted compound (`package.slug`), and it carries into the file stem under every convention — `acme/schemas/payments.checkout` becomes `acme/schemas/payments.checkout.schema.json` under `full`, `acme/payments.checkout.schema.json` under `normal`, and `acme_payments.checkout.schema.json` under `flat`. Because the compound is preserved, two schemas that share a leaf in different packages (`payments.checkout` and `billing.checkout`) never collide on disk.
 
-When `schema_dir` is the default `./schemas`, Rusl links files from its global content-addressed cache. When `schema_dir` is customized, Rusl copies schema files instead. That makes custom directories suitable for vendored, committable schema snapshots.
+`rusl install` always materializes schemas as portable regular files under `schema_dir` by copying resolved content from the global content-addressed cache. It never writes absolute symlinks into the machine-local store, so vendored `schemas/` trees remain usable when committed or when another machine clones the repo and runs install.
+
+Public projects can either commit the installed copies or gitignore `schema_dir` and run `rusl install` after clone; both work with the copy-based layout.
 
 `rusl install` and `rusl cache --clear` remove the configured schema directory before writing fresh schema files. Do not point `schema_dir` at a directory that contains unrelated project files.

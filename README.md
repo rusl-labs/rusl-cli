@@ -39,11 +39,15 @@ rusl add rusl/schemas/common
 rusl add rusl/bundles/common --version ">=1.0.0"
 ```
 
-Install and link the resolved schemas:
+Install the resolved schemas as portable copies under the project schema directory:
 
 ```bash
 rusl install
 ```
+
+Installed files are regular files (not absolute symlinks into the machine-local content
+store), so they can be committed to Git or recreated with `rusl install` after clone.
+Public repos can either vendor `schemas/` or gitignore it and run install in CI/onboarding.
 
 Remove dependencies when they are no longer needed:
 
@@ -160,7 +164,7 @@ naming_convention = "normal"   # full | normal | flat
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `output.schema_dir` | `./schemas` | Where installed schema files are written. Custom values copy files instead of symlinking. |
+| `output.schema_dir` | `./schemas` | Where installed schema files are written as portable copies. |
 | `output.suffix` | `.schema.json` | Suffix appended to each installed schema file. |
 | `output.naming_convention` | `normal` | How identifiers map to paths: `full` mirrors the registry path, `normal` strips `/schemas/`, `flat` uses `{account}_{slug}` in one directory. |
 

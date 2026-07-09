@@ -62,7 +62,7 @@ impl Default for Config {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(default)]
 pub struct OutputConfig {
-    /// Directory where installed schemas are linked. Defaults to `./schemas`.
+    /// Directory where installed schemas are written as portable copies. Defaults to `./schemas`.
     pub schema_dir: String,
     /// Suffix appended to the schema identifier when writing the file.
     /// Defaults to `.schema.json`.
