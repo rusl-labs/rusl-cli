@@ -37,6 +37,67 @@ pub enum Commands {
     Mcp(McpArgs),
     /// Manage the current acting account for the local directory
     Account(crate::commands::account::AccountArgs),
+    /// Install agent skills and MCP for Cursor, Claude Code, and other harnesses
+    Setup(SetupArgs),
+}
+
+#[derive(Parser, Debug)]
+pub struct SetupArgs {
+    #[command(subcommand)]
+    pub command: Option<SetupCommand>,
+
+    /// Harness targets (cursor, claude, codex, opencode, grok). Default: interactive select (or detect when non-interactive).
+    pub targets: Vec<String>,
+
+    /// Install for all known harnesses
+    #[arg(long)]
+    pub all: bool,
+
+    /// Skip interactive prompts; use detected harnesses / defaults
+    #[arg(long, short = 'y')]
+    pub yes: bool,
+
+    /// Use a local pack directory (…/rusl-agent-kit/pack) instead of the cache/clone
+    #[arg(long = "pack-dir", value_name = "DIR", env = "RUSL_SKILLS_PACK")]
+    pub pack_dir: Option<std::path::PathBuf>,
+
+    /// Pin a skills pack git tag (e.g. skills-v0.1.0) on a real clone
+    #[arg(long)]
+    pub tag: Option<String>,
+
+    /// Install into the current project (e.g. .cursor/skills). Default.
+    #[arg(long, group = "setup_scope")]
+    pub project: bool,
+
+    /// Install into user-global harness dirs (e.g. ~/.cursor/skills)
+    #[arg(long, group = "setup_scope")]
+    pub global: bool,
+
+    /// Install skills only (skip MCP merge)
+    #[arg(long)]
+    pub skills_only: bool,
+
+    /// Merge MCP only (skip skill install)
+    #[arg(long)]
+    pub mcp_only: bool,
+
+    /// Replace existing rusl skill directories
+    #[arg(long)]
+    pub force: bool,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum SetupCommand {
+    /// Re-fetch the pack and reinstall (uses --force)
+    Update {
+        /// Optional skills pack tag to checkout
+        #[arg(long)]
+        tag: Option<String>,
+    },
+    /// Show installed pack pin and harnesses
+    Status,
+    /// Non-mutating health check for skills + MCP
+    Doctor,
 }
 
 #[derive(Parser, Debug)]

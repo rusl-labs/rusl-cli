@@ -32,6 +32,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Cache(args) => commands::cache::run(args).await?,
         Commands::Mcp(args) => commands::mcp::run(args).await?,
         Commands::Account(args) => commands::account::run(args).await?,
+        Commands::Setup(args) => commands::setup::run(args).await?,
     }
 
     Ok(())
