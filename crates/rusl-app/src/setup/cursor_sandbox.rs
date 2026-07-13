@@ -2,8 +2,9 @@
 //!
 //! Cursor's agent sandbox is deny-by-default for paths outside the workspace.
 //! Credentials and the schema store live under the OS app-data dir (on macOS:
-//! `~/Library/Application Support/rusl`), so that directory must be allowlisted
-//! for read/write. Network access to the Rusl API must also be allowed.
+//! `~/Library/Application Support/rusl`), and agent-kit cache/lock live under
+//! `~/.rusl`. Both must be allowlisted for read/write. Network access to the
+//! Rusl API must also be allowed.
 //!
 //! Existing keys and list entries are preserved; we only add what is missing.
 
@@ -12,8 +13,9 @@ use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 
 use super::mcp::McpMergeAction;
+use super::paths::rusl_home;
 
-/// Hosts/paths Cursor needs for Rusl CLI + registry access from the agent sandbox.
+/// Hosts Cursor needs for Rusl CLI + registry access from the agent sandbox.
 const NETWORK_ALLOWS: &[&str] = &["https://resources.rusl.com", "resources.rusl.com"];
 
 #[derive(Debug, Clone)]
@@ -42,18 +44,24 @@ pub fn rusl_app_data_dir() -> Result<PathBuf> {
     Ok(proj.data_dir().to_path_buf())
 }
 
+/// Paths that must be readable/writable from Cursor's agent sandbox.
+pub fn sandbox_readwrite_paths() -> Result<Vec<String>> {
+    Ok(vec![
+        rusl_app_data_dir()?.to_string_lossy().into_owned(),
+        rusl_home()?.to_string_lossy().into_owned(),
+    ])
+}
+
 /// Merge Rusl sandbox requirements into `~/.cursor/sandbox.json` without clobbering.
 pub fn merge_cursor_sandbox() -> Result<CursorSandboxMergeResult> {
     let path = cursor_sandbox_path()?;
-    let rusl_dir = rusl_app_data_dir()?;
-    let rusl_dir_str = rusl_dir.to_string_lossy().into_owned();
-
-    merge_cursor_sandbox_at(&path, &rusl_dir_str, NETWORK_ALLOWS)
+    let readwrite = sandbox_readwrite_paths()?;
+    merge_cursor_sandbox_at(&path, &readwrite, NETWORK_ALLOWS)
 }
 
 pub fn merge_cursor_sandbox_at(
     path: &Path,
-    rusl_dir: &str,
+    readwrite_paths: &[String],
     network_allows: &[&str],
 ) -> Result<CursorSandboxMergeResult> {
     if let Some(parent) = path.parent() {
@@ -88,9 +96,11 @@ pub fn merge_cursor_sandbox_at(
         let arr = paths
             .as_array_mut()
             .context("additionalReadwritePaths must be a JSON array")?;
-        if !arr.iter().any(|v| v.as_str() == Some(rusl_dir)) {
-            arr.push(json!(rusl_dir));
-            paths_added.push(rusl_dir.to_string());
+        for p in readwrite_paths {
+            if !arr.iter().any(|v| v.as_str() == Some(p.as_str())) {
+                arr.push(json!(p));
+                paths_added.push(p.clone());
+            }
         }
     }
 
@@ -118,8 +128,6 @@ pub fn merge_cursor_sandbox_at(
     }
 
     let changed = !existed || !paths_added.is_empty() || !network_added.is_empty();
-    // Also treat missing-type fill as a change only when we created the file or
-    // added entries; if file existed and already complete, leave it alone.
     let action = if !existed {
         McpMergeAction::Created
     } else if changed {
@@ -151,25 +159,27 @@ mod tests {
     use std::fs;
     use tempfile::TempDir;
 
+    fn sample_paths() -> Vec<String> {
+        vec![
+            "/Users/me/Library/Application Support/rusl".into(),
+            "/Users/me/.rusl".into(),
+        ]
+    }
+
     #[test]
     fn creates_sandbox_when_missing() {
         let tmp = TempDir::new().unwrap();
         let path = tmp.path().join("sandbox.json");
-        let result = merge_cursor_sandbox_at(
-            &path,
-            "/Users/me/Library/Application Support/rusl",
-            NETWORK_ALLOWS,
-        )
-        .unwrap();
+        let paths = sample_paths();
+        let result = merge_cursor_sandbox_at(&path, &paths, NETWORK_ALLOWS).unwrap();
         assert_eq!(result.action, McpMergeAction::Created);
-        assert_eq!(result.paths_added.len(), 1);
+        assert_eq!(result.paths_added.len(), 2);
 
         let data: Value = serde_json::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
         assert_eq!(data["type"], "workspace_readwrite");
-        assert_eq!(
-            data["additionalReadwritePaths"][0],
-            "/Users/me/Library/Application Support/rusl"
-        );
+        let rw = data["additionalReadwritePaths"].as_array().unwrap();
+        assert_eq!(rw[0], "/Users/me/Library/Application Support/rusl");
+        assert_eq!(rw[1], "/Users/me/.rusl");
         assert_eq!(data["networkPolicy"]["default"], "deny");
         assert!(
             data["networkPolicy"]["allow"]
@@ -203,10 +213,10 @@ mod tests {
         )
         .unwrap();
 
-        let rusl = "/Users/me/Library/Application Support/rusl";
-        let result = merge_cursor_sandbox_at(&path, rusl, NETWORK_ALLOWS).unwrap();
+        let paths = sample_paths();
+        let result = merge_cursor_sandbox_at(&path, &paths, NETWORK_ALLOWS).unwrap();
         assert_eq!(result.action, McpMergeAction::Updated);
-        assert_eq!(result.paths_added, vec![rusl]);
+        assert_eq!(result.paths_added, paths);
         assert!(result.network_added.contains(&"resources.rusl.com".into()));
 
         let data: Value = serde_json::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
@@ -215,7 +225,11 @@ mod tests {
         assert_eq!(data["additionalReadwritePaths"][0], "/already/there");
         assert_eq!(data["networkPolicy"]["allow"][0], "https://example.com");
         // Added
-        assert_eq!(data["additionalReadwritePaths"][1], rusl);
+        assert_eq!(
+            data["additionalReadwritePaths"][1],
+            "/Users/me/Library/Application Support/rusl"
+        );
+        assert_eq!(data["additionalReadwritePaths"][2], "/Users/me/.rusl");
         let allows = data["networkPolicy"]["allow"].as_array().unwrap();
         assert!(allows.iter().any(|v| v == "https://resources.rusl.com"));
         assert!(allows.iter().any(|v| v == "resources.rusl.com"));
@@ -225,26 +239,53 @@ mod tests {
     fn is_idempotent_when_already_configured() {
         let tmp = TempDir::new().unwrap();
         let path = tmp.path().join("sandbox.json");
-        let rusl = "/Users/me/Library/Application Support/rusl";
+        let paths = sample_paths();
         fs::write(
             &path,
-            format!(
-                r#"{{
+            r#"{
   "type": "workspace_readwrite",
-  "additionalReadwritePaths": ["{rusl}"],
-  "networkPolicy": {{
+  "additionalReadwritePaths": [
+    "/Users/me/Library/Application Support/rusl",
+    "/Users/me/.rusl"
+  ],
+  "networkPolicy": {
     "default": "deny",
     "allow": ["https://resources.rusl.com", "resources.rusl.com"]
-  }}
-}}
-"#
-            ),
+  }
+}
+"#,
         )
         .unwrap();
 
-        let result = merge_cursor_sandbox_at(&path, rusl, NETWORK_ALLOWS).unwrap();
+        let result = merge_cursor_sandbox_at(&path, &paths, NETWORK_ALLOWS).unwrap();
         assert_eq!(result.action, McpMergeAction::Unchanged);
         assert!(result.paths_added.is_empty());
+        assert!(result.network_added.is_empty());
+    }
+
+    #[test]
+    fn adds_only_missing_dot_rusl_path() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("sandbox.json");
+        fs::write(
+            &path,
+            r#"{
+  "type": "workspace_readwrite",
+  "additionalReadwritePaths": [
+    "/Users/me/Library/Application Support/rusl"
+  ],
+  "networkPolicy": {
+    "default": "deny",
+    "allow": ["https://resources.rusl.com", "resources.rusl.com"]
+  }
+}
+"#,
+        )
+        .unwrap();
+
+        let result = merge_cursor_sandbox_at(&path, &sample_paths(), NETWORK_ALLOWS).unwrap();
+        assert_eq!(result.action, McpMergeAction::Updated);
+        assert_eq!(result.paths_added, vec!["/Users/me/.rusl".to_string()]);
         assert!(result.network_added.is_empty());
     }
 
@@ -258,7 +299,12 @@ mod tests {
         )
         .unwrap();
 
-        merge_cursor_sandbox_at(&path, "/tmp/rusl", NETWORK_ALLOWS).unwrap();
+        merge_cursor_sandbox_at(
+            &path,
+            &["/tmp/rusl".into(), "/tmp/.rusl".into()],
+            NETWORK_ALLOWS,
+        )
+        .unwrap();
 
         let data: Value = serde_json::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
         assert_eq!(data["type"], "readonly");
