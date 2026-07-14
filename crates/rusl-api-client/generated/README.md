@@ -22,7 +22,7 @@ rusl-openapi-client = { path = "./rusl-openapi-client" }
 
 ## Documentation for API Endpoints
 
-All URIs are relative to *http://localhost:4000*
+All URIs are relative to *https://resources.rusl.com*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
@@ -150,6 +150,7 @@ Class | Method | HTTP request | Description
  - [MeResponse](docs/MeResponse.md)
  - [MeResponseAuthenticated](docs/MeResponseAuthenticated.md)
  - [MeResponseAuthenticated1](docs/MeResponseAuthenticated1.md)
+ - [MeResponseAuthenticated1ServiceAccount](docs/MeResponseAuthenticated1ServiceAccount.md)
  - [MeResponseUnauthenticated](docs/MeResponseUnauthenticated.md)
  - [MeResponseUnauthenticated1](docs/MeResponseUnauthenticated1.md)
  - [OpenApiSchema](docs/OpenApiSchema.md)

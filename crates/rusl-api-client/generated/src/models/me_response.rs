@@ -25,3 +25,17 @@ impl Default for MeResponse {
         Self::MeResponseAuthenticated1(Default::default())
     }
 }
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum AuthenticationType {
+    #[serde(rename = "jwt")]
+    Jwt,
+    #[serde(rename = "api_key")]
+    ApiKey,
+}
+
+impl Default for AuthenticationType {
+    fn default() -> AuthenticationType {
+        Self::Jwt
+    }
+}

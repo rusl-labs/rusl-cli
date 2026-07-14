@@ -76,6 +76,8 @@ pub mod me_response_authenticated;
 pub use self::me_response_authenticated::MeResponseAuthenticated;
 pub mod me_response_authenticated_1;
 pub use self::me_response_authenticated_1::MeResponseAuthenticated1;
+pub mod me_response_authenticated_1_service_account;
+pub use self::me_response_authenticated_1_service_account::MeResponseAuthenticated1ServiceAccount;
 pub mod me_response_unauthenticated;
 pub use self::me_response_unauthenticated::MeResponseUnauthenticated;
 pub mod me_response_unauthenticated_1;
