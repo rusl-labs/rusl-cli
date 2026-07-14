@@ -19,9 +19,18 @@ pub struct MeResponseAuthenticated1 {
     pub accounts: std::collections::HashMap<String, models::SessionAccount1>,
     #[serde(rename = "authenticated")]
     pub authenticated: bool,
+    #[serde(rename = "authentication_type")]
+    pub authentication_type: AuthenticationType,
     /// Pending invitations for the current user
     #[serde(rename = "invitations")]
     pub invitations: Vec<models::AccountInvitation1>,
+    #[serde(
+        rename = "service_account",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub service_account: Option<Option<Box<models::MeResponseAuthenticated1ServiceAccount>>>,
     #[serde(rename = "user")]
     pub user: Box<models::User1>,
 }
@@ -31,14 +40,31 @@ impl MeResponseAuthenticated1 {
     pub fn new(
         accounts: std::collections::HashMap<String, models::SessionAccount1>,
         authenticated: bool,
+        authentication_type: AuthenticationType,
         invitations: Vec<models::AccountInvitation1>,
         user: models::User1,
     ) -> MeResponseAuthenticated1 {
         MeResponseAuthenticated1 {
             accounts,
             authenticated,
+            authentication_type,
             invitations,
+            service_account: None,
             user: Box::new(user),
         }
+    }
+}
+///
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum AuthenticationType {
+    #[serde(rename = "jwt")]
+    Jwt,
+    #[serde(rename = "api_key")]
+    ApiKey,
+}
+
+impl Default for AuthenticationType {
+    fn default() -> AuthenticationType {
+        Self::Jwt
     }
 }

@@ -48,6 +48,7 @@ docs/GlobalSearchRequest.md
 docs/MeResponse.md
 docs/MeResponseAuthenticated.md
 docs/MeResponseAuthenticated1.md
+docs/MeResponseAuthenticated1ServiceAccount.md
 docs/MeResponseUnauthenticated.md
 docs/MeResponseUnauthenticated1.md
 docs/OpenApiSchema.md
@@ -173,6 +174,7 @@ src/models/global_search_request.rs
 src/models/me_response.rs
 src/models/me_response_authenticated.rs
 src/models/me_response_authenticated_1.rs
+src/models/me_response_authenticated_1_service_account.rs
 src/models/me_response_unauthenticated.rs
 src/models/me_response_unauthenticated_1.rs
 src/models/mod.rs

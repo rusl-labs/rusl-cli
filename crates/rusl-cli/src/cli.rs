@@ -104,7 +104,14 @@ pub enum SetupCommand {
 pub struct InstallArgs {}
 
 #[derive(Parser, Debug)]
-pub struct LoginArgs {}
+pub struct LoginArgs {
+    /// Authenticate with a long-lived service account token.
+    ///
+    /// Omit the value to enter the token interactively (masked).
+    /// Pass `-` to read the token from stdin.
+    #[arg(long, value_name = "TOKEN", num_args = 0..=1, default_missing_value = "")]
+    pub token: Option<String>,
+}
 
 #[derive(Parser, Debug)]
 pub struct LogoutArgs {}

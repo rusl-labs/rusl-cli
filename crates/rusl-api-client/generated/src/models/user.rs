@@ -20,6 +20,13 @@ pub struct User {
     /// Confirmed At
     #[serde(rename = "confirmed_at", skip_serializing_if = "Option::is_none")]
     pub confirmed_at: Option<String>,
+    #[serde(
+        rename = "disabled_at",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub disabled_at: Option<Option<String>>,
     /// User Email
     #[serde(rename = "email", skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
@@ -32,9 +39,26 @@ pub struct User {
     /// Inserted At
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
+    #[serde(
+        rename = "name",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub name: Option<Option<String>>,
+    #[serde(
+        rename = "owning_account_slug",
+        default,
+        with = "::serde_with::rust::double_option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub owning_account_slug: Option<Option<String>>,
+    /// Authentication principal kind.
+    #[serde(rename = "principal_type")]
+    pub principal_type: PrincipalType,
     /// The user's account slug — set when the user account is created
-    #[serde(rename = "slug")]
-    pub slug: String,
+    #[serde(rename = "slug", skip_serializing_if = "Option::is_none")]
+    pub slug: Option<String>,
     /// Updated At
     #[serde(rename = "updated_at")]
     pub updated_at: String,
@@ -52,18 +76,22 @@ impl User {
         guid: String,
         id: String,
         inserted_at: String,
-        slug: String,
+        principal_type: PrincipalType,
         updated_at: String,
         user_type: UserType,
     ) -> User {
         User {
             __typename,
             confirmed_at: None,
+            disabled_at: None,
             email: None,
             guid,
             id,
             inserted_at,
-            slug,
+            name: None,
+            owning_account_slug: None,
+            principal_type,
+            slug: None,
             updated_at,
             user_account: None,
             user_type,
@@ -80,6 +108,20 @@ pub enum Typename {
 impl Default for Typename {
     fn default() -> Typename {
         Self::Users
+    }
+}
+/// Authentication principal kind.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+pub enum PrincipalType {
+    #[serde(rename = "regular")]
+    Regular,
+    #[serde(rename = "service")]
+    Service,
+}
+
+impl Default for PrincipalType {
+    fn default() -> PrincipalType {
+        Self::Regular
     }
 }
 /// Self-reported principal type. Defaults to \"human\".

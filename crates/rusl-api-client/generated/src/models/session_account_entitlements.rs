@@ -20,6 +20,9 @@ pub struct SessionAccountEntitlements {
     /// Maximum number of private schemas the account may create; -1 = unlimited
     #[serde(rename = "max_private_schemas")]
     pub max_private_schemas: i32,
+    /// Maximum number of active service principals the account may own; -1 = unlimited
+    #[serde(rename = "max_service_accounts")]
+    pub max_service_accounts: i32,
     /// Account may create private annotations on public subjects
     #[serde(rename = "private_annotations_on_public")]
     pub private_annotations_on_public: bool,
@@ -33,12 +36,14 @@ impl SessionAccountEntitlements {
     pub fn new(
         feed_subscriptions: bool,
         max_private_schemas: i32,
+        max_service_accounts: i32,
         private_annotations_on_public: bool,
         private_team_visibility: bool,
     ) -> SessionAccountEntitlements {
         SessionAccountEntitlements {
             feed_subscriptions,
             max_private_schemas,
+            max_service_accounts,
             private_annotations_on_public,
             private_team_visibility,
         }

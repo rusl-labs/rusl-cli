@@ -1,11 +1,82 @@
 use crate::cli::LoginArgs;
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use colored::Colorize;
+use dialoguer::Password;
 use rusl_app::login_service::{self, LoginCallbackOutcome};
+use std::io::{IsTerminal, Read, Write};
 use tokio::net::TcpListener;
 
-pub async fn run(_args: LoginArgs) -> Result<()> {
-    run_with_browser_opener(_args, webbrowser::open).await
+pub async fn run(args: LoginArgs) -> Result<()> {
+    if args.token.is_some() {
+        return run_token_login(args).await;
+    }
+    run_with_browser_opener(args, webbrowser::open).await
+}
+
+async fn run_token_login(args: LoginArgs) -> Result<()> {
+    let token = resolve_token_input(args.token)?;
+    let pb = crate::ui::spinner("Verifying service account token...");
+    login_service::login_with_token(token).await?;
+    pb.finish_with_message(format!(
+        "{} Logged in with service account token.",
+        "Success:".green().bold()
+    ));
+    Ok(())
+}
+
+fn resolve_token_input(token: Option<String>) -> Result<String> {
+    let Some(token) = token else {
+        bail!("internal error: token login invoked without --token");
+    };
+
+    if token.is_empty() {
+        return prompt_for_token();
+    }
+
+    if token == "-" {
+        return read_token_from_stdin();
+    }
+
+    Ok(token)
+}
+
+fn prompt_for_token() -> Result<String> {
+    if !std::io::stdin().is_terminal() || !std::io::stdout().is_terminal() {
+        bail!(
+            "No terminal available to prompt for a token. Pass `--token <TOKEN>` or `--token -` to read from stdin."
+        );
+    }
+
+    // Hide the token while typing; do not echo a report line afterward.
+    let token = Password::new()
+        .with_prompt("Service account token")
+        .report(false)
+        .interact()
+        .context("Failed to read service account token")?;
+
+    if token.trim().is_empty() {
+        bail!("Login failed: token is empty.");
+    }
+
+    Ok(token)
+}
+
+fn read_token_from_stdin() -> Result<String> {
+    if std::io::stdin().is_terminal() {
+        // Allow piping even when a TTY is attached if the user explicitly chose `-`.
+        eprint!("Reading token from stdin... ");
+        let _ = std::io::stderr().flush();
+    }
+
+    let mut token = String::new();
+    std::io::stdin()
+        .read_to_string(&mut token)
+        .context("Failed to read service account token from stdin")?;
+    let token = token.trim().to_string();
+    if token.is_empty() {
+        bail!("Login failed: token is empty.");
+    }
+    Ok(token)
 }
 
 async fn run_with_browser_opener<F>(_args: LoginArgs, open_browser: F) -> Result<()>
@@ -101,14 +172,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::run_with_browser_opener;
+    use super::{run, run_with_browser_opener};
     use crate::cli::LoginArgs;
     use axum::{
         Json, Router,
         body::Bytes,
         extract::State,
         http::{HeaderMap, StatusCode},
-        routing::post,
+        routing::{get, post},
     };
     use rusl_app::config::credentials::Credentials;
     use serial_test::serial;
@@ -160,6 +231,7 @@ mod tests {
         requests: Arc<AsyncMutex<Vec<RecordedRequest>>>,
         token_responses: Arc<AsyncMutex<VecDeque<ResponseSpec>>>,
         exchange_responses: Arc<AsyncMutex<VecDeque<ResponseSpec>>>,
+        me_responses: Arc<AsyncMutex<VecDeque<ResponseSpec>>>,
     }
 
     struct TestApiServer {
@@ -174,16 +246,30 @@ mod tests {
             token_responses: Vec<ResponseSpec>,
             exchange_responses: Vec<ResponseSpec>,
         ) -> Self {
+            Self::start_with_routes(token_responses, exchange_responses, Vec::new()).await
+        }
+
+        async fn start_with_me(me_responses: Vec<ResponseSpec>) -> Self {
+            Self::start_with_routes(Vec::new(), Vec::new(), me_responses).await
+        }
+
+        async fn start_with_routes(
+            token_responses: Vec<ResponseSpec>,
+            exchange_responses: Vec<ResponseSpec>,
+            me_responses: Vec<ResponseSpec>,
+        ) -> Self {
             let requests = Arc::new(AsyncMutex::new(Vec::new()));
             let state = TestState {
                 requests: requests.clone(),
                 token_responses: Arc::new(AsyncMutex::new(VecDeque::from(token_responses))),
                 exchange_responses: Arc::new(AsyncMutex::new(VecDeque::from(exchange_responses))),
+                me_responses: Arc::new(AsyncMutex::new(VecDeque::from(me_responses))),
             };
 
             let app = Router::new()
                 .route("/api/v1/auth/cli/token", post(token_handler))
                 .route("/api/v1/tokens/exchange", post(exchange_handler))
+                .route("/api/v1/auth/sessions/me", get(me_handler))
                 .with_state(state);
 
             let listener = TcpListener::bind("127.0.0.1:0")
@@ -302,7 +388,7 @@ mod tests {
         let task = tokio::spawn({
             let opened_url = opened_url.clone();
             async move {
-                run_with_browser_opener(LoginArgs {}, move |url| {
+                run_with_browser_opener(LoginArgs { token: None }, move |url| {
                     *opened_url.lock().expect("lock opened url") = Some(url.to_string());
                     Ok(())
                 })
@@ -368,7 +454,7 @@ mod tests {
         let task = tokio::spawn({
             let opened_url = opened_url.clone();
             async move {
-                run_with_browser_opener(LoginArgs {}, move |url| {
+                run_with_browser_opener(LoginArgs { token: None }, move |url| {
                     *opened_url.lock().expect("lock opened url") = Some(url.to_string());
                     Ok(())
                 })
@@ -394,6 +480,68 @@ mod tests {
         );
         assert!(Credentials::load().is_none());
         assert!(server.recorded_requests().await.is_empty());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn token_login_saves_access_token_without_refresh() {
+        let server = TestApiServer::start_with_me(vec![ResponseSpec::ok(
+            r#"{
+                "authenticated": true,
+                "authentication_type": "api_key",
+                "invitations": [],
+                "service_account": {
+                    "api_key_id": "c236847e-a84a-42a0-88bc-09a271bb3c24"
+                },
+                "user": {
+                    "__typename": "users",
+                    "name": "Local Agent",
+                    "guid": "users.user_bot",
+                    "id": "user_bot",
+                    "inserted_at": "2026-04-05T00:00:00Z",
+                    "owning_account_slug": "dan",
+                    "principal_type": "service",
+                    "updated_at": "2026-04-05T00:00:00Z",
+                    "user_type": "unknown"
+                },
+                "accounts": {}
+            }"#,
+        )])
+        .await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        fs::create_dir_all(&home_dir)
+            .await
+            .expect("create home dir");
+        fs::create_dir_all(&workspace_dir)
+            .await
+            .expect("create workspace dir");
+        let _env = TestEnvGuard::new(
+            &home_dir,
+            &workspace_dir,
+            &server.base_url,
+            &server.base_url,
+        );
+
+        run(LoginArgs {
+            token: Some("sa-token-from-cli".to_string()),
+        })
+        .await
+        .expect("token login succeeds");
+
+        let credentials = Credentials::load().expect("saved credentials");
+        assert_eq!(credentials.access_token, "sa-token-from-cli");
+        assert_eq!(credentials.refresh_token, "");
+
+        let requests = server.recorded_requests().await;
+        assert_eq!(requests.len(), 1);
+        assert_eq!(requests[0].method, "GET");
+        assert_eq!(requests[0].path, "/api/v1/auth/sessions/me");
+        assert_eq!(
+            requests[0].authorization.as_deref(),
+            Some("Bearer sa-token-from-cli")
+        );
     }
 
     #[tokio::test]
@@ -427,7 +575,7 @@ mod tests {
         let task = tokio::spawn({
             let opened_url = opened_url.clone();
             async move {
-                run_with_browser_opener(LoginArgs {}, move |url| {
+                run_with_browser_opener(LoginArgs { token: None }, move |url| {
                     *opened_url.lock().expect("lock opened url") = Some(url.to_string());
                     Ok(())
                 })
@@ -496,6 +644,25 @@ mod tests {
         (
             response.status,
             Json(serde_json::from_str(response.body).expect("valid exchange json")),
+        )
+    }
+
+    async fn me_handler(
+        State(state): State<TestState>,
+        headers: HeaderMap,
+    ) -> (StatusCode, Json<serde_json::Value>) {
+        record_request(
+            &state,
+            "GET",
+            "/api/v1/auth/sessions/me",
+            &headers,
+            String::new(),
+        )
+        .await;
+        let response = next_response(&state.me_responses).await;
+        (
+            response.status,
+            Json(serde_json::from_str(response.body).expect("valid me json")),
         )
     }
 

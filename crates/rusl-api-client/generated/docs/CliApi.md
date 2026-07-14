@@ -1,6 +1,6 @@
 # \CliApi
 
-All URIs are relative to *http://localhost:4000*
+All URIs are relative to *https://resources.rusl.com*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------

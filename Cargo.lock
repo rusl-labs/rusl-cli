@@ -2372,7 +2372,7 @@ dependencies = [
 
 [[package]]
 name = "rusl"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "anyhow",
  "axum",
@@ -2399,7 +2399,7 @@ dependencies = [
 
 [[package]]
 name = "rusl-api-client"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "axum",
  "reqwest",
@@ -2412,7 +2412,7 @@ dependencies = [
 
 [[package]]
 name = "rusl-app"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "anyhow",
  "axum",
