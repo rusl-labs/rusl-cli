@@ -1,7 +1,11 @@
 use crate::cache::linker::Linker;
 use crate::cache::store::GlobalStore;
 use crate::config;
+use crate::manifest::bundle::BundleManifest;
+use crate::manifest::lock::LockManifest;
 use anyhow::{Context, Result};
+use std::collections::HashSet;
+use std::path::Path;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CacheClearResult {
@@ -17,18 +21,33 @@ pub async fn clear_cache() -> Result<CacheClearResult> {
         .await
         .context("Failed to clear global cache store")?;
 
+    let lock = LockManifest::load_from_dir(&cwd).context("Failed to read rusl.lock")?;
+    let protected_ids = load_protected_resource_ids(&cwd)?;
     let linker = Linker::new(
         cwd,
         config.schema_dir(),
         config.output_suffix(),
         config.naming_convention(),
     );
-    let local_schema_cache_cleared = linker.purge_all()?;
+    let local_schema_cache_cleared =
+        linker.purge_installed(&lock.removable_schemas(&protected_ids))?;
 
     Ok(CacheClearResult {
         global_store_cleared,
         local_schema_cache_cleared,
     })
+}
+
+fn load_protected_resource_ids(cwd: &Path) -> Result<HashSet<String>> {
+    let path = cwd.join("rusl.bundle.toml");
+    if !path.exists() {
+        return Ok(HashSet::new());
+    }
+
+    let contents = std::fs::read_to_string(&path).context("Failed to read rusl.bundle.toml")?;
+    let manifest: BundleManifest =
+        toml::from_str(&contents).context("Failed to parse rusl.bundle.toml")?;
+    Ok(manifest.protected_resource_ids())
 }
 
 #[cfg(test)]
@@ -96,19 +115,62 @@ mod tests {
 
         let schema_dir = workspace_dir.join("schemas");
         std::fs::create_dir_all(schema_dir.join("acme")).expect("create schema dir");
-        std::fs::write(schema_dir.join("acme").join("thing.json"), "{}")
-            .expect("write schema link target");
-        std::fs::write(workspace_dir.join("rusl.bundle.toml"), "[rusl.resources]\n")
-            .expect("write manifest");
-        std::fs::write(workspace_dir.join("rusl.lock"), "version = \"1\"\n")
-            .expect("write lockfile");
+        std::fs::create_dir_all(schema_dir.join("local")).expect("create local schema dir");
+        std::fs::write(schema_dir.join("acme").join("thing.schema.json"), "{}")
+            .expect("write downloaded schema");
+        std::fs::write(
+            schema_dir.join("acme").join("experiment.schema.json"),
+            "{\"dev\":true}",
+        )
+        .expect("write dev schema");
+        std::fs::write(
+            schema_dir.join("local").join("mine.schema.json"),
+            "{\"local\":true}",
+        )
+        .expect("write unmanaged schema");
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"acme/schemas/thing" = "*"
+"acme/schemas/experiment" = { dev = true }
+"#,
+        )
+        .expect("write manifest");
+        std::fs::write(
+            workspace_dir.join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:acme/schemas/thing"]
+version = "1.0.0"
+integrity = "abc"
+source = "https://example.test"
+
+[dependencies."schema:acme/schemas/experiment"]
+version = "1.0.0"
+integrity = "def"
+source = "https://example.test"
+"#,
+        )
+        .expect("write lockfile");
 
         let result = clear_cache().await.expect("clear cache");
 
         assert!(result.global_store_cleared);
         assert!(result.local_schema_cache_cleared);
         assert!(!store_root.exists());
-        assert!(!schema_dir.exists());
+        assert!(!schema_dir.join("acme").join("thing.schema.json").exists());
+        assert_eq!(
+            std::fs::read_to_string(schema_dir.join("acme").join("experiment.schema.json"))
+                .expect("read dev schema"),
+            "{\"dev\":true}"
+        );
+        assert_eq!(
+            std::fs::read_to_string(schema_dir.join("local").join("mine.schema.json"))
+                .expect("read unmanaged schema"),
+            "{\"local\":true}"
+        );
         assert!(workspace_dir.join("rusl.bundle.toml").exists());
         assert!(workspace_dir.join("rusl.lock").exists());
     }

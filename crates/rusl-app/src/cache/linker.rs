@@ -3,6 +3,10 @@ use crate::schema_naming::{NamingConvention, installed_schema_path};
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
+fn path_exists_or_is_link(path: &Path) -> bool {
+    path.exists() || std::fs::symlink_metadata(path).is_ok()
+}
+
 /// The project linker engine responsible for mapping CAS assets into the local project structure.
 pub struct Linker {
     schema_dir: PathBuf,
@@ -25,15 +29,66 @@ impl Linker {
         }
     }
 
-    /// Purges the entire schema directory to eliminate orphan schema files.
-    pub fn purge_all(&self) -> Result<bool> {
-        if self.schema_dir.exists() {
-            std::fs::remove_dir_all(&self.schema_dir).with_context(|| {
-                format!("Failed to prune schema cache at {:?}", self.schema_dir)
-            })?;
-            return Ok(true);
+    /// Absolute path where a schema would be materialized under the current config.
+    pub fn installed_path(&self, resource: &RegistryResource) -> PathBuf {
+        installed_schema_path(
+            &self.schema_dir,
+            self.naming_convention,
+            resource,
+            &self.suffix,
+        )
+    }
+
+    /// Removes only the listed schema files, then prunes empty parent directories.
+    ///
+    /// Files that are not in `resources` are left untouched. `schema_dir` itself
+    /// is removed only when it becomes empty.
+    pub fn purge_installed(&self, resources: &[RegistryResource]) -> Result<bool> {
+        let mut removed_any = false;
+        for resource in resources {
+            if self.remove_installed_file(resource)? {
+                removed_any = true;
+            }
         }
-        Ok(false)
+        Ok(removed_any)
+    }
+
+    fn remove_installed_file(&self, resource: &RegistryResource) -> Result<bool> {
+        let local_file = self.installed_path(resource);
+        if !path_exists_or_is_link(&local_file) {
+            return Ok(false);
+        }
+
+        std::fs::remove_file(&local_file)
+            .with_context(|| format!("Failed to remove installed schema at {local_file:?}"))?;
+        self.prune_empty_parents(&local_file)?;
+        Ok(true)
+    }
+
+    fn prune_empty_parents(&self, file_path: &Path) -> Result<()> {
+        let mut current = file_path.parent();
+        while let Some(dir) = current {
+            if !dir.starts_with(&self.schema_dir) {
+                break;
+            }
+
+            let is_empty = match std::fs::read_dir(dir) {
+                Ok(mut entries) => entries.next().is_none(),
+                Err(_) => break,
+            };
+            if !is_empty {
+                break;
+            }
+
+            std::fs::remove_dir(dir)
+                .with_context(|| format!("Failed to prune empty schema directory at {dir:?}"))?;
+
+            if dir == self.schema_dir {
+                break;
+            }
+            current = dir.parent();
+        }
+        Ok(())
     }
 
     /// Copies a schema from the global content store into the project install tree.
@@ -57,8 +112,7 @@ impl Linker {
                 .with_context(|| format!("Failed to create local directory layer: {:?}", parent))?;
         }
 
-        // Purge existing file/symlink to prevent stale retention
-        if local_file.exists() || std::fs::symlink_metadata(&local_file).is_ok() {
+        if path_exists_or_is_link(&local_file) {
             std::fs::remove_file(&local_file)
                 .with_context(|| format!("Failed to purge existing file at {:?}", local_file))?;
         }
@@ -160,5 +214,67 @@ mod tests {
         let metadata = std::fs::symlink_metadata(&installed).expect("symlink metadata");
         assert!(metadata.file_type().is_file());
         assert!(!metadata.file_type().is_symlink());
+    }
+
+    #[test]
+    fn purge_installed_removes_listed_files_and_keeps_neighbors() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let cwd = temp_dir.path().to_path_buf();
+        let managed_parent = cwd.join("schemas").join("acme");
+        let local_parent = cwd.join("schemas").join("local");
+        std::fs::create_dir_all(&managed_parent).expect("create managed parent");
+        std::fs::create_dir_all(&local_parent).expect("create local parent");
+
+        let managed = managed_parent.join("payment.schema.json");
+        let leftover = managed_parent.join("old.schema.json");
+        let local = local_parent.join("experiment.schema.json");
+        std::fs::write(&managed, r#"{"title":"payment"}"#).expect("write managed");
+        std::fs::write(&leftover, r#"{"title":"old"}"#).expect("write leftover");
+        std::fs::write(&local, r#"{"title":"local"}"#).expect("write local");
+
+        let linker = Linker::new(
+            cwd.clone(),
+            DEFAULT_SCHEMA_DIR,
+            DEFAULT_SCHEMA_SUFFIX,
+            NamingConvention::Normal,
+        );
+        let removed = linker
+            .purge_installed(&[
+                RegistryResource::schema("acme/schemas/payment").expect("payment"),
+                RegistryResource::schema("acme/schemas/old").expect("old"),
+            ])
+            .expect("purge listed schemas");
+
+        assert!(removed);
+        assert!(!managed.exists());
+        assert!(!leftover.exists());
+        assert!(local.exists());
+        assert_eq!(
+            std::fs::read_to_string(&local).expect("read local"),
+            r#"{"title":"local"}"#
+        );
+        assert!(!managed_parent.exists());
+        assert!(cwd.join("schemas").exists());
+    }
+
+    #[test]
+    fn purge_installed_removes_empty_schema_dir() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let cwd = temp_dir.path().to_path_buf();
+        let parent = cwd.join("schemas").join("acme");
+        std::fs::create_dir_all(&parent).expect("create parent");
+        std::fs::write(parent.join("payment.schema.json"), "{}").expect("write schema");
+
+        let linker = Linker::new(
+            cwd.clone(),
+            DEFAULT_SCHEMA_DIR,
+            DEFAULT_SCHEMA_SUFFIX,
+            NamingConvention::Normal,
+        );
+        linker
+            .purge_installed(&[RegistryResource::schema("acme/schemas/payment").expect("payment")])
+            .expect("purge last managed schema");
+
+        assert!(!cwd.join("schemas").exists());
     }
 }

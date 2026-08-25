@@ -73,7 +73,7 @@ where
             ));
             continue;
         };
-        let range = parse_version_range(req).unwrap_or(Ranges::full());
+        let range = parse_version_range(req.version()).unwrap_or(Ranges::full());
         root_deps.push((key.clone(), range));
         if visited.insert(key.clone()) {
             queue.push_back(key);
