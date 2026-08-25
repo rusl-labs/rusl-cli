@@ -58,10 +58,17 @@ where
         .await
         .context("Dependency resolution failed")?;
 
-    progress.set_message("Cleaning old schema cache...".to_string());
-    linker
-        .purge_all()
-        .with_context(|| format!("Failed to safely prune {} directory", config.schema_dir()))?;
+    let previous_lock = LockManifest::load_from_dir(&cwd).context("Failed to read rusl.lock")?;
+    let protected_ids = manifest.protected_resource_ids();
+
+    progress.set_message("Removing previously installed schemas...".to_string());
+    let stale_schemas = previous_lock.removable_schemas(&protected_ids);
+    linker.purge_installed(&stale_schemas).with_context(|| {
+        format!(
+            "Failed to remove previously installed schemas from {}",
+            config.schema_dir()
+        )
+    })?;
 
     progress.set_message("Downloading schemas...".to_string());
 
@@ -76,6 +83,20 @@ where
             continue;
         };
         if resource.kind != ResourceKind::Schema {
+            continue;
+        }
+
+        if protected_ids.contains(&resource.identifier())
+            && linker.installed_path(&resource).exists()
+        {
+            progress.println(format!(
+                "Keeping local schema {} (dev).",
+                resource.identifier()
+            ));
+            if let Some(previous) = previous_lock.dependencies.get(package_key) {
+                integrity_map.insert(package_key.clone(), previous.integrity.clone());
+            }
+            schema_count += 1;
             continue;
         }
 
@@ -450,6 +471,143 @@ naming_convention = "flat"
             .join("hassox_dep.schema.json");
         assert!(root_schema.is_file());
         assert!(dep_schema.is_file());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_removes_only_previously_downloaded_schemas() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        write_install_fixtures(&workspace_dir, None);
+
+        let leftover_dir = workspace_dir.join("schemas").join("hassox");
+        let local_dir = workspace_dir.join("schemas").join("local");
+        std::fs::create_dir_all(&leftover_dir).expect("create leftover dir");
+        std::fs::create_dir_all(&local_dir).expect("create local dir");
+        std::fs::write(leftover_dir.join("old.schema.json"), r#"{"title":"old"}"#)
+            .expect("write leftover schema");
+        std::fs::write(local_dir.join("mine.schema.json"), r#"{"title":"local"}"#)
+            .expect("write unmanaged schema");
+        std::fs::write(
+            workspace_dir.join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:hassox/schemas/old"]
+version = "1.0.0"
+integrity = "oldhash"
+source = "https://example.test"
+"#,
+        )
+        .expect("write previous lockfile");
+
+        install_project(&TestProgress)
+            .await
+            .expect("install project");
+
+        assert!(!leftover_dir.join("old.schema.json").exists());
+        assert_eq!(
+            std::fs::read_to_string(local_dir.join("mine.schema.json")).expect("read local"),
+            r#"{"title":"local"}"#
+        );
+        assert!(
+            workspace_dir
+                .join("schemas")
+                .join("hassox")
+                .join("root.schema.json")
+                .is_file()
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_keeps_existing_dev_schema_and_still_seeds_missing_dev_schema() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = { version = ">=1.0.0", dev = true }
+"#,
+        )
+        .expect("write manifest");
+
+        let root_dir = workspace_dir.join("schemas").join("hassox");
+        std::fs::create_dir_all(&root_dir).expect("create schema dir");
+        let root_schema = root_dir.join("root.schema.json");
+        std::fs::write(&root_schema, r#"{"title":"local-edit"}"#).expect("write local root");
+        std::fs::write(
+            workspace_dir.join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:hassox/schemas/root"]
+version = "1.0.0"
+integrity = "oldhash"
+source = "https://example.test"
+"#,
+        )
+        .expect("write previous lockfile");
+
+        install_project(&TestProgress)
+            .await
+            .expect("install project");
+
+        assert_eq!(
+            std::fs::read_to_string(&root_schema).expect("read protected root"),
+            r#"{"title":"local-edit"}"#
+        );
+        assert_eq!(
+            std::fs::read_to_string(root_dir.join("dep.schema.json")).expect("read dep"),
+            r#"{"title":"dep","type":"object"}"#
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_downloads_missing_dev_schema() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = { version = ">=1.0.0", dev = true }
+"#,
+        )
+        .expect("write manifest");
+
+        install_project(&TestProgress)
+            .await
+            .expect("install project");
+
+        let root_schema = workspace_dir
+            .join("schemas")
+            .join("hassox")
+            .join("root.schema.json");
+        assert_eq!(
+            std::fs::read_to_string(&root_schema).expect("read seeded root"),
+            r#"{"title":"root","type":"object"}"#
+        );
     }
 
     fn write_install_fixtures(workspace_dir: &std::path::Path, config_toml: Option<&str>) {

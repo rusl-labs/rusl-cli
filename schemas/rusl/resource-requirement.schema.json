@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusl.com/schemas/rusl/resource-requirement",
+  "title": "ResourceRequirement",
+  "description": "A rusl.bundle.toml [rusl.resources] value. The string form is a version requirement. The object form adds optional local ownership (dev) so install and cache clear will not delete or overwrite the on-disk schema file.",
+  "oneOf": [
+    {
+      "type": "string",
+      "description": "Version requirement for a registry-managed resource. Examples: *, >=1.2.3, 1.2.3."
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version requirement used when resolving this resource from the registry. Defaults to * when omitted."
+        },
+        "dev": {
+          "type": "boolean",
+          "description": "When true, rusl still resolves the resource and may download it if the local file is missing, but will not delete or overwrite an existing on-disk schema file."
+        }
+      },
+      "anyOf": [
+        { "required": ["version"] },
+        { "required": ["dev"] }
+      ]
+    }
+  ]
+}

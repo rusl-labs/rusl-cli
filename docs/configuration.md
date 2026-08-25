@@ -30,6 +30,7 @@ description = "Schemas used by the web application."
 [rusl.resources]
 "acme/schemas/user-profile" = "*"
 "acme/bundles/common" = ">=1.2.0"
+"acme/schemas/experiment" = { version = "*", dev = true }
 ```
 
 ### Resource Identifiers
@@ -76,9 +77,13 @@ The supported dependency table for new manifests.
 
 | Option | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| resource identifier keys | string map | empty | Direct schema and bundle dependencies. Keys are canonical resource identifiers, and values are version requirement strings. |
+| resource identifier keys | string or inline table | empty | Direct schema and bundle dependencies. Keys are canonical resource identifiers. Values are either a version requirement string or an inline table (`{ version = "...", dev = true }`). |
 
 Keys must be canonical resource identifiers (`account/schemas/name` or `account/bundles/name`); the kind is inferred from the identifier. `rusl add` creates `[rusl.resources]` if it is missing, and `rusl remove` removes entries from it.
+
+A resource marked `dev = true` is still resolved from the registry. If the local schema file is missing, install downloads it once. After that, `rusl install` and `rusl cache --clear` will not delete or overwrite that file. Use this when you are iterating on a downloaded schema and need the local copy to stay put.
+
+Local schemas that were never downloaded do not need a `dev` mark. Install and cache-clear only remove schema files that `rusl.lock` recorded from a previous download.
 
 The manifest parser also accepts `[external]` and `[overrides]`, but current install and resolution flows do not act on them. Do not use them in public manifests yet.
 
@@ -134,4 +139,4 @@ For a packaged schema the final identifier segment is the dotted compound (`pack
 
 Public projects can either commit the installed copies or gitignore `schema_dir` and run `rusl install` after clone; both work with the copy-based layout.
 
-`rusl install` and `rusl cache --clear` remove the configured schema directory before writing fresh schema files. Do not point `schema_dir` at a directory that contains unrelated project files.
+`rusl install` and `rusl cache --clear` remove only schema files recorded in `rusl.lock` from a previous download. Files that were never installed, and resources marked `dev = true` in `rusl.bundle.toml`, are left in place. Pointing `schema_dir` at a directory that also holds first-party schemas is therefore safe as long as those files are not lockfile-managed copies you still want Rusl to refresh.
