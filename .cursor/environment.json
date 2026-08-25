@@ -1,8 +1,0 @@
-{
-  "name": "rusl-cli",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-  "user": "root",
-  "install": "cargo fetch --locked && cargo build --workspace"
-}
