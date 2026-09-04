@@ -1,6 +1,6 @@
 [package]
 name = "rusl-app"
-version = "0.6.5"
+version = "0.6.6"
 edition = "2024"
 rust-version = "1.88"
 description = "Shared application logic for the Rusl schema package manager."

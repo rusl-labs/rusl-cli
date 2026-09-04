@@ -4,7 +4,6 @@ use crate::registry::client::{RegistryClient, RegistryVersion};
 use crate::resource_identifier::{ResourceKind, display_package_key, parse_package_key};
 use anyhow::{Context, Result};
 use pubgrub::SemanticVersion;
-use std::env;
 use std::fs;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,8 +22,8 @@ pub struct OutdatedItem {
 }
 
 pub async fn load_outdated_dependencies() -> Result<OutdatedOutput> {
-    let cwd = env::current_dir().context("Failed to get current working directory")?;
-    let lock_path = cwd.join("rusl.lock");
+    let project = crate::project::discover_bundle_from_cwd()?;
+    let lock_path = project.lock_path();
 
     if !lock_path.exists() {
         return Ok(OutdatedOutput::MissingLockfile);
@@ -290,6 +289,8 @@ mod tests {
         std::fs::create_dir_all(&home_dir).expect("create home dir");
         std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
         let _guard = EnvGuard::new(&home_dir, &workspace_dir, "https://api.example.test");
+        std::fs::write(workspace_dir.join("rusl.bundle.toml"), "[rusl.resources]\n")
+            .expect("write bundle");
 
         let output = load_outdated_dependencies().await.expect("load outdated");
 
@@ -308,6 +309,8 @@ mod tests {
         let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
         Credentials::clear().expect("clear creds");
 
+        std::fs::write(workspace_dir.join("rusl.bundle.toml"), "[rusl.resources]\n")
+            .expect("write bundle");
         std::fs::write(
             workspace_dir.join("rusl.lock"),
             r#"

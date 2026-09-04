@@ -3,7 +3,6 @@ use crate::manifest::lock::{LOCAL_SOURCE, LockManifest};
 use crate::resource_identifier::{display_package_key, package_key_from_identifier};
 use anyhow::{Context, Result, bail};
 use std::collections::HashSet;
-use std::env;
 use std::fs;
 use std::path::Path;
 
@@ -22,6 +21,8 @@ pub enum ListOutput {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ListFlatView {
+    /// Resolved path of the lockfile that was listed.
+    pub lock_path: String,
     pub items: Vec<ListFlatItem>,
 }
 
@@ -52,8 +53,8 @@ pub struct ListTreeNode {
 }
 
 pub fn load_dependencies(tree: bool) -> Result<ListOutput> {
-    let cwd = env::current_dir().context("Failed to get current working directory")?;
-    let lock_path = cwd.join("rusl.lock");
+    let project = crate::project::discover_bundle_from_cwd()?;
+    let lock_path = project.lock_path();
 
     if !lock_path.exists() {
         return Ok(ListOutput::MissingLockfile);
@@ -68,12 +69,16 @@ pub fn load_dependencies(tree: bool) -> Result<ListOutput> {
     }
 
     if tree {
-        build_tree_view(&cwd, &lock_manifest).map(ListOutput::Tree)
+        build_tree_view(&project.root, &lock_manifest).map(ListOutput::Tree)
     } else {
-        let dev_ids = load_manifest(&cwd)?
+        let lock_display = lock_path.display().to_string();
+        let dev_ids = load_manifest(&project.root)?
             .map(|manifest| manifest.protected_resource_ids())
             .unwrap_or_default();
-        Ok(ListOutput::Flat(build_flat_view(&lock_manifest, &dev_ids)))
+        Ok(ListOutput::Flat(ListFlatView {
+            lock_path: lock_display,
+            items: build_flat_items(&lock_manifest, &dev_ids),
+        }))
     }
 }
 
@@ -90,9 +95,8 @@ fn load_manifest(cwd: &Path) -> Result<Option<BundleManifest>> {
     Ok(Some(manifest))
 }
 
-fn build_flat_view(lock: &LockManifest, dev_ids: &HashSet<String>) -> ListFlatView {
-    let items = lock
-        .dependencies
+fn build_flat_items(lock: &LockManifest, dev_ids: &HashSet<String>) -> Vec<ListFlatItem> {
+    lock.dependencies
         .iter()
         .map(|(name, dep)| {
             let display_name = display_package_key(name);
@@ -107,9 +111,15 @@ fn build_flat_view(lock: &LockManifest, dev_ids: &HashSet<String>) -> ListFlatVi
                 },
             }
         })
-        .collect();
+        .collect()
+}
 
-    ListFlatView { items }
+#[cfg(test)]
+fn build_flat_view(lock: &LockManifest, dev_ids: &HashSet<String>) -> ListFlatView {
+    ListFlatView {
+        lock_path: "rusl.lock".to_string(),
+        items: build_flat_items(lock, dev_ids),
+    }
 }
 
 fn build_tree_view(cwd: &Path, lock: &LockManifest) -> Result<ListTreeView> {
@@ -360,9 +370,33 @@ mod tests {
 
     #[test]
     #[serial]
+    fn load_dependencies_flat_view_shows_resolved_lock_path_from_walk_up() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        write_dev_fixtures(temp_dir.path());
+        let nested = temp_dir.path().join("packages").join("schemas");
+        std::fs::create_dir_all(&nested).expect("mkdir");
+        let _guard = DirGuard::new(&nested);
+
+        let output = load_dependencies(false).expect("load dependencies");
+        let ListOutput::Flat(flat) = output else {
+            panic!("expected flat output");
+        };
+        assert_eq!(
+            flat.lock_path,
+            temp_dir.path().join("rusl.lock").display().to_string()
+        );
+    }
+
+    #[test]
+    #[serial]
     fn load_dependencies_reports_missing_lockfile() {
         let temp_dir = TempDir::new().expect("create temp dir");
         let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            "[rusl.resources]\n",
+        )
+        .expect("write bundle");
 
         let output = load_dependencies(false).expect("load dependencies");
 

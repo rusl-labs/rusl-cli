@@ -9,7 +9,7 @@ Rusl uses two project-facing TOML files:
 
 ## `rusl.bundle.toml`
 
-`rusl.bundle.toml` must be in the directory where you run dependency commands such as `rusl install`, `rusl add`, `rusl remove`, `rusl list --tree`, and `rusl why`.
+`rusl.bundle.toml` is found by walking up from the current working directory (or from the directory given with the global `-C` / `--cwd` flag). Nearest wins. `rusl.lock` stays beside the bundle that was found.
 
 Minimal example:
 
@@ -137,7 +137,9 @@ Rusl loads configuration in this order, with later entries overriding earlier on
 3. The nearest `rusl.config.toml`, found by walking up from the current working directory.
 4. `RUSL_API_URL` and `RUSL_WEBSITE_URL` environment variables.
 
-The bundle manifest itself is not searched upward. Run bundle commands from the directory that contains `rusl.bundle.toml`.
+`rusl.bundle.toml` is discovered the same way: nearest file walking up from the current working directory (or from `-C` / `--cwd`). If none is found, commands that need a bundle fail and list the directories searched. Relative paths in project config are still resolved from the directory containing `rusl.config.toml`.
+
+The global `-C` / `--cwd <DIR>` flag changes the starting directory for all of this resolution before any subcommand runs, including `rusl mcp`.
 
 ### Options
 
@@ -145,7 +147,7 @@ The bundle manifest itself is not searched upward. Run bundle commands from the 
 | --- | --- | --- | --- |
 | `api_base_url` | string | `https://resources.rusl.com` | Rusl API server. |
 | `website_url` | string | `https://rusl.com` | Rusl website used for browser-based flows. |
-| `output.schema_dir` | string | `./schemas` | Directory where resolved schema files are written. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the command's current working directory. |
+| `output.schema_dir` | string | `./schemas` | Directory where resolved schema files are written. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the discovered bundle root (`rusl.bundle.toml`). |
 | `output.suffix` | string | `.schema.json` | Suffix appended to the schema file name when writing the file. |
 | `output.naming_convention` | string | `normal` | How canonical schema identifiers map to relative paths within `schema_dir`. One of `full`, `normal`, or `flat`. |
 

@@ -13,6 +13,7 @@ pub mod login_service;
 pub mod logout_service;
 pub mod manifest;
 pub mod outdated_service;
+pub mod project;
 pub mod proposal_service;
 pub mod registry;
 pub mod resolver;

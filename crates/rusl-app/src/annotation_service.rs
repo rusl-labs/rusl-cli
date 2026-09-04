@@ -1,5 +1,5 @@
+use crate::cache::linker::Linker;
 use crate::resource_identifier::RegistryResource;
-use crate::schema_naming::installed_schema_path;
 use crate::{config, feedback_schemas, registry::client::RegistryClient};
 use anyhow::{Context, Result, bail};
 use rusl_api_client::{models, rusl_user_agent_with_context};
@@ -231,15 +231,11 @@ fn map_annotation(annotation: models::Annotation) -> AnnotationOutput {
 
 fn feedback_schema_path(kind: FeedbackAnnotationKind) -> Result<PathBuf> {
     let config = config::load().context("Failed to load schema configuration")?;
-    let cwd = std::env::current_dir().context("Failed to get current working directory")?;
+    // Match install/cache/add --dev: default ./schemas is under the bundle root.
+    let project = crate::project::discover_bundle_from_cwd()?;
     let resource = RegistryResource::schema(&format!("rusl/schemas/{}", kind.slug()))
         .context("Feedback schema identifier is invalid")?;
-    Ok(installed_schema_path(
-        &cwd.join(config.schema_dir()),
-        config.naming_convention(),
-        &resource,
-        config.output_suffix(),
-    ))
+    Ok(Linker::for_project(project.root, &config).installed_path(&resource))
 }
 
 fn annotation_id_from_guid(subject_guid: &str) -> String {
@@ -280,7 +276,7 @@ mod tests {
   "$id": "https://resources.rusl.com/resources/rusl/schemas/context-request",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "A request for better explanation when a subject is ambiguous enough to block a task.",
+  "description": "Installed project copy used to detect cwd vs bundle-root resolution.",
   "properties": {
     "error_received": {
       "description": "Optional exact validation, tool, or runtime error.",
@@ -291,13 +287,17 @@ mod tests {
       "minLength": 1,
       "type": "string"
     },
+    "from_installed_copy": {
+      "const": true,
+      "description": "Present only on the on-disk installed schema under the bundle root."
+    },
     "suspected_ambiguity": {
       "description": "Question or point of confusion that should be clarified.",
       "minLength": 1,
       "type": "string"
     }
   },
-  "required": ["failing_task", "suspected_ambiguity"],
+  "required": ["failing_task", "from_installed_copy", "suspected_ambiguity"],
   "title": "Context Request",
   "type": "object",
   "version": "0.1.0"
@@ -313,17 +313,31 @@ mod tests {
 
     impl SchemaWorkspaceGuard {
         fn new() -> Self {
+            Self::with_nested_cwd(false)
+        }
+
+        fn with_nested_cwd(nested: bool) -> Self {
             let temp_dir = TempDir::new().expect("create temp dir");
             let home_dir = temp_dir.path().join("home");
             let workspace_dir = temp_dir.path().join("workspace");
             let schema_dir = workspace_dir.join("schemas").join("rusl");
             std::fs::create_dir_all(&home_dir).expect("create home dir");
             std::fs::create_dir_all(&schema_dir).expect("create schema dir");
+            std::fs::write(workspace_dir.join("rusl.bundle.toml"), "[rusl.resources]\n")
+                .expect("write bundle");
             std::fs::write(
                 schema_dir.join("context-request.schema.json"),
                 CONTEXT_REQUEST_SCHEMA,
             )
             .expect("write context request schema");
+
+            let cwd = if nested {
+                let nested_dir = workspace_dir.join("packages").join("schemas");
+                std::fs::create_dir_all(&nested_dir).expect("create nested dir");
+                nested_dir
+            } else {
+                workspace_dir.clone()
+            };
 
             let previous_home = std::env::var_os(home_var_name());
             let previous_xdg_config_home = std::env::var_os("XDG_CONFIG_HOME");
@@ -333,7 +347,7 @@ mod tests {
             set_env_var(home_var_name(), home_dir.as_os_str());
             set_env_var("XDG_CONFIG_HOME", home_dir.join(".config"));
             set_env_var("XDG_DATA_HOME", home_dir.join(".local").join("share"));
-            std::env::set_current_dir(&workspace_dir).expect("set workspace dir");
+            std::env::set_current_dir(&cwd).expect("set workspace dir");
 
             Self {
                 previous_home,
@@ -363,6 +377,7 @@ mod tests {
             FeedbackAnnotationKind::ContextRequest,
             &json!({
                 "failing_task": "Generate a type safely",
+                "from_installed_copy": true,
                 "suspected_ambiguity": "The field unit is not defined"
             }),
         )
@@ -376,6 +391,34 @@ mod tests {
                 .to_string()
                 .contains("Feedback annotation content failed validation for context-request")
         );
+    }
+
+    #[test]
+    #[serial]
+    fn loads_installed_feedback_schema_from_bundle_root_when_cwd_is_nested() {
+        let _guard = SchemaWorkspaceGuard::with_nested_cwd(true);
+
+        let path = super::feedback_schema_path(FeedbackAnnotationKind::ContextRequest)
+            .expect("resolve installed feedback schema from nested cwd");
+        assert!(
+            path.ends_with("schemas/rusl/context-request.schema.json"),
+            "expected bundle-root schema path, got {}",
+            path.display()
+        );
+        assert!(path.is_file(), "installed schema must be readable");
+
+        // from_installed_copy is required only by the on-disk schema. If resolution
+        // incorrectly used the nested cwd and fell back to the embedded schema,
+        // this field would be rejected as additionalProperties.
+        validate_feedback_content(
+            FeedbackAnnotationKind::ContextRequest,
+            &json!({
+                "failing_task": "Generate a type safely",
+                "from_installed_copy": true,
+                "suspected_ambiguity": "The field unit is not defined"
+            }),
+        )
+        .expect("valid content against installed schema from nested cwd");
     }
 
     #[test]
