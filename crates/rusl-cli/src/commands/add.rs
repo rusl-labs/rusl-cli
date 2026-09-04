@@ -9,16 +9,25 @@ pub async fn run(args: AddArgs) -> Result<()> {
     let request = AddDependencyRequest {
         identifier: args.identifier,
         version_requirement: args.version,
+        dev: args.dev,
     };
 
     let result = dependency_service::add_dependency(request, &progress).await?;
+    let dev_note = if result.dev { " as dev" } else { "" };
     progress.finish_with_message(format!(
-        "{} Added {} to [{}] and installed {} schemas.",
+        "{} Added {} to [{}]{} and installed {} schemas.",
         "Success:".green().bold(),
         result.slug,
         result.table_key,
+        dev_note,
         result.install.schema_count
     ));
+    if let Some(path) = &result.created_schema {
+        println!(
+            "Created {} to start from. Edit it, then publish when ready.",
+            path.display().to_string().bold()
+        );
+    }
     Ok(())
 }
 

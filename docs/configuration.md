@@ -77,15 +77,43 @@ The supported dependency table for new manifests.
 
 | Option | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| resource identifier keys | string or inline table | empty | Direct schema and bundle dependencies. Keys are canonical resource identifiers. Values are either a version requirement string or an inline table (`{ version = "...", dev = true }`). |
+| resource identifier keys | string or inline table | empty | Direct schema and bundle dependencies. Keys are canonical resource identifiers. Values are either a version requirement string or an inline table (`{ version = "...", dev = true }`); see [Developing Schemas Locally](#developing-schemas-locally). |
 
-Keys must be canonical resource identifiers (`account/schemas/name` or `account/bundles/name`); the kind is inferred from the identifier. `rusl add` creates `[rusl.resources]` if it is missing, and `rusl remove` removes entries from it.
-
-A resource marked `dev = true` is still resolved from the registry. If the local schema file is missing, install downloads it once. After that, `rusl install` and `rusl cache --clear` will not delete or overwrite that file. Use this when you are iterating on a downloaded schema and need the local copy to stay put.
-
-Local schemas that were never downloaded do not need a `dev` mark. Install and cache-clear only remove schema files that `rusl.lock` recorded from a previous download.
+Keys must be canonical resource identifiers (`account/schemas/name` or `account/bundles/name`); the kind is inferred from the identifier. `rusl add` creates `[rusl.resources]` if it is missing (`rusl add --dev` writes the inline-table form), and `rusl remove` removes entries from it.
 
 The manifest parser also accepts `[external]` and `[overrides]`, but current install and resolution flows do not act on them. Do not use them in public manifests yet.
+
+### Developing Schemas Locally
+
+Mark a schema `dev = true` when you are editing its file under `schema_dir` and want Rusl to leave that file alone. Use `rusl add <identifier> --dev` to write the entry, optionally with `--version`. Without `--version` the requirement is `*`.
+
+```toml
+[rusl.resources]
+"acme/schemas/draft" = { version = "*", dev = true }
+```
+
+If the schema has no local file yet, `rusl add --dev` checks the registry once. When the schema is not published, it writes a starter draft 2020-12 document at the install path (for example `schemas/acme/draft.schema.json`) so the following install resolves it locally; edit that file and publish when ready. When the schema is published, install downloads it as usual. If the registry cannot be reached, `add --dev` fails rather than guessing.
+
+What `rusl install` does with a `dev` schema depends on where it exists:
+
+| Registry | Local file | Result |
+| --- | --- | --- |
+| not published | present | The local file is used as-is and resolved as a placeholder version `0.0.0` with no dependencies. |
+| not published | missing | Install fails and names the path where the file is expected. Create the file (or run `rusl add <identifier> --dev`), then run install again. |
+| published | present | The local file is kept. Install reports the published version it would otherwise have downloaded. |
+| published | missing | The published version is downloaded once. Later installs keep it. |
+
+"Not published" means the registry answered definitively: a 404, or a schema record with no versions. A transport or server failure is reported as an ordinary resolution error and never rewrites a `dev` schema as local.
+
+`rusl cache --clear` never removes a `dev` schema file. `rusl list` shows `(dev)` next to marked resources.
+
+An unpublished `dev` schema is recorded in `rusl.lock` with `version = "0.0.0"`, an empty `integrity`, and `source = "local"`. Once the schema is published, `rusl outdated` reports the placeholder as outdated against the published version. To pick up the published copy, remove the `dev` mark or delete the local file and run `rusl install`.
+
+Some limits to be aware of:
+
+- The version requirement on an unpublished `dev` schema is ignored, since no published version exists to compare against. It applies again once the schema is published.
+- `dev` only affects schema entries. Marking a bundle `dev` does nothing except print a note during install; list the schemas you are editing directly.
+- Files that were never installed by Rusl do not need a `dev` mark. Install and cache-clear only remove schema files that `rusl.lock` recorded from a previous download.
 
 ## `rusl.config.toml`
 
@@ -139,4 +167,4 @@ For a packaged schema the final identifier segment is the dotted compound (`pack
 
 Public projects can either commit the installed copies or gitignore `schema_dir` and run `rusl install` after clone; both work with the copy-based layout.
 
-`rusl install` and `rusl cache --clear` remove only schema files recorded in `rusl.lock` from a previous download. Files that were never installed, and resources marked `dev = true` in `rusl.bundle.toml`, are left in place. Pointing `schema_dir` at a directory that also holds first-party schemas is therefore safe as long as those files are not lockfile-managed copies you still want Rusl to refresh.
+`rusl install` and `rusl cache --clear` remove only schema files recorded in `rusl.lock` from a previous download. Files that were never installed, and resources marked `dev = true` in `rusl.bundle.toml` (see [Developing Schemas Locally](#developing-schemas-locally)), are left in place. Pointing `schema_dir` at a directory that also holds first-party schemas is therefore safe as long as those files are not lockfile-managed copies you still want Rusl to refresh.

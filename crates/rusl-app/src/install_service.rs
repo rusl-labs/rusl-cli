@@ -2,12 +2,13 @@ use crate::cache::linker::Linker;
 use crate::cache::store::GlobalStore;
 use crate::config;
 use crate::manifest::bundle::BundleManifest;
-use crate::manifest::lock::{LockDependency, LockManifest};
+use crate::manifest::lock::{LOCAL_SOURCE, LockDependency, LockManifest};
 use crate::registry::client::RegistryClient;
-use crate::resolver::graph::{ProgressReporter, resolve_graph};
+use crate::resolver::graph::{DevSchemaState, ProgressReporter, ResolveOptions, resolve_graph};
 use crate::resource_identifier::{ResourceKind, parse_package_key};
 use anyhow::{Context, Result, bail};
 use std::collections::{BTreeMap, HashMap};
+use std::path::Path;
 
 const LOCAL_BUNDLE_NAME: &str = "local bundle";
 const LOCAL_BUNDLE_VERSION: &str = "unversioned";
@@ -28,12 +29,7 @@ where
         .context("Failed to initialize CAS store")?;
 
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let linker = Linker::new(
-        cwd.clone(),
-        config.schema_dir(),
-        config.output_suffix(),
-        config.naming_convention(),
-    );
+    let linker = Linker::for_project(cwd.clone(), &config);
     let manifest_path = cwd.join("rusl.bundle.toml");
 
     if !manifest_path.exists() {
@@ -45,6 +41,13 @@ where
     let manifest: BundleManifest =
         toml::from_str(&manifest_contents).context("Syntax error in rusl.bundle.toml")?;
 
+    for bundle_id in manifest.dev_bundle_ids() {
+        progress.println(format!(
+            "Note: dev has no effect on {bundle_id}; mark its schemas directly."
+        ));
+    }
+    let resolve_options = dev_resolve_options(&manifest, &linker, &cwd);
+
     progress.set_message(format!(
         "Resolving dependencies for {}@{}...",
         manifest.bundle.name.as_deref().unwrap_or(LOCAL_BUNDLE_NAME),
@@ -54,7 +57,7 @@ where
             .as_deref()
             .unwrap_or(LOCAL_BUNDLE_VERSION)
     ));
-    let resolved = resolve_graph(&manifest, &client, progress)
+    let resolved = resolve_graph(&manifest, &client, &resolve_options, progress)
         .await
         .context("Dependency resolution failed")?;
 
@@ -89,12 +92,19 @@ where
         if protected_ids.contains(&resource.identifier())
             && linker.installed_path(&resource).exists()
         {
-            progress.println(format!(
-                "Keeping local schema {} (dev).",
-                resource.identifier()
-            ));
-            if let Some(previous) = previous_lock.dependencies.get(package_key) {
-                integrity_map.insert(package_key.clone(), previous.integrity.clone());
+            if resolved.local_packages.contains(package_key) {
+                progress.println(format!(
+                    "Using local schema {} (dev, not published).",
+                    resource.identifier()
+                ));
+            } else {
+                progress.println(format!(
+                    "Keeping local schema {} (dev); registry has {version}.",
+                    resource.identifier()
+                ));
+                if let Some(previous) = previous_lock.dependencies.get(package_key) {
+                    integrity_map.insert(package_key.clone(), previous.integrity.clone());
+                }
             }
             schema_count += 1;
             continue;
@@ -118,13 +128,18 @@ where
     for (package_key, version) in &resolved.versions {
         let dependencies = resolved.edges.get(package_key).cloned().unwrap_or_default();
         let integrity = integrity_map.get(package_key).cloned().unwrap_or_default();
+        let source = if resolved.local_packages.contains(package_key) {
+            LOCAL_SOURCE.to_string()
+        } else {
+            config.api_base_url.clone()
+        };
 
         lock_dependencies.insert(
             package_key.clone(),
             LockDependency {
                 version: version.to_string(),
                 integrity,
-                source: config.api_base_url.clone(),
+                source,
                 dependencies,
             },
         );
@@ -142,10 +157,32 @@ where
     Ok(InstallResult { schema_count })
 }
 
+/// Tells the resolver which `dev` schemas already exist on disk, so an unpublished
+/// one can fall back to the local file instead of failing resolution.
+fn dev_resolve_options(manifest: &BundleManifest, linker: &Linker, cwd: &Path) -> ResolveOptions {
+    let dev_schemas = manifest
+        .dev_schemas()
+        .into_iter()
+        .map(|resource| {
+            let path = linker.installed_path(&resource);
+            let exists = path.exists();
+            let local_path = match path.strip_prefix(cwd) {
+                Ok(relative) => relative.to_path_buf(),
+                Err(_) => path,
+            };
+            (
+                resource.package_key(),
+                DevSchemaState { local_path, exists },
+            )
+        })
+        .collect();
+    ResolveOptions { dev_schemas }
+}
+
 #[cfg(test)]
 mod tests {
     use super::install_project;
-    use crate::manifest::lock::LockManifest;
+    use crate::manifest::lock::{LOCAL_SOURCE, LockManifest};
     use crate::resolver::graph::ProgressReporter;
     use axum::{
         Json, Router,
@@ -164,11 +201,21 @@ mod tests {
     };
 
     #[derive(Default)]
-    struct TestProgress;
+    struct TestProgress {
+        lines: std::sync::Mutex<Vec<String>>,
+    }
+
+    impl TestProgress {
+        fn lines(&self) -> Vec<String> {
+            self.lines.lock().expect("lock lines").clone()
+        }
+    }
 
     impl ProgressReporter for TestProgress {
         fn set_message(&self, _message: String) {}
-        fn println(&self, _message: String) {}
+        fn println(&self, message: String) {
+            self.lines.lock().expect("lock lines").push(message);
+        }
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -204,6 +251,10 @@ mod tests {
                 .route(
                     "/resources/{account}/schemas/{slug_and_version}",
                     get(schema_handler),
+                )
+                .route(
+                    "/resources/{account}/bundles/{slug}/metadata",
+                    get(bundle_metadata_handler),
                 )
                 .with_state(state);
 
@@ -314,7 +365,7 @@ mod tests {
 
         write_install_fixtures(&workspace_dir, None);
 
-        let result = install_project(&TestProgress)
+        let result = install_project(&TestProgress::default())
             .await
             .expect("install project");
 
@@ -382,7 +433,7 @@ mod tests {
             std::fs::write(&stale_path, r#"{"title":"stale"}"#).expect("write stale file");
         }
 
-        install_project(&TestProgress)
+        install_project(&TestProgress::default())
             .await
             .expect("install project");
 
@@ -415,7 +466,7 @@ naming_convention = "full"
             ),
         );
 
-        install_project(&TestProgress)
+        install_project(&TestProgress::default())
             .await
             .expect("install project");
 
@@ -457,7 +508,7 @@ naming_convention = "flat"
             ),
         );
 
-        install_project(&TestProgress)
+        install_project(&TestProgress::default())
             .await
             .expect("install project");
 
@@ -507,7 +558,7 @@ source = "https://example.test"
         )
         .expect("write previous lockfile");
 
-        install_project(&TestProgress)
+        install_project(&TestProgress::default())
             .await
             .expect("install project");
 
@@ -562,7 +613,7 @@ source = "https://example.test"
         )
         .expect("write previous lockfile");
 
-        install_project(&TestProgress)
+        install_project(&TestProgress::default())
             .await
             .expect("install project");
 
@@ -596,7 +647,7 @@ source = "https://example.test"
         )
         .expect("write manifest");
 
-        install_project(&TestProgress)
+        install_project(&TestProgress::default())
             .await
             .expect("install project");
 
@@ -607,6 +658,164 @@ source = "https://example.test"
         assert_eq!(
             std::fs::read_to_string(&root_schema).expect("read seeded root"),
             r#"{"title":"root","type":"object"}"#
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_uses_local_file_for_unpublished_dev_schema() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = ">=1.0.0"
+"hassox/schemas/draft" = { version = ">=1.0.0", dev = true }
+"#,
+        )
+        .expect("write manifest");
+
+        let schema_dir = workspace_dir.join("schemas").join("hassox");
+        std::fs::create_dir_all(&schema_dir).expect("create schema dir");
+        let draft_schema = schema_dir.join("draft.schema.json");
+        std::fs::write(&draft_schema, r#"{"title":"draft"}"#).expect("write draft");
+
+        let progress = TestProgress::default();
+        let result = install_project(&progress)
+            .await
+            .expect("install with unpublished dev schema");
+
+        assert_eq!(result.schema_count, 3);
+        assert_eq!(
+            std::fs::read_to_string(&draft_schema).expect("read draft"),
+            r#"{"title":"draft"}"#
+        );
+        assert!(schema_dir.join("root.schema.json").is_file());
+        assert!(progress.lines().contains(
+            &"Using local schema hassox/schemas/draft (dev, not published).".to_string()
+        ));
+
+        let lock: LockManifest = toml::from_str(
+            &std::fs::read_to_string(workspace_dir.join("rusl.lock")).expect("read lockfile"),
+        )
+        .expect("parse lockfile");
+        let draft = &lock.dependencies["schema:hassox/schemas/draft"];
+        assert_eq!(draft.version, "0.0.0");
+        assert_eq!(draft.integrity, "");
+        assert_eq!(draft.source, LOCAL_SOURCE);
+        assert!(draft.is_local());
+        assert!(draft.dependencies.is_empty());
+        assert_eq!(
+            lock.dependencies["schema:hassox/schemas/root"].source,
+            server.base_url
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_fails_for_unpublished_dev_schema_without_local_file() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/draft" = { dev = true }
+"#,
+        )
+        .expect("write manifest");
+
+        let error = install_project(&TestProgress::default())
+            .await
+            .expect_err("expected missing dev schema error");
+
+        let expected_path = std::path::Path::new("schemas")
+            .join("hassox")
+            .join("draft.schema.json");
+        assert!(format!("{error:#}").contains(&format!(
+            "hassox/schemas/draft is marked dev but is not published and there is no file at {}.",
+            expected_path.display()
+        )));
+        assert!(!workspace_dir.join("rusl.lock").exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_reports_published_version_for_kept_dev_schema() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = { dev = true }
+"#,
+        )
+        .expect("write manifest");
+        let root_dir = workspace_dir.join("schemas").join("hassox");
+        std::fs::create_dir_all(&root_dir).expect("create schema dir");
+        std::fs::write(
+            root_dir.join("root.schema.json"),
+            r#"{"title":"local-edit"}"#,
+        )
+        .expect("write local root");
+
+        let progress = TestProgress::default();
+        install_project(&progress).await.expect("install project");
+
+        assert!(progress.lines().contains(
+            &"Keeping local schema hassox/schemas/root (dev); registry has 1.0.0.".to_string()
+        ));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_notes_that_dev_has_no_effect_on_bundles() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&workspace_dir).expect("create workspace dir");
+        let _guard = EnvGuard::new(&home_dir, &workspace_dir, &server.base_url);
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/bundles/common" = { dev = true }
+"#,
+        )
+        .expect("write manifest");
+
+        let progress = TestProgress::default();
+        let result = install_project(&progress).await.expect("install project");
+
+        assert_eq!(result.schema_count, 2);
+        assert!(
+            progress.lines().contains(
+                &"Note: dev has no effect on hassox/bundles/common; mark its schemas directly."
+                    .to_string()
+            )
         );
     }
 
@@ -718,6 +927,36 @@ source = "https://example.test"
                 "versions": [{
                     "version": "1.0.0",
                     "schemas": {},
+                    "bundles": {}
+                }]
+            }),
+            _ => json!({ "error": "not found" }),
+        };
+        let status = if body.get("error").is_some() {
+            StatusCode::NOT_FOUND
+        } else {
+            StatusCode::OK
+        };
+        (status, Json(body))
+    }
+
+    async fn bundle_metadata_handler(
+        State(state): State<TestState>,
+        AxumPath((account, slug)): AxumPath<(String, String)>,
+        headers: HeaderMap,
+    ) -> (StatusCode, Json<Value>) {
+        record_request(
+            &state,
+            format!("/resources/{account}/bundles/{slug}/metadata"),
+            &headers,
+        )
+        .await;
+        let body = match (account.as_str(), slug.as_str()) {
+            ("hassox", "common") => json!({
+                "name": "common",
+                "versions": [{
+                    "version": "1.0.0",
+                    "schemas": { "hassox/schemas/root": ">=1.0.0" },
                     "bundles": {}
                 }]
             }),

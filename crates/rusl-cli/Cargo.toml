@@ -1,7 +1,8 @@
 [package]
 name = "rusl"
-version = "0.6.4"
+version = "0.6.5"
 edition = "2024"
+rust-version = "1.88"
 description = "The Rusl schema package manager CLI."
 homepage = "https://github.com/rusl-labs/rusl-cli"
 repository = "https://github.com/rusl-labs/rusl-cli"

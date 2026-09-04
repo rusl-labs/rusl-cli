@@ -4,6 +4,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
 
+/// `source` value recorded for a `dev` schema that was resolved from the local
+/// file because the registry has no published versions for it.
+pub const LOCAL_SOURCE: &str = "local";
+
+/// Placeholder version recorded for a `dev` schema resolved from the local file.
+pub const LOCAL_VERSION: &str = "0.0.0";
+
 /// The auto-generated lockfile ensuring deterministic builds (rusl.lock).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LockManifest {
@@ -22,12 +29,20 @@ pub struct LockDependency {
     /// The SHA-256 hash of the content-addressable artifact
     pub integrity: String,
 
-    /// The registry URL from which this dependency was originally downloaded
+    /// The registry URL from which this dependency was originally downloaded, or
+    /// [`LOCAL_SOURCE`] for an unpublished `dev` schema resolved from its local file
     pub source: String,
 
     /// The direct dependencies of this package (e.g., ["schema:acme/schemas/types", "bundle:acme/bundles/common"])
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub dependencies: Vec<String>,
+}
+
+impl LockDependency {
+    /// True when this entry points at a local `dev` file rather than a registry download.
+    pub fn is_local(&self) -> bool {
+        self.source == LOCAL_SOURCE
+    }
 }
 
 impl Default for LockManifest {

@@ -707,6 +707,17 @@ fn map_api_error(error: ApiError) -> anyhow::Error {
     anyhow!(error)
 }
 
+/// True when the registry definitively answered 404, as opposed to a transport,
+/// auth, or server failure. Callers use this to tell "not published" from "unreachable".
+pub fn is_not_found(error: &anyhow::Error) -> bool {
+    error.chain().any(|cause| {
+        matches!(
+            cause.downcast_ref::<ApiError>(),
+            Some(ApiError::Http { status, .. }) if status.as_u16() == 404
+        )
+    })
+}
+
 fn session_has_tokens(session: &SessionTokens) -> bool {
     session
         .access_token
@@ -894,6 +905,28 @@ mod tests {
             restore_env_var("XDG_CONFIG_HOME", self.previous_xdg_config_home.as_ref());
             restore_env_var("XDG_DATA_HOME", self.previous_xdg_data_home.as_ref());
         }
+    }
+
+    #[test]
+    fn is_not_found_only_matches_http_404_in_the_cause_chain() {
+        use super::is_not_found;
+        use rusl_api_client::ApiError;
+
+        let not_found = anyhow::anyhow!(ApiError::Http {
+            status: reqwest::StatusCode::NOT_FOUND,
+            body: "{}".to_string(),
+        })
+        .context("Failed to fetch schema metadata");
+        let server_error = anyhow::anyhow!(ApiError::Http {
+            status: reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            body: "{}".to_string(),
+        });
+        let transport = anyhow::anyhow!(ApiError::Transport("refused".to_string()));
+
+        assert!(is_not_found(&not_found));
+        assert!(!is_not_found(&server_error));
+        assert!(!is_not_found(&transport));
+        assert!(!is_not_found(&anyhow::anyhow!("plain error")));
     }
 
     #[tokio::test]

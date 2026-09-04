@@ -126,6 +126,11 @@ pub struct AddArgs {
     /// An optional specific version requirement (e.g. >= 1.0.0). Defaults to latest if omitted.
     #[arg(long, short)]
     pub version: Option<String>,
+    /// Mark the schema as under local development. Install and cache clear keep the local
+    /// file once it exists, and an unpublished schema resolves from the local file. Without
+    /// --version, the requirement defaults to "*".
+    #[arg(long)]
+    pub dev: bool,
 }
 
 #[derive(Parser, Debug)]

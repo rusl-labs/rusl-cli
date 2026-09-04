@@ -1,3 +1,4 @@
+use crate::resource_identifier::{RegistryResource, ResourceKind};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -32,6 +33,34 @@ impl BundleManifest {
             .filter(|(_, requirement)| requirement.is_dev())
             .map(|(identifier, _)| identifier.clone())
             .collect()
+    }
+
+    /// Schemas marked `dev` in `[rusl.resources]`, sorted by identifier.
+    pub fn dev_schemas(&self) -> Vec<RegistryResource> {
+        self.dev_resources_of_kind(ResourceKind::Schema)
+    }
+
+    /// Bundles marked `dev` in `[rusl.resources]`, sorted by identifier.
+    ///
+    /// The flag has no effect on bundles; callers use this to warn the user.
+    pub fn dev_bundle_ids(&self) -> Vec<String> {
+        self.dev_resources_of_kind(ResourceKind::Bundle)
+            .iter()
+            .map(RegistryResource::identifier)
+            .collect()
+    }
+
+    fn dev_resources_of_kind(&self, kind: ResourceKind) -> Vec<RegistryResource> {
+        let mut resources: Vec<RegistryResource> = self
+            .rusl
+            .resources
+            .iter()
+            .filter(|(_, requirement)| requirement.is_dev())
+            .filter_map(|(identifier, _)| RegistryResource::from_identifier(identifier))
+            .filter(|resource| resource.kind == kind)
+            .collect();
+        resources.sort_by_key(RegistryResource::identifier);
+        resources
     }
 }
 
@@ -139,5 +168,28 @@ mod tests {
         assert!(protected.contains("acme/schemas/experiment"));
         assert!(protected.contains("acme/schemas/pinned-local"));
         assert!(!protected.contains("acme/schemas/user-profile"));
+    }
+
+    #[test]
+    fn separates_dev_schemas_from_dev_bundles() {
+        let manifest: BundleManifest = toml::from_str(
+            r#"
+[rusl.resources]
+"acme/schemas/user-profile" = "*"
+"acme/schemas/zeta" = { dev = true }
+"acme/schemas/alpha" = { dev = true }
+"acme/bundles/common" = { dev = true }
+"acme/bundles/other" = ">=1.0.0"
+"#,
+        )
+        .expect("parse manifest");
+
+        let schemas: Vec<String> = manifest
+            .dev_schemas()
+            .iter()
+            .map(|resource| resource.identifier())
+            .collect();
+        assert_eq!(schemas, vec!["acme/schemas/alpha", "acme/schemas/zeta"]);
+        assert_eq!(manifest.dev_bundle_ids(), vec!["acme/bundles/common"]);
     }
 }

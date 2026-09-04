@@ -1,18 +1,25 @@
+use crate::cache::linker::Linker;
+use crate::config::Config;
 use crate::install_service::{self, InstallResult};
-use crate::registry::client::{RegistryClient, RegistryVersion};
+use crate::registry::client::{RegistryClient, RegistryVersion, is_not_found};
 use crate::resolver::graph::ProgressReporter;
 use crate::resource_identifier::{RegistryResource, ResourceKind};
 use anyhow::{Context, Result, bail};
 use pubgrub::SemanticVersion;
+use std::path::{Path, PathBuf};
 use std::{future::Future, pin::Pin};
-use toml_edit::{DocumentMut, Table, table, value};
+use toml_edit::{DocumentMut, InlineTable, Item, Table, table, value};
 
 type InstallFuture<'a> = Pin<Box<dyn Future<Output = Result<InstallResult>> + 'a>>;
+
+const UNCONSTRAINED_VERSION: &str = "*";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddDependencyRequest {
     pub identifier: String,
     pub version_requirement: Option<String>,
+    /// Write the entry as `{ version = "...", dev = true }` so the local file is kept.
+    pub dev: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,6 +27,10 @@ pub struct AddDependencyResult {
     pub slug: String,
     pub table_key: &'static str,
     pub version_requirement: String,
+    pub dev: bool,
+    /// Starter schema written by `add --dev` for an unpublished schema with no local
+    /// file, relative to the project root.
+    pub created_schema: Option<PathBuf>,
     pub install: InstallResult,
 }
 
@@ -50,10 +61,98 @@ pub async fn add_dependency<P>(
 where
     P: ProgressReporter,
 {
-    add_dependency_with_installer(request, progress, |progress| {
+    let created_schema = if request.dev {
+        let resource = parse_resource(&request.identifier)?;
+        let config = crate::config::load().context("Failed to load hierarchical configuration")?;
+        let cwd = std::env::current_dir().context("Failed to get current working directory")?;
+        seed_dev_schema(&resource, &config, &cwd, progress).await?
+    } else {
+        None
+    };
+
+    let mut result = add_dependency_with_installer(request, progress, |progress| {
         Box::pin(install_service::install_project(progress))
     })
-    .await
+    .await?;
+    result.created_schema = created_schema;
+    Ok(result)
+}
+
+/// For `add --dev`: when the schema is not published and has no local file, write a
+/// starter JSON Schema at its install path so the first install resolves it locally.
+///
+/// Only a definitive 404 or an empty version list counts as "not published"; any other
+/// registry failure is returned so an outage never scaffolds over a real schema.
+async fn seed_dev_schema<P>(
+    resource: &RegistryResource,
+    config: &Config,
+    cwd: &Path,
+    progress: &P,
+) -> Result<Option<PathBuf>>
+where
+    P: ProgressReporter,
+{
+    if resource.kind != ResourceKind::Schema {
+        return Ok(None);
+    }
+
+    let linker = Linker::for_project(cwd.to_path_buf(), config);
+    let path = linker.installed_path(resource);
+    if path.exists() {
+        return Ok(None);
+    }
+
+    progress.set_message(format!(
+        "Checking whether {} is published...",
+        resource.identifier()
+    ));
+    let client = RegistryClient::new(config.clone());
+    let published = match client
+        .fetch_schema_meta(&resource.account, &resource.slug)
+        .await
+    {
+        Ok(metadata) => !metadata.versions.is_empty(),
+        Err(error) if is_not_found(&error) => false,
+        Err(error) => return Err(error),
+    };
+    if published {
+        return Ok(None);
+    }
+
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("Failed to create {}", parent.display()))?;
+    }
+    let contents = serde_json::to_string_pretty(&dev_schema_stub(resource, config))
+        .context("Failed to render starter schema")?;
+    std::fs::write(&path, format!("{contents}\n"))
+        .with_context(|| format!("Failed to write starter schema at {}", path.display()))?;
+
+    let relative = match path.strip_prefix(cwd) {
+        Ok(relative) => relative.to_path_buf(),
+        Err(_) => path,
+    };
+    Ok(Some(relative))
+}
+
+/// Minimal draft 2020-12 document that follows the repository schema standard:
+/// one concept, explicit `required`, and undeclared properties rejected.
+fn dev_schema_stub(resource: &RegistryResource, config: &Config) -> serde_json::Value {
+    serde_json::json!({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": format!(
+            "{}/schemas/{}/{}",
+            config.website_url.trim_end_matches('/'),
+            resource.account,
+            resource.slug
+        ),
+        "title": resource.slug,
+        "description": format!("TODO: describe {}.", resource.identifier()),
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+    })
 }
 
 async fn add_dependency_with_installer<P, I>(
@@ -72,9 +171,12 @@ where
     let mut document = read_manifest_document(&manifest_path)?;
     let table_key = RESOURCES_TABLE_KEY;
     let slug = resource.identifier();
-    let version_requirement = match request.version_requirement {
-        Some(version) => version,
-        None => latest_version_requirement(&resource, progress).await?,
+    // A dev schema may not be published yet, so the registry is not consulted for
+    // a default version requirement.
+    let version_requirement = match (request.version_requirement, request.dev) {
+        (Some(version), _) => version,
+        (None, true) => UNCONSTRAINED_VERSION.to_string(),
+        (None, false) => latest_version_requirement(&resource, progress).await?,
     };
 
     progress.set_message(format!(
@@ -82,7 +184,10 @@ where
         slug, version_requirement, table_key
     ));
     let table = resources_table_mut(&mut document)?;
-    table.insert(&slug, value(&version_requirement));
+    table.insert(
+        &slug,
+        resource_requirement_item(&version_requirement, request.dev),
+    );
 
     std::fs::write(&manifest_path, document.to_string())
         .context("Failed to persist rusl.bundle.toml")?;
@@ -92,8 +197,21 @@ where
         slug,
         table_key,
         version_requirement,
+        dev: request.dev,
+        created_schema: None,
         install,
     })
+}
+
+fn resource_requirement_item(version_requirement: &str, dev: bool) -> Item {
+    if !dev {
+        return value(version_requirement);
+    }
+
+    let mut inline = InlineTable::new();
+    inline.insert("version", version_requirement.into());
+    inline.insert("dev", true.into());
+    value(inline)
 }
 
 pub async fn remove_dependency<P>(
@@ -259,13 +377,90 @@ mod tests {
     use super::{
         AddDependencyRequest, RESOURCES_TABLE_KEY, RemoveDependencyRequest, RemoveDependencyResult,
         add_dependency_with_installer, latest_version, remove_dependency_with_installer,
+        seed_dev_schema,
     };
+    use crate::config::Config;
     use crate::install_service::InstallResult;
     use crate::registry::client::RegistryVersion;
     use crate::resolver::graph::ProgressReporter;
+    use crate::resource_identifier::RegistryResource;
+    use axum::{Json, Router, extract::Path as AxumPath, http::StatusCode, routing::get};
+    use serde_json::{Value, json};
     use serial_test::serial;
     use std::{collections::HashMap, ffi::OsString, future, path::PathBuf, sync::Mutex};
     use tempfile::TempDir;
+    use tokio::{net::TcpListener, sync::oneshot, task::JoinHandle};
+
+    struct MetadataServer {
+        base_url: String,
+        shutdown: Option<oneshot::Sender<()>>,
+        task: JoinHandle<()>,
+    }
+
+    impl MetadataServer {
+        /// Serves `hassox/schemas/root` as published, `hassox/schemas/empty` with no
+        /// versions, and 404 for everything else.
+        async fn start() -> Self {
+            let app = Router::new().route(
+                "/resources/{account}/schemas/{slug}/metadata",
+                get(metadata_handler),
+            );
+            let listener = TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("bind test server");
+            let address = listener.local_addr().expect("read test server address");
+            let (shutdown_tx, shutdown_rx) = oneshot::channel();
+            let task = tokio::spawn(async move {
+                axum::serve(listener, app)
+                    .with_graceful_shutdown(async {
+                        let _ = shutdown_rx.await;
+                    })
+                    .await
+                    .expect("run test server");
+            });
+            Self {
+                base_url: format!("http://{address}"),
+                shutdown: Some(shutdown_tx),
+                task,
+            }
+        }
+
+        fn config(&self) -> Config {
+            Config {
+                api_base_url: self.base_url.clone(),
+                website_url: "https://rusl.example".to_string(),
+                ..Config::default()
+            }
+        }
+    }
+
+    impl Drop for MetadataServer {
+        fn drop(&mut self) {
+            if let Some(shutdown) = self.shutdown.take() {
+                let _ = shutdown.send(());
+            }
+            self.task.abort();
+        }
+    }
+
+    async fn metadata_handler(
+        AxumPath((account, slug)): AxumPath<(String, String)>,
+    ) -> (StatusCode, Json<Value>) {
+        match (account.as_str(), slug.as_str()) {
+            ("hassox", "root") => (
+                StatusCode::OK,
+                Json(json!({
+                    "name": "root",
+                    "versions": [{ "version": "1.0.0", "schemas": {}, "bundles": {} }]
+                })),
+            ),
+            ("hassox", "empty") => (
+                StatusCode::OK,
+                Json(json!({ "name": "empty", "versions": [] })),
+            ),
+            _ => (StatusCode::NOT_FOUND, Json(json!({ "error": "not found" }))),
+        }
+    }
 
     #[derive(Default)]
     struct TestProgress {
@@ -351,6 +546,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/schemas/test-schema".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -378,6 +574,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/schemas/test-schema".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -413,6 +610,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/bundles/common".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -426,6 +624,243 @@ version = "0.1.0"
             .expect("read manifest");
         assert!(manifest.contains("[rusl.resources]"));
         assert!(manifest.contains("\"hassox/bundles/common\" = \">=1.2.3\""));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dev_dependency_writes_inline_table_and_defaults_version_without_registry() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let progress = TestProgress::default();
+
+        let result = add_dependency_with_installer(
+            AddDependencyRequest {
+                identifier: "hassox/schemas/draft".to_string(),
+                version_requirement: None,
+                dev: true,
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("add dev dependency");
+
+        assert!(result.dev);
+        assert_eq!(result.version_requirement, "*");
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(manifest.contains(r#""hassox/schemas/draft" = { version = "*", dev = true }"#));
+        assert!(
+            !progress
+                .messages
+                .lock()
+                .expect("lock messages")
+                .iter()
+                .any(|message| message.contains("Finding the latest version"))
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dev_dependency_keeps_explicit_version_and_upgrades_string_entry() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/draft" = ">=1.0.0"
+"hassox/schemas/other" = "*"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        add_dependency_with_installer(
+            AddDependencyRequest {
+                identifier: "hassox/schemas/draft".to_string(),
+                version_requirement: Some(">=2.0.0".to_string()),
+                dev: true,
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("add dev dependency");
+
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(
+            manifest.contains(r#""hassox/schemas/draft" = { version = ">=2.0.0", dev = true }"#)
+        );
+        assert!(!manifest.contains(r#""hassox/schemas/draft" = ">=1.0.0""#));
+        assert!(manifest.contains(r#""hassox/schemas/other" = "*""#));
+
+        let parsed: crate::manifest::bundle::BundleManifest =
+            toml::from_str(&manifest).expect("manifest round-trips");
+        assert!(parsed.rusl.resources["hassox/schemas/draft"].is_dev());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_writes_starter_file_for_unpublished_schema() {
+        let server = MetadataServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let resource = RegistryResource::schema("hassox/schemas/draft").expect("schema");
+
+        let created = seed_dev_schema(
+            &resource,
+            &server.config(),
+            temp_dir.path(),
+            &TestProgress::default(),
+        )
+        .await
+        .expect("seed dev schema");
+
+        let expected = PathBuf::from("schemas")
+            .join("hassox")
+            .join("draft.schema.json");
+        assert_eq!(created, Some(expected.clone()));
+        let written: Value = serde_json::from_str(
+            &std::fs::read_to_string(temp_dir.path().join(&expected)).expect("read stub"),
+        )
+        .expect("stub is valid JSON");
+        assert_eq!(
+            written["$schema"],
+            "https://json-schema.org/draft/2020-12/schema"
+        );
+        assert_eq!(written["$id"], "https://rusl.example/schemas/hassox/draft");
+        assert_eq!(written["title"], "draft");
+        assert_eq!(written["type"], "object");
+        assert_eq!(written["additionalProperties"], false);
+        assert_eq!(written["required"], json!([]));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_treats_empty_version_list_as_unpublished() {
+        let server = MetadataServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let resource = RegistryResource::schema("hassox/schemas/empty").expect("schema");
+
+        let created = seed_dev_schema(
+            &resource,
+            &server.config(),
+            temp_dir.path(),
+            &TestProgress::default(),
+        )
+        .await
+        .expect("seed dev schema");
+
+        assert!(created.is_some());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_leaves_existing_file_alone_without_calling_registry() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let schema_dir = temp_dir.path().join("schemas").join("hassox");
+        std::fs::create_dir_all(&schema_dir).expect("create schema dir");
+        let existing = schema_dir.join("draft.schema.json");
+        std::fs::write(&existing, r#"{"title":"mine"}"#).expect("write existing");
+        let resource = RegistryResource::schema("hassox/schemas/draft").expect("schema");
+        let unreachable = Config {
+            api_base_url: "http://127.0.0.1:9".to_string(),
+            website_url: "https://rusl.example".to_string(),
+            ..Config::default()
+        };
+
+        let created = seed_dev_schema(
+            &resource,
+            &unreachable,
+            temp_dir.path(),
+            &TestProgress::default(),
+        )
+        .await
+        .expect("seed dev schema");
+
+        assert_eq!(created, None);
+        assert_eq!(
+            std::fs::read_to_string(&existing).expect("read existing"),
+            r#"{"title":"mine"}"#
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_skips_published_schema() {
+        let server = MetadataServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let resource = RegistryResource::schema("hassox/schemas/root").expect("schema");
+
+        let created = seed_dev_schema(
+            &resource,
+            &server.config(),
+            temp_dir.path(),
+            &TestProgress::default(),
+        )
+        .await
+        .expect("seed dev schema");
+
+        assert_eq!(created, None);
+        assert!(!temp_dir.path().join("schemas").exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_propagates_registry_failures() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let resource = RegistryResource::schema("hassox/schemas/draft").expect("schema");
+        let unreachable = Config {
+            api_base_url: "http://127.0.0.1:9".to_string(),
+            website_url: "https://rusl.example".to_string(),
+            ..Config::default()
+        };
+
+        let error = seed_dev_schema(
+            &resource,
+            &unreachable,
+            temp_dir.path(),
+            &TestProgress::default(),
+        )
+        .await
+        .expect_err("expected transport failure");
+
+        assert!(
+            error
+                .to_string()
+                .contains("Failed to fetch schema metadata")
+        );
+        assert!(!temp_dir.path().join("schemas").exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_ignores_bundles() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let resource = RegistryResource::bundle("hassox/bundles/common").expect("bundle");
+        let unreachable = Config {
+            api_base_url: "http://127.0.0.1:9".to_string(),
+            website_url: "https://rusl.example".to_string(),
+            ..Config::default()
+        };
+
+        let created = seed_dev_schema(
+            &resource,
+            &unreachable,
+            temp_dir.path(),
+            &TestProgress::default(),
+        )
+        .await
+        .expect("seed dev schema");
+
+        assert_eq!(created, None);
     }
 
     #[tokio::test]
@@ -537,6 +972,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/schemas/test-schema".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -562,6 +998,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "not-an-identifier".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),

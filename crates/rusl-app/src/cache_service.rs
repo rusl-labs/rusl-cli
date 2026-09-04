@@ -23,12 +23,7 @@ pub async fn clear_cache() -> Result<CacheClearResult> {
 
     let lock = LockManifest::load_from_dir(&cwd).context("Failed to read rusl.lock")?;
     let protected_ids = load_protected_resource_ids(&cwd)?;
-    let linker = Linker::new(
-        cwd,
-        config.schema_dir(),
-        config.output_suffix(),
-        config.naming_convention(),
-    );
+    let linker = Linker::for_project(cwd, &config);
     let local_schema_cache_cleared =
         linker.purge_installed(&lock.removable_schemas(&protected_ids))?;
 

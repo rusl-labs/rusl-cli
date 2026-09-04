@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rusl.com/schemas/rusl/resource-requirement",
   "title": "ResourceRequirement",
-  "description": "A rusl.bundle.toml [rusl.resources] value. The string form is a version requirement. The object form adds optional local ownership (dev) so install and cache clear will not delete or overwrite the on-disk schema file.",
+  "description": "A rusl.bundle.toml [rusl.resources] value. The string form is a version requirement. The object form adds optional local ownership (dev) so install and cache clear will not delete or overwrite the on-disk schema file, and so a schema that is not yet published can resolve from the local file.",
   "oneOf": [
     {
       "type": "string",
@@ -14,11 +14,11 @@
       "properties": {
         "version": {
           "type": "string",
-          "description": "Version requirement used when resolving this resource from the registry. Defaults to * when omitted."
+          "description": "Version requirement used when resolving this resource from the registry. Defaults to * when omitted. Ignored while a dev schema has no published versions."
         },
         "dev": {
           "type": "boolean",
-          "description": "When true, rusl still resolves the resource and may download it if the local file is missing, but will not delete or overwrite an existing on-disk schema file."
+          "description": "When true, rusl will not delete or overwrite an existing on-disk schema file. A published dev schema is still resolved from the registry and downloaded once if the file is missing. An unpublished dev schema resolves from the local file as placeholder version 0.0.0 with lock source \"local\"; if that file is also missing, install fails. Has no effect on bundle entries."
         }
       },
       "anyOf": [
