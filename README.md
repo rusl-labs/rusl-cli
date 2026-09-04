@@ -197,6 +197,20 @@ examples.
 - `openapi/` - committed backend OpenAPI snapshot
 - `scripts/` - spec refresh and client regeneration scripts
 
+### Prerequisites
+
+`rust-toolchain.toml` pins the Rust toolchain; `rustup` installs it automatically the first time
+you run `cargo` in the repo. The crates declare `rust-version = "1.88"` as the minimum supported
+compiler, so an older toolchain fails with a clear version error rather than syntax errors.
+
+The HTTP client links against the system TLS library. On Debian/Ubuntu install the headers first:
+
+```bash
+sudo apt-get install -y pkg-config libssl-dev
+```
+
+macOS and Windows builds use the platform TLS stack and need nothing extra.
+
 ### Development Commands
 
 Use the repo `Makefile` for local development:

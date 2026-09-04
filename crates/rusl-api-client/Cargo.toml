@@ -2,6 +2,7 @@
 name = "rusl-api-client"
 version = "0.6.5"
 edition = "2024"
+rust-version = "1.88"
 description = "HTTP client boundary for the Rusl schema registry API."
 homepage = "https://github.com/rusl-labs/rusl-cli"
 repository = "https://github.com/rusl-labs/rusl-cli"

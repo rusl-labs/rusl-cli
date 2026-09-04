@@ -2,6 +2,7 @@
 name = "rusl-app"
 version = "0.6.5"
 edition = "2024"
+rust-version = "1.88"
 description = "Shared application logic for the Rusl schema package manager."
 homepage = "https://github.com/rusl-labs/rusl-cli"
 repository = "https://github.com/rusl-labs/rusl-cli"
