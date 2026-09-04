@@ -29,12 +29,7 @@ where
         .context("Failed to initialize CAS store")?;
 
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let linker = Linker::new(
-        cwd.clone(),
-        config.schema_dir(),
-        config.output_suffix(),
-        config.naming_convention(),
-    );
+    let linker = Linker::for_project(cwd.clone(), &config);
     let manifest_path = cwd.join("rusl.bundle.toml");
 
     if !manifest_path.exists() {

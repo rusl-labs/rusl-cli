@@ -1,6 +1,6 @@
 use crate::manifest::bundle::BundleManifest;
 use crate::manifest::lock::LOCAL_VERSION;
-use crate::registry::client::RegistryClient;
+use crate::registry::client::{RegistryClient, is_not_found};
 use crate::resource_identifier::{
     RegistryResource, ResourceKind, package_key_from_identifier, parse_package_key,
 };
@@ -125,10 +125,15 @@ where
             }
         };
 
-        let has_published_versions =
-            matches!(&metadata, Ok(metadata) if !metadata.versions.is_empty());
+        // "Not published" means the registry answered definitively: either 404 or a
+        // schema record with no versions. Transport or server failures fall through to
+        // the normal warning so an outage cannot silently rewrite a dev schema as local.
+        let not_published = match &metadata {
+            Ok(metadata) => metadata.versions.is_empty(),
+            Err(error) => is_not_found(error),
+        };
         if let Some(dev) = options.dev_schemas.get(&package_key)
-            && !has_published_versions
+            && not_published
         {
             if !dev.exists {
                 bail!(
@@ -491,6 +496,48 @@ version = "0.1.0"
         assert_eq!(
             resolved.edges["schema:hassox/schemas/root"],
             vec!["schema:hassox/schemas/dep".to_string()]
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn unreachable_registry_does_not_fall_back_to_local_dev_schema() {
+        let client = RegistryClient::new(Config {
+            api_base_url: "http://127.0.0.1:9".to_string(),
+            website_url: "https://example.test".to_string(),
+            ..Config::default()
+        });
+        let manifest: BundleManifest = toml::from_str(
+            r#"
+[rusl.resources]
+"hassox/schemas/draft" = { dev = true }
+"#,
+        )
+        .expect("parse manifest");
+        let options = ResolveOptions {
+            dev_schemas: HashMap::from([(
+                "schema:hassox/schemas/draft".to_string(),
+                DevSchemaState {
+                    local_path: PathBuf::from("schemas/hassox/draft.schema.json"),
+                    exists: true,
+                },
+            )]),
+        };
+        let progress = TestProgress::default();
+
+        let error = resolve_graph(&manifest, &client, &options, &progress)
+            .await
+            .err()
+            .expect("expected resolution to fail when the registry is unreachable");
+
+        assert!(error.to_string().contains("Dependency conflict detected"));
+        assert!(
+            progress
+                .messages
+                .lock()
+                .expect("lock messages")
+                .iter()
+                .any(|message| message.contains("Failed to fetch metadata"))
         );
     }
 

@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::resource_identifier::RegistryResource;
 use crate::schema_naming::{NamingConvention, installed_schema_path};
 use anyhow::{Context, Result};
@@ -27,6 +28,16 @@ impl Linker {
             suffix: suffix.to_string(),
             naming_convention,
         }
+    }
+
+    /// Linker for the project rooted at `cwd`, using the resolved `[output]` config.
+    pub fn for_project(cwd: PathBuf, config: &Config) -> Self {
+        Self::new(
+            cwd,
+            config.schema_dir(),
+            config.output_suffix(),
+            config.naming_convention(),
+        )
     }
 
     /// Absolute path where a schema would be materialized under the current config.
