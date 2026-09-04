@@ -5,14 +5,18 @@ use crate::resource_identifier::{RegistryResource, ResourceKind};
 use anyhow::{Context, Result, bail};
 use pubgrub::SemanticVersion;
 use std::{future::Future, pin::Pin};
-use toml_edit::{DocumentMut, Table, table, value};
+use toml_edit::{DocumentMut, InlineTable, Item, Table, table, value};
 
 type InstallFuture<'a> = Pin<Box<dyn Future<Output = Result<InstallResult>> + 'a>>;
+
+const UNCONSTRAINED_VERSION: &str = "*";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AddDependencyRequest {
     pub identifier: String,
     pub version_requirement: Option<String>,
+    /// Write the entry as `{ version = "...", dev = true }` so the local file is kept.
+    pub dev: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,6 +24,7 @@ pub struct AddDependencyResult {
     pub slug: String,
     pub table_key: &'static str,
     pub version_requirement: String,
+    pub dev: bool,
     pub install: InstallResult,
 }
 
@@ -72,9 +77,12 @@ where
     let mut document = read_manifest_document(&manifest_path)?;
     let table_key = RESOURCES_TABLE_KEY;
     let slug = resource.identifier();
-    let version_requirement = match request.version_requirement {
-        Some(version) => version,
-        None => latest_version_requirement(&resource, progress).await?,
+    // A dev schema may not be published yet, so the registry is not consulted for
+    // a default version requirement.
+    let version_requirement = match (request.version_requirement, request.dev) {
+        (Some(version), _) => version,
+        (None, true) => UNCONSTRAINED_VERSION.to_string(),
+        (None, false) => latest_version_requirement(&resource, progress).await?,
     };
 
     progress.set_message(format!(
@@ -82,7 +90,10 @@ where
         slug, version_requirement, table_key
     ));
     let table = resources_table_mut(&mut document)?;
-    table.insert(&slug, value(&version_requirement));
+    table.insert(
+        &slug,
+        resource_requirement_item(&version_requirement, request.dev),
+    );
 
     std::fs::write(&manifest_path, document.to_string())
         .context("Failed to persist rusl.bundle.toml")?;
@@ -92,8 +103,20 @@ where
         slug,
         table_key,
         version_requirement,
+        dev: request.dev,
         install,
     })
+}
+
+fn resource_requirement_item(version_requirement: &str, dev: bool) -> Item {
+    if !dev {
+        return value(version_requirement);
+    }
+
+    let mut inline = InlineTable::new();
+    inline.insert("version", version_requirement.into());
+    inline.insert("dev", true.into());
+    value(inline)
 }
 
 pub async fn remove_dependency<P>(
@@ -351,6 +374,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/schemas/test-schema".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -378,6 +402,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/schemas/test-schema".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -413,6 +438,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/bundles/common".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -426,6 +452,81 @@ version = "0.1.0"
             .expect("read manifest");
         assert!(manifest.contains("[rusl.resources]"));
         assert!(manifest.contains("\"hassox/bundles/common\" = \">=1.2.3\""));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dev_dependency_writes_inline_table_and_defaults_version_without_registry() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        let progress = TestProgress::default();
+
+        let result = add_dependency_with_installer(
+            AddDependencyRequest {
+                identifier: "hassox/schemas/draft".to_string(),
+                version_requirement: None,
+                dev: true,
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("add dev dependency");
+
+        assert!(result.dev);
+        assert_eq!(result.version_requirement, "*");
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(manifest.contains(r#""hassox/schemas/draft" = { version = "*", dev = true }"#));
+        assert!(
+            !progress
+                .messages
+                .lock()
+                .expect("lock messages")
+                .iter()
+                .any(|message| message.contains("Finding the latest version"))
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dev_dependency_keeps_explicit_version_and_upgrades_string_entry() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/draft" = ">=1.0.0"
+"hassox/schemas/other" = "*"
+"#,
+        )
+        .expect("write manifest");
+        let progress = TestProgress::default();
+
+        add_dependency_with_installer(
+            AddDependencyRequest {
+                identifier: "hassox/schemas/draft".to_string(),
+                version_requirement: Some(">=2.0.0".to_string()),
+                dev: true,
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect("add dev dependency");
+
+        let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
+            .expect("read manifest");
+        assert!(
+            manifest.contains(r#""hassox/schemas/draft" = { version = ">=2.0.0", dev = true }"#)
+        );
+        assert!(!manifest.contains(r#""hassox/schemas/draft" = ">=1.0.0""#));
+        assert!(manifest.contains(r#""hassox/schemas/other" = "*""#));
+
+        let parsed: crate::manifest::bundle::BundleManifest =
+            toml::from_str(&manifest).expect("manifest round-trips");
+        assert!(parsed.rusl.resources["hassox/schemas/draft"].is_dev());
     }
 
     #[tokio::test]
@@ -537,6 +638,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "hassox/schemas/test-schema".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
@@ -562,6 +664,7 @@ version = "0.1.0"
             AddDependencyRequest {
                 identifier: "not-an-identifier".to_string(),
                 version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
             },
             &progress,
             |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
