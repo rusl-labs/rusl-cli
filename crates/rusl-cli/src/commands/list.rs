@@ -31,21 +31,27 @@ fn print_flat_view(flat: &ListFlatView) {
             "├── "
         };
 
-        match &item.source {
-            Some(source) => println!(
-                "{}{}{}  ({})",
-                prefix.dimmed(),
-                item.display_name.bold(),
-                format!("@v{}", item.version).cyan(),
-                source.dimmed()
-            ),
-            None => println!(
-                "{}{}{}",
-                prefix.dimmed(),
-                item.display_name.bold(),
-                format!("@v{}", item.version).cyan()
-            ),
-        }
+        let source = item
+            .source
+            .as_ref()
+            .map(|source| format!("  ({})", source.dimmed()))
+            .unwrap_or_default();
+        println!(
+            "{}{}{}{}{}",
+            prefix.dimmed(),
+            item.display_name.bold(),
+            format!("@v{}", item.version).cyan(),
+            dev_marker(item.dev),
+            source
+        );
+    }
+}
+
+fn dev_marker(dev: bool) -> String {
+    if dev {
+        format!(" {}", "(dev)".yellow())
+    } else {
+        String::new()
     }
 }
 
@@ -70,22 +76,24 @@ fn print_tree_node(node: &ListTreeNode, prefix: &str, is_last: bool) {
 
     if node.repeated {
         println!(
-            "{}{}{}{} {}",
+            "{}{}{}{}{} {}",
             prefix,
             connector.dimmed(),
             node.display_name.bold(),
             version,
+            dev_marker(node.dev),
             "(*)".dimmed()
         );
         return;
     }
 
     println!(
-        "{}{}{}{}",
+        "{}{}{}{}{}",
         prefix,
         connector.dimmed(),
         node.display_name.bold(),
-        version
+        version,
+        dev_marker(node.dev)
     );
 
     let child_prefix = format!("{}{}", prefix, if is_last { "    " } else { "│   " });
