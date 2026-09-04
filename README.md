@@ -67,9 +67,10 @@ Mark a schema `--dev` while you are editing its file under the schema directory:
 rusl add acme/schemas/draft --dev
 ```
 
-Install leaves an existing `dev` file alone and `rusl cache --clear` never removes it. If the
-schema is not published yet, install uses the local file and records it in `rusl.lock` with
-`source = "local"`; if the file is missing too, install tells you where to create it. See
+If the schema is not published yet and has no local file, `add --dev` writes a starter schema
+at the install path for you to edit. Install leaves an existing `dev` file alone and
+`rusl cache --clear` never removes it. An unpublished schema is recorded in `rusl.lock` with
+`source = "local"`. See
 [Developing Schemas Locally](docs/configuration.md#developing-schemas-locally) for the full
 behavior.
 

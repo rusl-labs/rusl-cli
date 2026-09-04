@@ -85,21 +85,25 @@ The manifest parser also accepts `[external]` and `[overrides]`, but current ins
 
 ### Developing Schemas Locally
 
-Mark a schema `dev = true` when you are editing its file under `schema_dir` and want Rusl to leave that file alone. Use `rusl add <identifier> --dev` to write the entry, optionally with `--version`. Without `--version` the requirement is `*` and the registry is not consulted, so a schema that has not been published yet can be added.
+Mark a schema `dev = true` when you are editing its file under `schema_dir` and want Rusl to leave that file alone. Use `rusl add <identifier> --dev` to write the entry, optionally with `--version`. Without `--version` the requirement is `*`.
 
 ```toml
 [rusl.resources]
 "acme/schemas/draft" = { version = "*", dev = true }
 ```
 
+If the schema has no local file yet, `rusl add --dev` checks the registry once. When the schema is not published, it writes a starter draft 2020-12 document at the install path (for example `schemas/acme/draft.schema.json`) so the following install resolves it locally; edit that file and publish when ready. When the schema is published, install downloads it as usual. If the registry cannot be reached, `add --dev` fails rather than guessing.
+
 What `rusl install` does with a `dev` schema depends on where it exists:
 
 | Registry | Local file | Result |
 | --- | --- | --- |
 | not published | present | The local file is used as-is and resolved as a placeholder version `0.0.0` with no dependencies. |
-| not published | missing | Install fails and names the path where the file is expected. Create the file, then run install again. |
+| not published | missing | Install fails and names the path where the file is expected. Create the file (or run `rusl add <identifier> --dev`), then run install again. |
 | published | present | The local file is kept. Install reports the published version it would otherwise have downloaded. |
 | published | missing | The published version is downloaded once. Later installs keep it. |
+
+"Not published" means the registry answered definitively: a 404, or a schema record with no versions. A transport or server failure is reported as an ordinary resolution error and never rewrites a `dev` schema as local.
 
 `rusl cache --clear` never removes a `dev` schema file. `rusl list` shows `(dev)` next to marked resources.
 

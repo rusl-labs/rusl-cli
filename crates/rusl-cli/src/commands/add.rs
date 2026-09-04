@@ -22,6 +22,12 @@ pub async fn run(args: AddArgs) -> Result<()> {
         dev_note,
         result.install.schema_count
     ));
+    if let Some(path) = &result.created_schema {
+        println!(
+            "Created {} to start from. Edit it, then publish when ready.",
+            path.display().to_string().bold()
+        );
+    }
     Ok(())
 }
 
