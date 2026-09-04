@@ -3,9 +3,8 @@ use crate::manifest::lock::LockManifest;
 use crate::resource_identifier::{
     ResourceKind, display_package_key, package_key_for, package_key_from_identifier,
 };
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::env;
 use std::fs;
 
 const LOCAL_BUNDLE_NAME: &str = "local bundle";
@@ -37,8 +36,8 @@ pub struct WhyTreeNode {
 }
 
 pub fn load_dependency_paths(package: &str) -> Result<WhyOutput> {
-    let cwd = env::current_dir().context("Failed to get current working directory")?;
-    let lock_path = cwd.join("rusl.lock");
+    let project = crate::project::discover_bundle_from_cwd()?;
+    let lock_path = project.lock_path();
 
     if !lock_path.exists() {
         return Ok(WhyOutput::MissingLockfile);
@@ -56,13 +55,11 @@ pub fn load_dependency_paths(package: &str) -> Result<WhyOutput> {
         }
     };
 
-    let manifest_path = cwd.join("rusl.bundle.toml");
-    if !manifest_path.exists() {
-        bail!("No rusl.bundle.toml found. Cannot trace dependency paths.");
-    }
-
-    let manifest_str = fs::read_to_string(&manifest_path)?;
-    let manifest: BundleManifest = toml::from_str(&manifest_str)?;
+    let manifest_path = project.manifest_path();
+    let manifest_str =
+        fs::read_to_string(&manifest_path).context("Failed to read rusl.bundle.toml")?;
+    let manifest: BundleManifest =
+        toml::from_str(&manifest_str).context("Failed to parse rusl.bundle.toml")?;
 
     let mut root_deps: Vec<String> = manifest
         .rusl

@@ -1,10 +1,22 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(name = "rusl")]
 #[command(version)]
 #[command(about = "The schema package manager", long_about = None)]
 pub struct Cli {
+    /// Change to DIR before resolving the bundle, config, or any other paths
+    #[arg(
+        short = 'C',
+        long = "cwd",
+        value_name = "DIR",
+        global = true,
+        help_heading = "Global options",
+        overrides_with = "cwd"
+    )]
+    pub cwd: Option<PathBuf>,
+
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -34,6 +46,9 @@ pub enum Commands {
     /// Manage local and global Rusl cache data
     Cache(CacheArgs),
     /// Start the Rusl MCP server over stdio
+    #[command(long_about = "Start the Rusl MCP server over stdio.\n\n\
+Use the global `-C` / `--cwd` flag to serve a bundle outside the process launch directory. \
+Bundle and config discovery walk up from that directory.")]
     Mcp(McpArgs),
     /// Manage the current acting account for the local directory
     Account(crate::commands::account::AccountArgs),

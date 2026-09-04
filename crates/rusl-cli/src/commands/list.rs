@@ -22,7 +22,7 @@ pub async fn run(args: ListArgs) -> Result<()> {
 }
 
 fn print_flat_view(flat: &ListFlatView) {
-    println!("{}", "rusl.lock".bold());
+    println!("{}", flat.lock_path.bold());
 
     for (index, item) in flat.items.iter().enumerate() {
         let prefix = if index + 1 == flat.items.len() {

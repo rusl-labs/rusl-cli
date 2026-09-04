@@ -16,13 +16,14 @@ pub struct CacheClearResult {
 pub async fn clear_cache() -> Result<CacheClearResult> {
     let config = config::load().context("Failed to load hierarchical configuration")?;
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
+    let project = crate::project::discover_bundle(&cwd)?;
 
     let (global_store_cleared, _) = GlobalStore::clear_default()
         .await
         .context("Failed to clear global cache store")?;
 
-    let lock = LockManifest::load_from_dir(&cwd).context("Failed to read rusl.lock")?;
-    let protected_ids = load_protected_resource_ids(&cwd)?;
+    let lock = LockManifest::load_from_dir(&project.root).context("Failed to read rusl.lock")?;
+    let protected_ids = load_protected_resource_ids(&project.root)?;
     let linker = Linker::for_project(cwd, &config);
     let local_schema_cache_cleared =
         linker.purge_installed(&lock.removable_schemas(&protected_ids))?;
@@ -33,12 +34,8 @@ pub async fn clear_cache() -> Result<CacheClearResult> {
     })
 }
 
-fn load_protected_resource_ids(cwd: &Path) -> Result<HashSet<String>> {
-    let path = cwd.join("rusl.bundle.toml");
-    if !path.exists() {
-        return Ok(HashSet::new());
-    }
-
+fn load_protected_resource_ids(root: &Path) -> Result<HashSet<String>> {
+    let path = root.join("rusl.bundle.toml");
     let contents = std::fs::read_to_string(&path).context("Failed to read rusl.bundle.toml")?;
     let manifest: BundleManifest =
         toml::from_str(&contents).context("Failed to parse rusl.bundle.toml")?;

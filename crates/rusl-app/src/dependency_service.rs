@@ -271,8 +271,7 @@ where
 }
 
 fn current_manifest_path() -> Result<std::path::PathBuf> {
-    let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    Ok(cwd.join("rusl.bundle.toml"))
+    Ok(crate::project::discover_bundle_from_cwd()?.manifest_path())
 }
 
 fn read_manifest_document(path: &std::path::Path) -> Result<DocumentMut> {
@@ -565,9 +564,45 @@ version = "0.1.0"
 
     #[tokio::test]
     #[serial]
-    async fn add_dependency_creates_missing_manifest() {
+    async fn add_dependency_fails_when_no_bundle_manifest_exists() {
         let temp_dir = TempDir::new().expect("create temp dir");
         let _guard = DirGuard::new(temp_dir.path());
+        let progress = TestProgress::default();
+
+        let err = add_dependency_with_installer(
+            AddDependencyRequest {
+                identifier: "hassox/schemas/test-schema".to_string(),
+                version_requirement: Some(">=1.2.3".to_string()),
+                dev: false,
+            },
+            &progress,
+            |_| Box::pin(future::ready(Ok(InstallResult { schema_count: 1 }))),
+        )
+        .await
+        .expect_err("add without bundle should fail");
+
+        let message = format!("{err:#}");
+        assert!(message.contains("No rusl.bundle.toml found. Searched:"));
+        assert!(message.contains(&temp_dir.path().display().to_string()));
+        assert!(!temp_dir.path().join("rusl.bundle.toml").exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn add_dependency_updates_bundle_discovered_by_walking_up() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            r#"
+[bundle]
+name = "hassox/demo"
+version = "0.1.0"
+"#,
+        )
+        .expect("write manifest");
+        let nested = temp_dir.path().join("packages").join("schemas");
+        std::fs::create_dir_all(&nested).expect("mkdir nested");
+        let _guard = DirGuard::new(&nested);
         let progress = TestProgress::default();
 
         let result = add_dependency_with_installer(
@@ -582,12 +617,11 @@ version = "0.1.0"
         .await
         .expect("add dependency");
 
-        assert_eq!(result.table_key, RESOURCES_TABLE_KEY);
         assert_eq!(result.slug, "hassox/schemas/test-schema");
         let manifest = std::fs::read_to_string(temp_dir.path().join("rusl.bundle.toml"))
-            .expect("read manifest");
-        assert!(manifest.contains("[rusl.resources]"));
+            .expect("read root manifest");
         assert!(manifest.contains("\"hassox/schemas/test-schema\" = \">=1.2.3\""));
+        assert!(!nested.join("rusl.bundle.toml").exists());
     }
 
     #[tokio::test]
@@ -631,6 +665,7 @@ version = "0.1.0"
     async fn add_dev_dependency_writes_inline_table_and_defaults_version_without_registry() {
         let temp_dir = TempDir::new().expect("create temp dir");
         let _guard = DirGuard::new(temp_dir.path());
+        std::fs::write(temp_dir.path().join("rusl.bundle.toml"), "").expect("write manifest");
         let progress = TestProgress::default();
 
         let result = add_dependency_with_installer(
@@ -699,6 +734,58 @@ version = "0.1.0"
         let parsed: crate::manifest::bundle::BundleManifest =
             toml::from_str(&manifest).expect("manifest round-trips");
         assert!(parsed.rusl.resources["hassox/schemas/draft"].is_dev());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_uses_schema_dir_from_discovered_config_not_cwd() {
+        let server = MetadataServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let nested = temp_dir.path().join("packages").join("schemas");
+        std::fs::create_dir_all(&nested).expect("mkdir nested");
+        std::fs::write(
+            temp_dir.path().join("rusl.config.toml"),
+            r#"
+[output]
+schema_dir = "packages/schemas/registry"
+"#,
+        )
+        .expect("write config");
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            "[rusl.resources]\n",
+        )
+        .expect("write bundle");
+        let _guard = DirGuard::new(&nested);
+        let mut config = crate::config::load().expect("load config");
+        config.api_base_url = server.config().api_base_url;
+        config.website_url = server.config().website_url;
+        let resource = RegistryResource::schema("hassox/schemas/draft").expect("schema");
+
+        let created = seed_dev_schema(&resource, &config, &nested, &TestProgress::default())
+            .await
+            .expect("seed dev schema");
+
+        let expected = nested
+            .join("registry")
+            .join("hassox")
+            .join("draft.schema.json");
+        assert!(
+            expected.is_file(),
+            "starter should land under config schema_dir"
+        );
+        assert_eq!(
+            created,
+            Some(PathBuf::from("registry/hassox/draft.schema.json"))
+        );
+        assert!(
+            !nested
+                .join("schemas")
+                .join("hassox")
+                .join("draft.schema.json")
+                .exists(),
+            "must not write relative to cwd default schemas/"
+        );
     }
 
     #[tokio::test]

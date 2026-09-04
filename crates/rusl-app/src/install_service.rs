@@ -6,7 +6,7 @@ use crate::manifest::lock::{LOCAL_SOURCE, LockDependency, LockManifest};
 use crate::registry::client::RegistryClient;
 use crate::resolver::graph::{DevSchemaState, ProgressReporter, ResolveOptions, resolve_graph};
 use crate::resource_identifier::{ResourceKind, parse_package_key};
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
@@ -29,12 +29,9 @@ where
         .context("Failed to initialize CAS store")?;
 
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
+    let project = crate::project::discover_bundle(&cwd)?;
     let linker = Linker::for_project(cwd.clone(), &config);
-    let manifest_path = cwd.join("rusl.bundle.toml");
-
-    if !manifest_path.exists() {
-        bail!("No rusl.bundle.toml found in current directory! Please create one.");
-    }
+    let manifest_path = project.manifest_path();
 
     let manifest_contents =
         std::fs::read_to_string(&manifest_path).context("Failed to read rusl.bundle.toml")?;
@@ -61,7 +58,8 @@ where
         .await
         .context("Dependency resolution failed")?;
 
-    let previous_lock = LockManifest::load_from_dir(&cwd).context("Failed to read rusl.lock")?;
+    let previous_lock =
+        LockManifest::load_from_dir(&project.root).context("Failed to read rusl.lock")?;
     let protected_ids = manifest.protected_resource_ids();
 
     progress.set_message("Removing previously installed schemas...".to_string());
@@ -150,7 +148,7 @@ where
         dependencies: lock_dependencies,
     };
 
-    let lock_path = cwd.join("rusl.lock");
+    let lock_path = project.lock_path();
     let lock_toml = toml::to_string_pretty(&lock_manifest)?;
     std::fs::write(&lock_path, lock_toml).context("Failed to write rusl.lock")?;
 
@@ -816,6 +814,59 @@ source = "https://example.test"
                 &"Note: dev has no effect on hassox/bundles/common; mark its schemas directly."
                     .to_string()
             )
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_from_subdirectory_writes_lock_beside_discovered_bundle() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        let nested = workspace_dir.join("packages").join("schemas");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&nested).expect("create nested dir");
+        let _guard = EnvGuard::new(&home_dir, &nested, &server.base_url);
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = ">=1.0.0"
+"#,
+        )
+        .expect("write manifest");
+        std::fs::write(
+            workspace_dir.join("rusl.config.toml"),
+            r#"
+[output]
+schema_dir = "packages/schemas/registry"
+"#,
+        )
+        .expect("write config");
+
+        let result = install_project(&TestProgress::default())
+            .await
+            .expect("install from nested cwd");
+
+        assert!(result.schema_count >= 1);
+        assert!(
+            workspace_dir.join("rusl.lock").is_file(),
+            "lock must be written next to the bundle"
+        );
+        assert!(
+            !nested.join("rusl.lock").exists(),
+            "lock must not be written beside cwd"
+        );
+        assert!(
+            workspace_dir
+                .join("packages")
+                .join("schemas")
+                .join("registry")
+                .join("hassox")
+                .join("root.schema.json")
+                .is_file()
         );
     }
 

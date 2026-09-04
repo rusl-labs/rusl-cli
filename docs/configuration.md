@@ -9,7 +9,7 @@ Rusl uses two project-facing TOML files:
 
 ## `rusl.bundle.toml`
 
-`rusl.bundle.toml` must be in the directory where you run dependency commands such as `rusl install`, `rusl add`, `rusl remove`, `rusl list --tree`, and `rusl why`.
+`rusl.bundle.toml` is found by walking up from the current working directory (or from the directory given with the global `-C` / `--cwd` flag). Nearest wins. `rusl.lock` stays beside the bundle that was found.
 
 Minimal example:
 
@@ -137,7 +137,9 @@ Rusl loads configuration in this order, with later entries overriding earlier on
 3. The nearest `rusl.config.toml`, found by walking up from the current working directory.
 4. `RUSL_API_URL` and `RUSL_WEBSITE_URL` environment variables.
 
-The bundle manifest itself is not searched upward. Run bundle commands from the directory that contains `rusl.bundle.toml`.
+`rusl.bundle.toml` is discovered the same way: nearest file walking up from the current working directory (or from `-C` / `--cwd`). If none is found, commands that need a bundle fail and list the directories searched. Relative paths in project config are still resolved from the directory containing `rusl.config.toml`.
+
+The global `-C` / `--cwd <DIR>` flag changes the starting directory for all of this resolution before any subcommand runs, including `rusl mcp`.
 
 ### Options
 

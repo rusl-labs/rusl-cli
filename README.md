@@ -78,8 +78,9 @@ behavior.
 
 ### `rusl.bundle.toml`
 
-`rusl.bundle.toml` declares the schemas and bundles your project depends on. It must live in the
-directory where you run `rusl install`, `rusl add`, `rusl remove`, `rusl list`, and `rusl why`.
+`rusl.bundle.toml` declares the schemas and bundles your project depends on. Rusl finds the
+nearest `rusl.bundle.toml` by walking up from the current working directory (or from the
+directory given with `-C` / `--cwd`). `rusl.lock` is written beside that bundle.
 
 Minimal example:
 
@@ -155,6 +156,13 @@ rusl outdated
 rusl why rusl/schemas/common
 rusl cache --clear
 rusl logout
+```
+
+From a subdirectory (or to point MCP at a package), change directory first with the global flag:
+
+```bash
+rusl -C packages/schemas install
+rusl -C packages/schemas mcp
 ```
 
 ## Update Rusl
