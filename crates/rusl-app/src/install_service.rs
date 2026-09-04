@@ -30,7 +30,8 @@ where
 
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
     let project = crate::project::discover_bundle(&cwd)?;
-    let linker = Linker::for_project(cwd.clone(), &config);
+    // Default `./schemas` is relative to the bundle root, not the nested process cwd.
+    let linker = Linker::for_project(project.root.clone(), &config);
     let manifest_path = project.manifest_path();
 
     let manifest_contents =
@@ -43,7 +44,7 @@ where
             "Note: dev has no effect on {bundle_id}; mark its schemas directly."
         ));
     }
-    let resolve_options = dev_resolve_options(&manifest, &linker, &cwd);
+    let resolve_options = dev_resolve_options(&manifest, &linker, &project.root);
 
     progress.set_message(format!(
         "Resolving dependencies for {}@{}...",
@@ -868,6 +869,52 @@ schema_dir = "packages/schemas/registry"
                 .join("root.schema.json")
                 .is_file()
         );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn install_from_subdirectory_uses_bundle_root_for_default_schema_dir() {
+        let server = TestServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        let nested = workspace_dir.join("packages").join("schemas");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&nested).expect("create nested dir");
+        let _guard = EnvGuard::new(&home_dir, &nested, &server.base_url);
+
+        // No rusl.config.toml: default ./schemas must resolve from the bundle root.
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = ">=1.0.0"
+"#,
+        )
+        .expect("write manifest");
+
+        let result = install_project(&TestProgress::default())
+            .await
+            .expect("install from nested cwd");
+
+        assert!(result.schema_count >= 1);
+        assert!(
+            workspace_dir
+                .join("schemas")
+                .join("hassox")
+                .join("root.schema.json")
+                .is_file(),
+            "default schema_dir must be relative to the discovered bundle root"
+        );
+        assert!(
+            !nested
+                .join("schemas")
+                .join("hassox")
+                .join("root.schema.json")
+                .exists(),
+            "must not materialize schemas under the nested process cwd"
+        );
+        assert!(workspace_dir.join("rusl.lock").is_file());
     }
 
     fn write_install_fixtures(workspace_dir: &std::path::Path, config_toml: Option<&str>) {

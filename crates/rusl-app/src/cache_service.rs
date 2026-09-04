@@ -16,17 +16,22 @@ pub struct CacheClearResult {
 pub async fn clear_cache() -> Result<CacheClearResult> {
     let config = config::load().context("Failed to load hierarchical configuration")?;
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-    let project = crate::project::discover_bundle(&cwd)?;
 
     let (global_store_cleared, _) = GlobalStore::clear_default()
         .await
         .context("Failed to clear global cache store")?;
 
-    let lock = LockManifest::load_from_dir(&project.root).context("Failed to read rusl.lock")?;
-    let protected_ids = load_protected_resource_ids(&project.root)?;
-    let linker = Linker::for_project(cwd, &config);
-    let local_schema_cache_cleared =
-        linker.purge_installed(&lock.removable_schemas(&protected_ids))?;
+    // Global clear always runs. Local purge only happens when a bundle is in scope.
+    let local_schema_cache_cleared = match crate::project::discover_bundle(&cwd) {
+        Ok(project) => {
+            let lock =
+                LockManifest::load_from_dir(&project.root).context("Failed to read rusl.lock")?;
+            let protected_ids = load_protected_resource_ids(&project.root)?;
+            let linker = Linker::for_project(project.root.clone(), &config);
+            linker.purge_installed(&lock.removable_schemas(&protected_ids))?
+        }
+        Err(_) => false,
+    };
 
     Ok(CacheClearResult {
         global_store_cleared,
@@ -36,6 +41,10 @@ pub async fn clear_cache() -> Result<CacheClearResult> {
 
 fn load_protected_resource_ids(root: &Path) -> Result<HashSet<String>> {
     let path = root.join("rusl.bundle.toml");
+    if !path.exists() {
+        return Ok(HashSet::new());
+    }
+
     let contents = std::fs::read_to_string(&path).context("Failed to read rusl.bundle.toml")?;
     let manifest: BundleManifest =
         toml::from_str(&contents).context("Failed to parse rusl.bundle.toml")?;
@@ -165,6 +174,81 @@ source = "https://example.test"
         );
         assert!(workspace_dir.join("rusl.bundle.toml").exists());
         assert!(workspace_dir.join("rusl.lock").exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn clear_cache_still_clears_global_store_without_a_bundle() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let empty_dir = temp_dir.path().join("empty");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&empty_dir).expect("create empty dir");
+        let _guard = EnvGuard::new(&home_dir, &empty_dir);
+
+        let store = GlobalStore::new().await.expect("create store");
+        let store_root = store.root_dir().to_path_buf();
+        let (_, blob_path) = store
+            .put(br#"{"type":"object"}"#)
+            .await
+            .expect("write blob");
+        assert!(blob_path.exists());
+
+        let result = clear_cache().await.expect("clear cache without bundle");
+
+        assert!(result.global_store_cleared);
+        assert!(!result.local_schema_cache_cleared);
+        assert!(!store_root.exists());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn clear_cache_from_subdirectory_purges_schemas_under_bundle_root() {
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let home_dir = temp_dir.path().join("home");
+        let workspace_dir = temp_dir.path().join("workspace");
+        let nested = workspace_dir.join("packages").join("schemas");
+        std::fs::create_dir_all(&home_dir).expect("create home dir");
+        std::fs::create_dir_all(&nested).expect("create nested dir");
+        let _guard = EnvGuard::new(&home_dir, &nested);
+
+        let schema_dir = workspace_dir.join("schemas").join("acme");
+        std::fs::create_dir_all(&schema_dir).expect("create schema dir");
+        std::fs::write(schema_dir.join("thing.schema.json"), "{}").expect("write schema");
+        // A stale copy under the nested cwd must not be the purge target.
+        let nested_schema = nested.join("schemas").join("acme");
+        std::fs::create_dir_all(&nested_schema).expect("create nested schema dir");
+        std::fs::write(nested_schema.join("thing.schema.json"), "{}").expect("write nested schema");
+
+        std::fs::write(
+            workspace_dir.join("rusl.bundle.toml"),
+            r#"
+[rusl.resources]
+"acme/schemas/thing" = "*"
+"#,
+        )
+        .expect("write manifest");
+        std::fs::write(
+            workspace_dir.join("rusl.lock"),
+            r#"
+version = "1"
+
+[dependencies."schema:acme/schemas/thing"]
+version = "1.0.0"
+integrity = "abc"
+source = "https://example.test"
+"#,
+        )
+        .expect("write lockfile");
+
+        let result = clear_cache().await.expect("clear cache from nested cwd");
+
+        assert!(result.local_schema_cache_cleared);
+        assert!(!schema_dir.join("thing.schema.json").exists());
+        assert!(
+            nested_schema.join("thing.schema.json").exists(),
+            "stale nested cwd copy is not managed by the bundle-root linker"
+        );
     }
 
     #[cfg(windows)]

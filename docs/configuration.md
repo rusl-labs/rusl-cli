@@ -147,7 +147,7 @@ The global `-C` / `--cwd <DIR>` flag changes the starting directory for all of t
 | --- | --- | --- | --- |
 | `api_base_url` | string | `https://resources.rusl.com` | Rusl API server. |
 | `website_url` | string | `https://rusl.com` | Rusl website used for browser-based flows. |
-| `output.schema_dir` | string | `./schemas` | Directory where resolved schema files are written. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the command's current working directory. |
+| `output.schema_dir` | string | `./schemas` | Directory where resolved schema files are written. Relative paths in project config are resolved from the directory containing `rusl.config.toml`; the built-in default is relative to the discovered bundle root (`rusl.bundle.toml`). |
 | `output.suffix` | string | `.schema.json` | Suffix appended to the schema file name when writing the file. |
 | `output.naming_convention` | string | `normal` | How canonical schema identifiers map to relative paths within `schema_dir`. One of `full`, `normal`, or `flat`. |
 

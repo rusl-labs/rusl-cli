@@ -65,7 +65,9 @@ where
         let resource = parse_resource(&request.identifier)?;
         let config = crate::config::load().context("Failed to load hierarchical configuration")?;
         let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-        seed_dev_schema(&resource, &config, &cwd, progress).await?
+        let project = crate::project::discover_bundle(&cwd)?;
+        // Starter file uses the same install root as install/cache (bundle root).
+        seed_dev_schema(&resource, &config, &project.root, progress).await?
     } else {
         None
     };
@@ -785,6 +787,53 @@ schema_dir = "packages/schemas/registry"
                 .join("draft.schema.json")
                 .exists(),
             "must not write relative to cwd default schemas/"
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn seed_dev_schema_default_dir_uses_bundle_root_not_nested_cwd() {
+        let server = MetadataServer::start().await;
+        let temp_dir = TempDir::new().expect("create temp dir");
+        let nested = temp_dir.path().join("packages").join("schemas");
+        std::fs::create_dir_all(&nested).expect("mkdir nested");
+        std::fs::write(
+            temp_dir.path().join("rusl.bundle.toml"),
+            "[rusl.resources]\n",
+        )
+        .expect("write bundle");
+        // No rusl.config.toml: default ./schemas must resolve from the bundle root.
+        let _guard = DirGuard::new(&nested);
+        let project = crate::project::discover_bundle(&nested).expect("discover bundle");
+        let mut config = crate::config::load().expect("load config");
+        config.api_base_url = server.config().api_base_url;
+        config.website_url = server.config().website_url;
+        let resource = RegistryResource::schema("hassox/schemas/draft").expect("schema");
+
+        let created = seed_dev_schema(&resource, &config, &project.root, &TestProgress::default())
+            .await
+            .expect("seed dev schema");
+
+        let expected = temp_dir
+            .path()
+            .join("schemas")
+            .join("hassox")
+            .join("draft.schema.json");
+        assert!(
+            expected.is_file(),
+            "starter must land under bundle-root schemas/, not nested cwd"
+        );
+        assert_eq!(
+            created,
+            Some(PathBuf::from("schemas/hassox/draft.schema.json"))
+        );
+        assert!(
+            !nested
+                .join("schemas")
+                .join("hassox")
+                .join("draft.schema.json")
+                .exists(),
+            "must not write under the nested process cwd"
         );
     }
 
