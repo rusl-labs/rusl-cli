@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusl.com/schemas/rusl/lock-dependency",
+  "title": "LockDependency",
+  "description": "One resolved entry in rusl.lock, keyed by package key (schema:account/schemas/slug or bundle:account/bundles/slug). Records the exact version, content integrity, and origin of a resolved resource so installs are reproducible.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "integrity", "source"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Exact semantic version chosen by the resolver. An unpublished dev schema resolved from its local file records the placeholder 0.0.0."
+    },
+    "integrity": {
+      "type": "string",
+      "description": "SHA-256 hex digest of the downloaded schema content. Empty for bundles and for dev schemas resolved from the local file."
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the resource was resolved from: the registry API base URL, or the reserved value \"local\" for a dev schema that has no published versions and was resolved from its on-disk file."
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Package keys of the direct dependencies of this resource at the resolved version. Omitted when empty.",
+      "items": {
+        "type": "string",
+        "pattern": "^(schema|bundle):[^/]+/(schemas|bundles)/[^/]+$"
+      }
+    }
+  }
+}

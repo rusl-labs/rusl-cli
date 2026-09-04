@@ -29,7 +29,8 @@ pub struct LockDependency {
     /// The SHA-256 hash of the content-addressable artifact
     pub integrity: String,
 
-    /// The registry URL from which this dependency was originally downloaded
+    /// The registry URL from which this dependency was originally downloaded, or
+    /// [`LOCAL_SOURCE`] for an unpublished `dev` schema resolved from its local file
     pub source: String,
 
     /// The direct dependencies of this package (e.g., ["schema:acme/schemas/types", "bundle:acme/bundles/common"])
