@@ -1,14 +1,16 @@
 use crate::manifest::bundle::BundleManifest;
+use crate::manifest::lock::LOCAL_VERSION;
 use crate::registry::client::RegistryClient;
 use crate::resource_identifier::{
     RegistryResource, ResourceKind, package_key_from_identifier, parse_package_key,
 };
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use pubgrub::{
     DefaultStringReporter, OfflineDependencyProvider, PubGrubError, Ranges, Reporter,
     SemanticVersion, resolve,
 };
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 const LOCAL_ROOT_PACKAGE: &str = "__local__/bundles/root";
@@ -19,12 +21,30 @@ pub trait ProgressReporter {
     fn println(&self, message: String);
 }
 
+/// Local-project inputs to resolution that the registry cannot supply.
+#[derive(Debug, Clone, Default)]
+pub struct ResolveOptions {
+    /// Schemas marked `dev` in the manifest, keyed by package key.
+    pub dev_schemas: HashMap<String, DevSchemaState>,
+}
+
+/// Where a `dev` schema would live on disk and whether it is already there.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DevSchemaState {
+    /// Install path, relative to the project root where possible (used in messages).
+    pub local_path: PathBuf,
+    pub exists: bool,
+}
+
 /// The result of dependency resolution: resolved versions plus the dependency graph edges.
 pub struct ResolvedGraph {
     /// Each resolved package and its exact version (excludes the root package).
     pub versions: BTreeMap<String, SemanticVersion>,
     /// Dependency edges: package key -> list of its direct dependency keys.
     pub edges: HashMap<String, Vec<String>>,
+    /// `dev` schemas resolved to the local placeholder because the registry has no
+    /// published versions for them.
+    pub local_packages: HashSet<String>,
 }
 
 fn parse_version_range(req: &str) -> Result<Ranges<SemanticVersion>> {
@@ -41,6 +61,7 @@ fn parse_version_range(req: &str) -> Result<Ranges<SemanticVersion>> {
 pub async fn resolve_graph<P>(
     manifest: &BundleManifest,
     client: &RegistryClient,
+    options: &ResolveOptions,
     progress: &P,
 ) -> Result<ResolvedGraph>
 where
@@ -51,6 +72,10 @@ where
     let mut provider = OfflineDependencyProvider::<String, Ranges<SemanticVersion>>::new();
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
+    let mut local_packages = HashSet::new();
+    let local_version: SemanticVersion = LOCAL_VERSION
+        .parse()
+        .expect("local placeholder version is valid semver");
 
     // The local project is anonymous to the resolver. `[bundle].name` is a free-form local label,
     // not a published bundle identifier, so the root node is always the local sentinel.
@@ -80,10 +105,6 @@ where
         }
     }
 
-    let root_dep_keys: Vec<String> = root_deps.iter().map(|(key, _)| key.clone()).collect();
-    version_deps.insert((root_pkg.clone(), root_version.to_string()), root_dep_keys);
-    provider.add_dependencies(root_pkg.clone(), root_version, root_deps);
-
     progress.set_message("Fetching package metadata...".to_string());
     while let Some(package_key) = queue.pop_front() {
         let Some(target) = parse_package_key(&package_key) else {
@@ -103,6 +124,26 @@ where
                     .await
             }
         };
+
+        let has_published_versions =
+            matches!(&metadata, Ok(metadata) if !metadata.versions.is_empty());
+        if let Some(dev) = options.dev_schemas.get(&package_key)
+            && !has_published_versions
+        {
+            if !dev.exists {
+                bail!(
+                    "{} is marked dev but is not published and there is no file at {}.",
+                    target.identifier(),
+                    dev.local_path.display()
+                );
+            }
+            // An unpublished dev schema is represented by a local placeholder version
+            // with no dependencies so the rest of the graph can still resolve.
+            version_deps.insert((package_key.clone(), local_version.to_string()), Vec::new());
+            provider.add_dependencies(package_key.clone(), local_version, Vec::new());
+            local_packages.insert(package_key);
+            continue;
+        }
 
         match metadata {
             Ok(metadata) => {
@@ -153,6 +194,17 @@ where
         }
     }
 
+    // A local placeholder cannot satisfy a manifest version requirement, so the
+    // root constraint is relaxed for unpublished dev schemas.
+    for (key, range) in &mut root_deps {
+        if local_packages.contains(key) {
+            *range = Ranges::full();
+        }
+    }
+    let root_dep_keys: Vec<String> = root_deps.iter().map(|(key, _)| key.clone()).collect();
+    version_deps.insert((root_pkg.clone(), root_version.to_string()), root_dep_keys);
+    provider.add_dependencies(root_pkg.clone(), root_version, root_deps);
+
     progress.set_message("Resolving version constraints...".to_string());
     match resolve(&provider, root_pkg.clone(), root_version) {
         Ok(resolution) => {
@@ -171,7 +223,11 @@ where
                 }
             }
 
-            Ok(ResolvedGraph { versions, edges })
+            Ok(ResolvedGraph {
+                versions,
+                edges,
+                local_packages,
+            })
         }
         Err(PubGrubError::NoSolution(derivation_tree)) => {
             anyhow::bail!(
@@ -193,7 +249,7 @@ fn dependency_key(kind: ResourceKind, identifier: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ProgressReporter, resolve_graph};
+    use super::{DevSchemaState, ProgressReporter, ResolveOptions, resolve_graph};
     use crate::{
         config::Config, manifest::bundle::BundleManifest, registry::client::RegistryClient,
     };
@@ -205,6 +261,7 @@ mod tests {
     };
     use serde_json::{Value, json};
     use serial_test::serial;
+    use std::{collections::HashMap, path::PathBuf};
     use tokio::{net::TcpListener, sync::oneshot, task::JoinHandle};
 
     #[derive(Default)]
@@ -297,10 +354,11 @@ version = "0.1.0"
         .expect("parse manifest");
         let progress = TestProgress::default();
 
-        let resolved = resolve_graph(&manifest, &client, &progress)
+        let resolved = resolve_graph(&manifest, &client, &ResolveOptions::default(), &progress)
             .await
             .expect("resolve graph");
 
+        assert!(resolved.local_packages.is_empty());
         assert_eq!(
             resolved.versions["schema:hassox/schemas/root"].to_string(),
             "1.0.0"
@@ -338,12 +396,140 @@ version = "0.1.0"
         .expect("parse manifest");
         let progress = TestProgress::default();
 
-        let error = resolve_graph(&manifest, &client, &progress)
+        let error = resolve_graph(&manifest, &client, &ResolveOptions::default(), &progress)
             .await
             .err()
             .expect("expected dependency conflict");
 
         assert!(error.to_string().contains("Dependency conflict detected"));
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn unpublished_dev_schema_with_local_file_resolves_to_local_placeholder() {
+        let server = TestServer::start().await;
+        let client = RegistryClient::new(Config {
+            api_base_url: server.base_url.clone(),
+            website_url: "https://example.test".to_string(),
+            ..Config::default()
+        });
+        let manifest: BundleManifest = toml::from_str(
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = ">=1.0.0"
+"hassox/schemas/draft" = { version = ">=1.0.0", dev = true }
+"#,
+        )
+        .expect("parse manifest");
+        let options = ResolveOptions {
+            dev_schemas: HashMap::from([(
+                "schema:hassox/schemas/draft".to_string(),
+                DevSchemaState {
+                    local_path: PathBuf::from("schemas/hassox/draft.schema.json"),
+                    exists: true,
+                },
+            )]),
+        };
+        let progress = TestProgress::default();
+
+        let resolved = resolve_graph(&manifest, &client, &options, &progress)
+            .await
+            .expect("resolve graph with local dev schema");
+
+        assert_eq!(
+            resolved.versions["schema:hassox/schemas/draft"].to_string(),
+            "0.0.0"
+        );
+        assert_eq!(
+            resolved.versions["schema:hassox/schemas/root"].to_string(),
+            "1.0.0"
+        );
+        assert!(
+            resolved
+                .local_packages
+                .contains("schema:hassox/schemas/draft")
+        );
+        assert!(resolved.edges["schema:hassox/schemas/draft"].is_empty());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn published_dev_schema_still_resolves_from_registry() {
+        let server = TestServer::start().await;
+        let client = RegistryClient::new(Config {
+            api_base_url: server.base_url.clone(),
+            website_url: "https://example.test".to_string(),
+            ..Config::default()
+        });
+        let manifest: BundleManifest = toml::from_str(
+            r#"
+[rusl.resources]
+"hassox/schemas/root" = { version = ">=1.0.0", dev = true }
+"#,
+        )
+        .expect("parse manifest");
+        let options = ResolveOptions {
+            dev_schemas: HashMap::from([(
+                "schema:hassox/schemas/root".to_string(),
+                DevSchemaState {
+                    local_path: PathBuf::from("schemas/hassox/root.schema.json"),
+                    exists: true,
+                },
+            )]),
+        };
+        let progress = TestProgress::default();
+
+        let resolved = resolve_graph(&manifest, &client, &options, &progress)
+            .await
+            .expect("resolve graph");
+
+        assert!(resolved.local_packages.is_empty());
+        assert_eq!(
+            resolved.versions["schema:hassox/schemas/root"].to_string(),
+            "1.0.0"
+        );
+        assert_eq!(
+            resolved.edges["schema:hassox/schemas/root"],
+            vec!["schema:hassox/schemas/dep".to_string()]
+        );
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn unpublished_dev_schema_without_local_file_is_an_error() {
+        let server = TestServer::start().await;
+        let client = RegistryClient::new(Config {
+            api_base_url: server.base_url.clone(),
+            website_url: "https://example.test".to_string(),
+            ..Config::default()
+        });
+        let manifest: BundleManifest = toml::from_str(
+            r#"
+[rusl.resources]
+"hassox/schemas/draft" = { dev = true }
+"#,
+        )
+        .expect("parse manifest");
+        let options = ResolveOptions {
+            dev_schemas: HashMap::from([(
+                "schema:hassox/schemas/draft".to_string(),
+                DevSchemaState {
+                    local_path: PathBuf::from("schemas/hassox/draft.schema.json"),
+                    exists: false,
+                },
+            )]),
+        };
+        let progress = TestProgress::default();
+
+        let error = resolve_graph(&manifest, &client, &options, &progress)
+            .await
+            .err()
+            .expect("expected missing dev schema error");
+
+        assert_eq!(
+            error.to_string(),
+            "hassox/schemas/draft is marked dev but is not published and there is no file at schemas/hassox/draft.schema.json."
+        );
     }
 
     async fn schema_metadata_handler(
