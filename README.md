@@ -117,11 +117,18 @@ Keys in `[rusl.resources]` identify registry resources:
 Identifiers must use the canonical forms above; the resource kind is inferred from the
 `schemas`/`bundles` segment.
 
-A schema can live under a package: a dotted namespace folded into the final identifier
-segment (`acme/schemas/payments.checkout` is the `checkout` schema in the `payments`
-package). Treat the final segment as opaque — pass the identifier through verbatim and
-never split the package from the leaf. A schema without a package is simply not packaged
-and its identifier is unchanged.
+A schema package is an optional dotted namespace within an account, not a bundle or
+dependency group. `acme/schemas/io.db.id` is the leaf `id` in package `io.db`; it still
+has exactly three slash segments. Each package segment is 2–25 characters from
+`[a-z0-9_-]`, with at most five segments, and is downcased on create/fork. Schema and
+bundle leaf slugs are 2–25 letters, numbers, or hyphens, starting with a letter or number;
+schema leaves cannot contain dots. Account/user and annotation-type minima remain three.
+
+Pass canonical identifiers through unchanged, never reconstruct them from a returned
+leaf-only `slug` or turn package dots into slash routes or folders. Packages and leaves
+are immutable after creation, and schema slug uniqueness is per account/package.
+An unpackaged schema is simply `acme/schemas/id`. See [MCP creation examples](docs/mcp-tools.md)
+for the separate leaf and optional-package inputs.
 
 #### Version requirements
 
@@ -135,6 +142,18 @@ Each resource value is a version requirement string, or an inline table that add
 | `{ version = "*", dev = true }` | Schema under local development. The file is never deleted or overwritten, and an unpublished schema resolves from the local file. This is the form `rusl add --dev` writes. |
 
 Prefer `rusl add` and `rusl remove` so the manifest stays in the CLI's current format.
+
+For an existing published packaged schema, keep the full compound and pass the version
+separately (the CLI uses `--version`, not an inline `@` suffix):
+
+```bash
+rusl add acme/schemas/io.db.id --version "1.2.3"
+rusl remove acme/schemas/io.db.id
+```
+
+A version-qualified registry reference is `acme/schemas/io.db.id@v1.2.3`: the suffix
+follows the whole compound, never the package or leaf alone. In `rusl.bundle.toml`,
+use `"acme/schemas/io.db.id" = "1.2.3"` instead.
 
 #### Supported tables
 
@@ -250,8 +269,13 @@ Notes:
 
 The backend client is generated and checked in.
 
-- refresh the committed spec snapshot with `make openapi-refresh`
-- regenerate the Rust client with `make openapi-generate`
+- refresh the committed spec snapshot and regenerate the client with `make openapi-refresh`
+- regenerate from an already-current snapshot with `make openapi-generate`
+
+Regeneration requires Node/npm (`npx`), a Java runtime for OpenAPI Generator, Python 3
+(`python3`), and Cargo/rustfmt. The spec is fetched from production
+(`https://resources.rusl.com/api/v1/openapi/cli`) by default; set `RUSL_OPENAPI_URL` to
+generate against another backend, e.g. `http://localhost:4000/api/v1/openapi/cli`.
 
 Generated code lives under `crates/rusl-api-client/generated`. Handwritten transport behavior stays in `crates/rusl-api-client/src`.
 

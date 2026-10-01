@@ -55,6 +55,9 @@ pub struct Schema {
     /// Inserted At
     #[serde(rename = "inserted_at")]
     pub inserted_at: String,
+    /// Number of open proposals for this schema. Open means status PENDING; accepted, rejected, and closed proposals are excluded.
+    #[serde(rename = "open_proposal_count")]
+    pub open_proposal_count: i32,
     /// Dotted package path this schema lives under, or null when the schema is not packaged. Segments never contain dots.
     #[serde(
         rename = "package_path",
@@ -101,6 +104,7 @@ impl Schema {
         id: String,
         identifier: String,
         inserted_at: String,
+        open_proposal_count: i32,
         package_segments: Vec<String>,
         schema_format: SchemaFormat,
         slug: String,
@@ -117,6 +121,7 @@ impl Schema {
             id,
             identifier,
             inserted_at,
+            open_proposal_count,
             package_path: None,
             package_segments,
             resource_origins: None,

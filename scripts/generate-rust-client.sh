@@ -25,7 +25,7 @@ npx --yes "@openapitools/openapi-generator-cli@${generator_cli_version}" generat
   -o "$tmp_dir" \
   --additional-properties=library=reqwest,packageName=rusl-openapi-client,packageVersion=0.1.0,hideGenerationTimestamp=true
 
-python - <<'PY_FIX' "$tmp_dir"
+python3 - <<'PY_FIX' "$tmp_dir"
 from pathlib import Path
 import sys
 

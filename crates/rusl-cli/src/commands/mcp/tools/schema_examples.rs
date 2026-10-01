@@ -47,7 +47,9 @@ fn deserialize_request(args: Value) -> McpResult<ListSchemaExamplesToolRequest> 
 struct ListSchemaExamplesToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug whose committed examples should be listed.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(
         description = "Optional committed version filter. Prefixes such as 1 or 1.2 are accepted."

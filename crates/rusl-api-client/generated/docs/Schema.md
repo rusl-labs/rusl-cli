@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **id** | **String** | Schema ID |
 **identifier** | **String** | Full opaque identifier in account_slug/schemas/leaf form; packaged schemas fold the package path into the final segment (account_slug/schemas/package.path.leaf). Route by this; never rebuild it from parts. |
 **inserted_at** | **String** | Inserted At |
+**open_proposal_count** | **i32** | Number of open proposals for this schema. Open means status PENDING; accepted, rejected, and closed proposals are excluded. |
 **package_path** | Option<**String**> | Dotted package path this schema lives under, or null when the schema is not packaged. Segments never contain dots. | [optional]
 **package_segments** | **Vec<String>** | Server-split package path segments for breadcrumbs. Empty when the schema is not packaged. Clients never split the compound themselves. |
 **resource_origins** | Option<[**Vec<models::ResourceOrigin1>**](ResourceOrigin1.md)> | Durable provenance edges for this schema | [optional]
