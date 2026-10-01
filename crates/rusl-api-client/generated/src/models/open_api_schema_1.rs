@@ -22,7 +22,7 @@ pub struct OpenApiSchema1 {
         skip_serializing_if = "Option::is_none"
     )]
     pub description: Option<Option<String>>,
-    /// Optional dotted package path this schema lives under (omit when the schema is not packaged). Each segment is 3-25 characters of [a-z0-9_-], at most 5 segments deep, lowercased on write. Slug uniqueness is per-package.
+    /// Optional dotted package path this schema lives under (omit when the schema is not packaged). Each segment is 2-25 characters of [a-z0-9_-], at most 5 segments deep, lowercased on write. Slug uniqueness is per-package.
     #[serde(
         rename = "package",
         default,

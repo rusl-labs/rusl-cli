@@ -146,10 +146,12 @@ fn json_result<T: serde::Serialize>(output: &T, label: &str) -> McpResult<ToolRe
 
 #[derive(Debug, Clone, Deserialize, JsonSchema)]
 struct GetSchemaToolRequest {
-    #[schemars(description = "Canonical schema identifier in account/schemas/slug form.")]
+    #[schemars(
+        description = "Canonical schema identifier, e.g. account/schemas/id or account/schemas/io.db.id. Pass the full returned identifier unchanged; preserve the dotted final segment, never reconstruct it from the leaf-only slug. Supply version separately."
+    )]
     identifier: String,
     #[schemars(
-        description = "Optional semantic version. When set, fetches /api/{account}/schemas/{slug}/versions/{version}; v-prefixes are accepted."
+        description = "Optional semantic version for the complete schema identifier; v-prefixes are accepted. Keep the package compound intact in identifier and supply the version here, not as an identifier suffix."
     )]
     version: Option<String>,
 }

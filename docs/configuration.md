@@ -45,7 +45,9 @@ Resource keys identify registry resources:
 
 When a key appears in `[rusl.resources]`, Rusl infers the resource type from that shape. Keys must use the canonical `account/schemas/slug` and `account/bundles/slug` forms.
 
-A schema may live under a package — an organizational namespace expressed as a dotted prefix folded into the final identifier segment. `acme/schemas/payments.checkout` is the `checkout` schema in the `payments` package; `acme/schemas/platform.billing.invoicing.checkout` nests three levels deep. Treat the whole final segment as an opaque handle: pass identifiers through verbatim and never split the package off the leaf yourself. A schema without a package (e.g. `acme/schemas/user-profile`) is simply not packaged; its identifier is unchanged.
+A schema package is an optional dotted namespace within an account, not a bundle or dependency group. `acme/schemas/io.db.id` is leaf `id` in nested package `io.db`, still exactly three slash segments. Package segments are 2–25 characters from `[a-z0-9_-]`, at most five segments, and downcased on create/fork. Schema and bundle leaves are 2–25 letters, numbers, or hyphens, starting with a letter or number; schema leaves forbid dots. Account/user and annotation-type minima remain three. Schema slug uniqueness is per account/package; package and leaf are immutable after creation.
+
+Treat the full returned identifier as canonical and opaque. Never reconstruct it from a leaf-only `slug`, split package dots into slash routes, or create package folders. An unpackaged schema is `acme/schemas/id`. Creation takes leaf `id` plus optional package `io.db`; omit the package field for an unpackaged schema, never send an empty string. See [MCP tools](mcp-tools.md) for creation inputs.
 
 ### Version Requirements
 
@@ -58,6 +60,8 @@ The value for each resource is the version requirement string.
 | `1.2.3` | Store a specific semantic version. |
 
 Current resolver behavior is intentionally narrow: `*`, an empty string, and `>=0.0.0` are unconstrained; other semver-looking values are resolved by extracting the semantic version from the string. Prefer `rusl add` when possible so the manifest uses the CLI's current convention.
+
+For a published packaged schema, use `rusl add acme/schemas/io.db.id --version "1.2.3"`. This writes `"acme/schemas/io.db.id" = "1.2.3"` into `[rusl.resources]`. A version-qualified registry reference is `acme/schemas/io.db.id@v1.2.3`, with the suffix after the entire compound; CLI arguments and manifest keys keep the version separate.
 
 ### Supported Tables
 
@@ -155,15 +159,15 @@ The global `-C` / `--cwd <DIR>` flag changes the starting directory for all of t
 
 Controls where and how installed schemas are materialized on disk. Schemas are written to `{schema_dir}/{relative_path}{suffix}`, where `relative_path` is derived from the canonical registry identifier according to `naming_convention`.
 
-| Convention | Relative path for `rusl/schemas/common` | Example on disk (default `schema_dir`) |
+| Convention | Relative path for `acme/schemas/io.db.id` | Example on disk (default `schema_dir`) |
 | --- | --- | --- |
-| `full` | mirror identifier | `./schemas/rusl/schemas/common.schema.json` |
-| `normal` | strip `/schemas/` segment | `./schemas/rusl/common.schema.json` |
-| `flat` | `{account}_{slug}` | `./schemas/rusl_common.schema.json` |
+| `full` | `acme/schemas/io.db.id` | `./schemas/acme/schemas/io.db.id.schema.json` |
+| `normal` | `acme/io.db.id` | `./schemas/acme/io.db.id.schema.json` |
+| `flat` | `acme_io.db.id` | `./schemas/acme_io.db.id.schema.json` |
 
 Use `flat` when all schema files must live in a single directory (for example Go package embedding). Use `full` when downstream tooling expects the canonical registry path mirrored on disk.
 
-For a packaged schema the final identifier segment is the dotted compound (`package.slug`), and it carries into the file stem under every convention — `acme/schemas/payments.checkout` becomes `acme/schemas/payments.checkout.schema.json` under `full`, `acme/payments.checkout.schema.json` under `normal`, and `acme_payments.checkout.schema.json` under `flat`. Because the compound is preserved, two schemas that share a leaf in different packages (`payments.checkout` and `billing.checkout`) never collide on disk.
+The whole dotted compound survives in the file stem under every convention. Dots are not directory separators: `io.db.id` never becomes `io/db/id`. Two schemas sharing a leaf in different packages (`io.db.id` and `io.ui.id`) therefore keep distinct filenames. The chosen version affects file contents, not this filename; the suffix remains `.schema.json` by default.
 
 `rusl install` always materializes schemas as portable regular files under `schema_dir` by copying resolved content from the global content-addressed cache. It never writes absolute symlinks into the machine-local store, so vendored `schemas/` trees remain usable when committed or when another machine clones the repo and runs install.
 

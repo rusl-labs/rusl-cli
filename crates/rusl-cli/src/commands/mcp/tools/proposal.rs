@@ -247,11 +247,11 @@ struct CreateSchemaToolRequest {
     #[schemars(description = "Account slug that will own the schema.")]
     account_slug: String,
     #[schemars(
-        description = "Leaf schema slug to create within the account. Never contains dots — a package path is supplied separately via `package`."
+        description = "Leaf schema slug to create: 2-25 letters, numbers, or hyphens, starting with a letter or number. No dots; supply the optional package separately. Immutable after creation."
     )]
     schema_slug: String,
     #[schemars(
-        description = "Optional dotted package path the schema lives under (e.g. `payments.checkout`). Omit to leave the schema not packaged. Segments are 3-25 chars of [a-z0-9_-], at most 5 deep; slug uniqueness is per-package."
+        description = "Optional dotted namespace within the account (e.g. `io.db`), not a bundle. Omit for an unpackaged schema; never send an empty string. Each segment is 2-25 chars of [a-z0-9_-], at most 5 segments; downcased on create. Slug uniqueness is per account/package. Immutable after creation."
     )]
     package: Option<String>,
     #[schemars(description = "Optional human-readable schema description.")]
@@ -294,7 +294,9 @@ impl CreateSchemaToolRequest {
 struct CreateSchemaProposalToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug receiving the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "JSON Schema proposal content.")]
     content: Value,
@@ -342,7 +344,9 @@ impl From<ExampleDataToolInput> for ExampleDataInput {
 struct GetSchemaProposalToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug for the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "Proposal number within the schema.")]
     proposal_number: i32,
@@ -362,7 +366,9 @@ impl GetSchemaProposalToolRequest {
 struct UpdateSchemaProposalToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug for the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "Proposal number within the schema.")]
     proposal_number: i32,
@@ -395,7 +401,9 @@ impl UpdateSchemaProposalToolRequest {
 struct ListProposalReviewThreadsToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug for the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "Proposal number within the schema.")]
     proposal_number: i32,
@@ -421,7 +429,9 @@ impl ListProposalReviewThreadsToolRequest {
 struct GetProposalReviewThreadToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug for the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "Proposal number within the schema.")]
     proposal_number: i32,
@@ -444,7 +454,9 @@ impl GetProposalReviewThreadToolRequest {
 struct CreateProposalReviewThreadToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug for the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "Proposal number within the schema.")]
     proposal_number: i32,
@@ -470,7 +482,9 @@ impl CreateProposalReviewThreadToolRequest {
 struct ReplyToProposalReviewThreadToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug for the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "Proposal number within the schema.")]
     proposal_number: i32,
@@ -504,7 +518,9 @@ impl ReplyToProposalReviewThreadToolRequest {
 struct AcceptSchemaProposalToolRequest {
     #[schemars(description = "Account slug that owns the schema.")]
     account_slug: String,
-    #[schemars(description = "Schema slug for the proposal.")]
+    #[schemars(
+        description = "Complete final segment of the existing schema identifier, e.g. `io.db.id` from `acme/schemas/io.db.id`, or `id` if unpackaged. Not the returned leaf-only slug; no account prefix or version suffix."
+    )]
     schema_slug: String,
     #[schemars(description = "Proposal number within the schema.")]
     proposal_number: i32,
